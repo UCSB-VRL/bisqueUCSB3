@@ -304,7 +304,7 @@ class ImageProxy(BaseServiceProxy):
 class ExportProxy(BaseServiceProxy):
     valid_param = set (['files', 'datasets', 'dirs', 'urls', 'users'])
     def fetch_export(self, **kw):
-        params = { key:val for key,val in kw.items() if key in self.valid_param and val is not None }
+        params = { key:val for key,val in list(kw.items()) if key in self.valid_param and val is not None }
         response = self.fetch ('stream', params = params, stream=kw.pop ('stream', True) )
         return response
     def fetch_export_local(self, localpath, stream=True, **kw):

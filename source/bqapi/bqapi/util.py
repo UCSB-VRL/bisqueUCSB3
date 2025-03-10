@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 
 import os
 import shutil
@@ -19,7 +19,7 @@ log = logging.getLogger('bqapi.util')
 #####################################################
 
 def normalize_unicode(s):
-    if isinstance(s, unicode):
+    if isinstance(s, str):
         return s
     try:
         s = s.decode('utf8')
@@ -82,7 +82,7 @@ class AttrDict(dict):
         return value
 
     def __getstate__(self):
-        return self.items()
+        return list(self.items())
 
     def __setstate__(self, items):
         for key, val in items:
@@ -123,7 +123,7 @@ def make_qs(pd):
         convert back from dict to qs
     """
     query = []
-    for k,vl in pd.items():
+    for k,vl in list(pd.items()):
         for v in vl:
             pair = v and "%s=%s" % (k,v) or k
             query.append(pair)

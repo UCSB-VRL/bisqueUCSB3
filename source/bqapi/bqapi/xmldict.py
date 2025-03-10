@@ -1,6 +1,6 @@
 # Create python xml structures compatible with
 # http://search.cpan.org/~grantm/XML-Simple-2.18/lib/XML/Simple.pm
-from __future__ import print_function
+
 
 try:
     from lxml import etree
@@ -56,7 +56,7 @@ def d2xml(d):
     @return:  A etree Root element
     """
     def _d2xml(d, p):
-        for k,v in d.items():
+        for k,v in list(d.items()):
             if v is None: continue
             if isinstance(v,dict):
                 node = etree.SubElement(p, k)
@@ -71,9 +71,9 @@ def d2xml(d):
             #elif k == "__tail__":
             #        p.tail = v
             else:
-                p.set(k, unicode(v))
+                p.set(k, str(v))
 
-    k,v = d.items()[0]
+    k,v = list(d.items())[0]
     node = etree.Element(k)
     _d2xml(v, node)
     return node
