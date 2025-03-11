@@ -136,7 +136,7 @@ user_group_table = Table('user_group', metadata,
 class HashPassword():
     @staticmethod
     def create_password(password):
-        if isinstance(password, unicode):
+        if isinstance(password, str):
             password_8bit = password.encode('UTF-8')
         else:
             password_8bit = password
@@ -151,7 +151,7 @@ class HashPassword():
     @staticmethod
     def check_password(passval, password):
         hash = sha1()
-        if isinstance(password, unicode):
+        if isinstance(password, str):
             password = password.encode('utf-8')
         hash.update(password + str(passval[:40]))
         return passval[40:] == hash.hexdigest()
@@ -279,7 +279,7 @@ class User(DeclarativeBase):
         # columns
         log.debug ("Setting %s password", password_type)
 
-        if not isinstance(password, unicode):
+        if not isinstance(password, str):
             password = password.decode('utf-8')
         self._password = password
         self.on_update()
@@ -309,7 +309,7 @@ class User(DeclarativeBase):
         password_type = config.get ('bisque.login.password', 'freetext')
         password_cls  = password_map.get(password_type, FreeTextPassword)
 
-        if isinstance(password, unicode):
+        if isinstance(password, str):
             password = password.encode('utf-8')
 
         return password_cls.check_password(self.password, password)

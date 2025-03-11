@@ -27,7 +27,7 @@ class AutoRegister (object):
         if g is None:
             g = model.Group()
             g.group_name = login_identifier
-            g.display_name = u'%s Group' % login_identifier
+            g.display_name = '%s Group' % login_identifier
             model.DBSession.add(g)
         return g
 

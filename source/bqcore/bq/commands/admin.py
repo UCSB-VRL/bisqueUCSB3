@@ -48,21 +48,21 @@ def main():
     def _help():
         "Custom help text for bq-admin."
 
-        print """
+        print("""
 Bisque %s command line interface
 
 Usage: %s [options] <command>
 
 options: -d, --debug : print debug
 
-Commands:""" % (__VERSION__, sys.argv[0])
+Commands:""" % (__VERSION__, sys.argv[0]))
 
-        longest = max([len(key) for key in commands.keys()])
+        longest = max([len(key) for key in list(commands.keys())])
         format = "%" + str(longest) + "s  %s"
-        commandlist = commands.keys()
+        commandlist = list(commands.keys())
         commandlist.sort()
         for key in commandlist:
-            print format % (key, commands[key][0])
+            print(format % (key, commands[key][0]))
 
 
     parser = optparse.OptionParser()
@@ -72,7 +72,7 @@ Commands:""" % (__VERSION__, sys.argv[0])
     parser.add_option("-d", "--debug", action="store_true", default=False)
     parser.print_help = _help
     (options, args) = parser.parse_args(sys.argv[1:])
-    if not args or not commands.has_key(args[0]):
+    if not args or args[0] not in commands:
         _help()
         sys.exit()
 
@@ -210,15 +210,15 @@ class deploy(object):
         # dima: deploy fails under windows with access denied, need to clean dir first
         if os.name == 'nt':
             try:
-                print "Cleaning up %s" % self.public_dir
+                print("Cleaning up %s" % self.public_dir)
                 shutil.rmtree(self.public_dir, ignore_errors=True)
-            except OSError, e:
+            except OSError as e:
                 pass
 
         try:
-            print "Creating %s" % self.public_dir
+            print("Creating %s" % self.public_dir)
             os.makedirs (self.public_dir)
-        except OSError, e:
+        except OSError as e:
             pass
 
         rootdir = os.getcwd()
@@ -232,8 +232,8 @@ class deploy(object):
                 #print ('found static service: ' + str(x))
                 try:
                     service = x.load()
-                except Exception, e:
-                    print "Problem loading %s: %s" % (x, e)
+                except Exception as e:
+                    print("Problem loading %s: %s" % (x, e))
                     continue
                 if not hasattr(service, 'get_static_dirs'):
                     continue
@@ -245,7 +245,7 @@ class deploy(object):
                     dest = os.path.join (self.public_dir, x.name)
                     if not os.path.exists (dest):
                         os.makedirs (dest)
-                        print "Making ", dest
+                        print("Making ", dest)
                     names = os.listdir (r)
                     for name in names:
                         src = os.path.join (r, name)
@@ -257,7 +257,7 @@ class deploy(object):
                         self.copy (src, dst)
                         #print "%s->%s" % (src, dst)
 
-            except Exception, e:
+            except Exception as e:
                 logging.exception ("in copy")
                 #print "Exception: ", e
                 pass
@@ -280,7 +280,7 @@ class deploy(object):
         # os.chdir (rootdir)
 
         # regenerate all_js and all_css
-        print '\nGenerating packaged JS and CSS files\n'
+        print('\nGenerating packaged JS and CSS files\n')
         from bq.core.lib.js_includes import generate_css_files, generate_js_files
         rootdir = os.path.join(self.packagedir, '').replace(os.sep, '/')
         publicdir = os.path.join(self.public_dir, '').replace(os.sep, '/')
@@ -340,15 +340,15 @@ class preferences (object):
                     print ("deleting current system object")
                     data_service.del_resource(x[0])
                 else:
-                    print ("NO ACTION: System object initialized at %s " % etree.tostring(x[0]))
+                    print(("NO ACTION: System object initialized at %s " % etree.tostring(x[0])))
                     sys.exit (1)
 
             if os.path.exists(prefs):
                 if self.options.force:
-                    print ("deleting %s" % prefs)
+                    print(("deleting %s" % prefs))
                     os.remove (prefs)
                 else:
-                    print ('NO ACTION: %s exists.. cannot init' % prefs)
+                    print(('NO ACTION: %s exists.. cannot init' % prefs))
                     sys.exit(1)
 
             system = etree.parse(defaults_path ('preferences.xml.default')).getroot()
@@ -363,7 +363,7 @@ class preferences (object):
                 system = None
         else:
             if not os.path.exists(prefs):
-                print "Need %s" % prefs
+                print("Need %s" % prefs)
                 return
             system = etree.parse(prefs).getroot()
             # Esnure all elements are published
@@ -371,15 +371,15 @@ class preferences (object):
                 el.set ('permission', 'published')
             # Read system object
             uri = system.get('uri')
-            print  'system = %s' % etree.tostring(system)
+            print('system = %s' % etree.tostring(system))
 
             system = data_service.update_resource(new_resource=system, resource=uri,  view='deep')
-            print etree.tostring (system)
+            print(etree.tostring (system))
         transaction.commit()
         if system is not None:
             with open(prefs,'w') as f:
                 f.write(etree.tostring(system, pretty_print=True))
-                print "Wrote %s" % prefs
+                print("Wrote %s" % prefs)
 
 
 class sql(object):
@@ -399,12 +399,12 @@ class sql(object):
         from tg import config
         from sqlalchemy import create_engine
         from sqlalchemy.sql import text
-        from ConfigParser import ConfigParser
+        from configparser import ConfigParser
         load_config(self.options.config)
 
         engine = config['pylons.app_globals'].sa_engine
 
-        print engine
+        print(engine)
 
 
 class group(object):
@@ -424,12 +424,12 @@ class group(object):
         from tg import config
         from sqlalchemy import create_engine
         from sqlalchemy.sql import text
-        from ConfigParser import ConfigParser
+        from configparser import ConfigParser
         load_config(self.options.config)
 
         engine = config['pylons.app_globals'].sa_engine
 
-        print engine
+        print(engine)
 
 
 
@@ -472,16 +472,16 @@ class stores(object):
         if command == 'list':
             list_stores(username)
         elif command == 'init':
-            print "initializing stores"
+            print("initializing stores")
             init_stores(username)
         elif command == 'fill':
-            print "attempting to fill stores with data"
+            print("attempting to fill stores with data")
             fill_stores(username)
         elif command == 'update':
-            print "attempting to update stores based on config/site.cfg settings"
+            print("attempting to update stores based on config/site.cfg settings")
             update_stores(username)
         elif command == 'move':
-            print "attempting to update stores based on config/site.cfg settings"
+            print("attempting to update stores based on config/site.cfg settings")
             move_stores(from_store, to_store, username)
 
         transaction.commit()
@@ -512,7 +512,7 @@ class password(object):
         load_config(self.options.config)
 
         from tg import config
-        print "password mechanism:", config.get ('bisque.login.password', 'freetext')
+        print("password mechanism:", config.get ('bisque.login.password', 'freetext'))
 
 
         if self.command == 'set':
@@ -521,12 +521,12 @@ class password(object):
         elif self.command == 'list':
             from bq.core.model.auth import User, DBSession
             for user in DBSession.query(User):
-                print user.user_name, user.password
+                print(user.user_name, user.password)
         elif self.command == 'convert':
             from bq.core.model.auth import User, DBSession
             for user in DBSession.query(User):
                 if len(user.password)==80 and not self.options.force:
-                    print "Skipping user %s already  converted" % user.user_name
+                    print("Skipping user %s already  converted" % user.user_name)
                     continue
                 self.set_password (user.user_name, user.password)
         transaction.commit()
@@ -535,10 +535,10 @@ class password(object):
         from bq.core.model.auth import User, DBSession
         user = DBSession.query(User).filter_by(user_name = user_name).first()
         if user:
-            print "setting %s" % user.user_name
+            print("setting %s" % user.user_name)
             user.password = password
         else:
-            print "cannot find user %s" % user_name
+            print("cannot find user %s" % user_name)
 
 
 
@@ -578,7 +578,7 @@ class hosturl(object):
         else:
             engine = create_engine (self.options.dburl)
 
-        print "updating ", engine
+        print("updating ", engine)
 
         if self.command == 'update':
             oldurl , newurl = self.args
@@ -592,12 +592,12 @@ class hosturl(object):
             stmt = taggable.update ()\
                    .values (resource_value = func.replace (taggable.c.resource_value, oldurl, newurl))\
                    .where(taggable.c.resource_value.like (oldurl + '%'))
-            print stmt
+            print(stmt)
             engine.execute (stmt)
             stmt = values.update() \
                      .values (valstr = func.replace (values.c.valstr, oldurl, newurl))\
                      .where(values.c.valstr.like (oldurl + '%'))
-            print stmt
+            print(stmt)
             engine.execute (stmt)
 
             # Find all values

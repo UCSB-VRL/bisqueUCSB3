@@ -58,5 +58,5 @@ class ModelTest(object):
     def test_query_obj(self):
         """Model objects can be queried"""
         obj = DBSession.query(self.klass).one()
-        for key, value in self.attrs.iteritems():
+        for key, value in list(self.attrs.items()):
             assert_equals(getattr(obj, key), value)

@@ -1,7 +1,7 @@
 # misc.py
 # Author: Dmitry Fedorov
 # Center for BioImage Informatics, University California, Santa Barbara
-from __future__ import with_statement
+
 
 """ miscellaneous functions for Image Service and COmmand Line Converters
 """
@@ -33,7 +33,7 @@ log = logging.getLogger('bq.util.io_misc')
 ################################################################################
 
 def blocked_alpha_num_sort(s):
-    return [int(u''.join(g)) if k else u''.join(g) for k, g in groupby(unicode(s), unicode.isdigit)]
+    return [int(''.join(g)) if k else ''.join(g) for k, g in groupby(str(s), str.isdigit)]
 
 def between(left,right,s):
     _,_,a = s.partition(left)
@@ -74,7 +74,7 @@ def safetypeparse(v):
     return v
 
 def safeencode(s):
-    if isinstance(s, unicode) is not True:
+    if isinstance(s, str) is not True:
         return str(s)
     try:
         s.encode('ascii')
@@ -83,15 +83,15 @@ def safeencode(s):
     return s
 
 def toascii(s):
-    if isinstance(s, basestring) is not True:
-        s = u'%s'%s
+    if isinstance(s, str) is not True:
+        s = '%s'%s
     return s.encode('ascii', 'replace')
 
 def tounicode(s):
-    if isinstance(s, unicode) is True:
+    if isinstance(s, str) is True:
         return s
-    if isinstance(s, basestring) is not True:
-        return u'%s'%s
+    if isinstance(s, str) is not True:
+        return '%s'%s
     try:
         return s.decode('utf8')
 
@@ -99,7 +99,7 @@ def tounicode(s):
         try:
             return s.decode('latin1')
         except (UnicodeDecodeError, UnicodeEncodeError):
-            return unicode(s.encode('ascii', 'replace'))
+            return str(s.encode('ascii', 'replace'))
 
 def run_command(command, cwd=None, shell=False):
     '''returns a string of a successfully executed command, otherwise None'''
@@ -153,15 +153,15 @@ if os.name != 'nt':
 
 else:
     def symlinkdir(source, link_name):
-        source = unicode(os.path.normpath(source))
-        link_name = unicode(os.path.normpath(link_name))
+        source = str(os.path.normpath(source))
+        link_name = str(os.path.normpath(link_name))
         csl = ctypes.windll.kernel32.CreateSymbolicLinkW
         if csl(link_name, source, 1) == 0:
             raise ctypes.WinError()
 
     def hardlink(source, link_name):
-        source = unicode(os.path.normpath(source))
-        link_name = unicode(os.path.normpath(link_name))
+        source = str(os.path.normpath(source))
+        link_name = str(os.path.normpath(link_name))
         csl = ctypes.windll.kernel32.CreateHardLinkW
         if csl(link_name, source, 0) == 0:
             raise ctypes.WinError()

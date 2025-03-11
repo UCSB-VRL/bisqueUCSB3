@@ -52,7 +52,7 @@ DESCRIPTION
 
 
 """
-from __future__ import print_function
+
 from past.builtins import execfile
 from future import standard_library
 standard_library.install_aliases()
@@ -61,7 +61,7 @@ from builtins import chr
 from builtins import input
 from builtins import str
 from builtins import range
-from past.builtins import basestring
+from past.builtins import str
 from builtins import object
 
 import datetime
@@ -288,7 +288,7 @@ def getanswer(question, default, help=None, envvar=None):
             ans =  capture.logged_input ("%s [%s]? " % (question, default))
         else:
             if not use_defaults:
-                ans =  input ("%s [%s]? " % (question, default))
+                ans =  eval(input ("%s [%s]? " % (question, default)))
             else:
                 ans = default
 
@@ -464,7 +464,7 @@ def check_env (section, key):
 
 # stolen form pylons
 def asbool(obj):
-    if isinstance(obj, basestring):
+    if isinstance(obj, str):
         obj = obj.strip().lower()
         if obj in ['true', 'yes', 'on', 'y', 't', '1']:
             return True
@@ -679,7 +679,7 @@ def update_variables (qs, store):
 
     # Based on the given answers, update the again values  (for mutual references)
     for key in list(values.keys()):
-        if isinstance (values[key], basestring):
+        if isinstance (values[key], str):
             values[key] = STemplate (values[key]).safe_substitute(values)
 
     return values
@@ -2975,7 +2975,7 @@ class CaptureIO(object):
         self.o.write(s)
         self.f.write(s); self.f.flush()
     def logged_input(self,prompt):
-        response = input(prompt)
+        response = eval(input(prompt))
         self.f.write (response)
         self.f.write ('\n')
         return response
@@ -3013,7 +3013,7 @@ def find_virtualenv ():
         activate_this = os.path.join (os.path.dirname (os.path.realpath(sys.argv[0])),
                                       'activate_this.py')
         if os.path.exists (activate_this):
-            execfile (activate_this, dict (__file__ = activate_this))
+            exec(compile(open(activate_this, "rb").read(), activate_this, 'exec'), dict (__file__ = activate_this))
         virtenv = os.path.dirname (os.path.dirname (activate_this))
     if virtenv is None:
         print("Cannot determine your python virtual environment")

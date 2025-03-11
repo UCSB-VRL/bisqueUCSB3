@@ -22,7 +22,7 @@ def setup_db():
     engine = config['pylons.app_globals'].sa_engine
     model.init_model(engine)
     model.metadata.create_all(engine)
-    print "SETUP DB"
+    print("SETUP DB")
 
 def teardown_db():
     """Method used to destroy a database"""
@@ -30,7 +30,7 @@ def teardown_db():
     DBSession.remove()
     engine = config['pylons.app_globals'].sa_engine
     model.metadata.drop_all(engine)
-    print "TEARDOWN DB"
+    print("TEARDOWN DB")
 
     #transaction.doom()
 
@@ -70,10 +70,10 @@ class TestController(object):
     @classmethod
     def setup_class(cls):
         """Method called by nose before running each test"""
-        print "TestController SETUP"
+        print("TestController SETUP")
         # Loading the application:
         cls.app = setup_app()
-        print "Setup COmplete"
+        print("Setup COmplete")
 
     @classmethod
     def teardown_class(cls):
@@ -81,7 +81,7 @@ class TestController(object):
         # Cleaning up the database:
         #DBSession.rollback()
         #DBSession.expunge_all()
-        print "TestController TEARDOWN"
+        print("TestController TEARDOWN")
         teardown_db()
 
 class DBTest(object):
@@ -90,11 +90,11 @@ class DBTest(object):
     application_under_test = "main"
 
     def setUp(self):
-        print "DBTest.setup"
+        print("DBTest.setup")
 
     def tearDown(self):
         """Method called by nose after running each test"""
         # Cleaning up the database:
         #DBSession.rollback()
         #DBSession.expunge_all()
-        print "DBTEST.teardown"
+        print("DBTEST.teardown")

@@ -74,7 +74,7 @@ class BisqueErrorFilter(object):
         status, headers, app_iter, exc_info = call_wsgi_application(
             self.app, environ, catch_exc_info=True)
         #log.debug ("ENV=%s" % environ)
-        if status[:3] in self.codes and environ.has_key('HTTP_USER_AGENT') and \
+        if status[:3] in self.codes and 'HTTP_USER_AGENT' in environ and \
                 environ['HTTP_USER_AGENT'].startswith('Python'):
             environ['pylons.status_code_redirect'] = True
             log.info ('ERROR: disabled status_code_redirect')
@@ -164,7 +164,7 @@ class BisqueAppConfig(AppConfig):
                     #    staticfilters.append (static_app)
             #cascade = staticfilters + [app]
             #print ("CASCADE", cascade)
-            log.info( "END STATICS: discovered %s static files " % len(static_app.files.keys()))
+            log.info( "END STATICS: discovered %s static files " % len(list(static_app.files.keys())))
         else:
             log.info( "NO STATICS")
         return app
@@ -175,7 +175,7 @@ class BisqueAppConfig(AppConfig):
         """
         log_stream = config.get ('who.log_stream', 'stdout')
         log_stream = LOG_STREAMS.get (log_stream, log_stream)
-        if isinstance(log_stream, basestring ):
+        if isinstance(log_stream, str ):
             log_stream  = logging.getLogger (log_stream)
         log_level = LOG_LEVELS.get (config['who.log_level'], logging.ERROR)
         log.debug ("LOG_STREAM %s LOG_LEVEL %s" , str(log_stream), str(log_level))

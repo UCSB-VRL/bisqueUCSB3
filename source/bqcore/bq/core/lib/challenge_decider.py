@@ -52,11 +52,11 @@ def bisque_challenge_decider(environ, status, headers):
         log.debug ('challange requested')
         log.debug ('req %s resp %s' % (req_content, content_type))
         return True
-    elif environ.has_key('repoze.whoplugins.openid.openid'):
+    elif 'repoze.whoplugins.openid.openid' in environ:
         # in case IIdentification found an openid it should be in the environ
         # and we do the challenge
         return True
-    elif environ.has_key('repoze.who.plugins.cas'):
+    elif 'repoze.who.plugins.cas' in environ:
         # in case IIdentification found an cas it should be in the environ
         # and we do the challenge
         return True

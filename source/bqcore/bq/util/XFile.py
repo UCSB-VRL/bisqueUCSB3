@@ -28,7 +28,7 @@ __all__ = ["LOCK_NB", "LOCK_EX", "LOCK_SH", "XFile", "Dump", "Slurp", "LockError
 __version__ = "0.1.0.2"
 
 if name not in ["nt", "posix"]:
-    raise OSError, "the XFile object does not support the '%s' operating system." % name
+    raise OSError("the XFile object does not support the '%s' operating system." % name)
 
 if name == "nt":
     # Define locking constants.
@@ -55,10 +55,10 @@ def SplitNumber(Number):
     # passing to Windows API functions.
 
     # Check that the number is an integer and is not too large.
-    if type(Number) not in [int, long]:
-        raise ValueError, "expected int or long for number, got %s" % type(Number).__name__
+    if type(Number) not in [int, int]:
+        raise ValueError("expected int or long for number, got %s" % type(Number).__name__)
     if Number > 2 ** 64 - 1:
-        raise ValueError, "number cannot be larger than 2 ** 64 - 1"
+        raise ValueError("number cannot be larger than 2 ** 64 - 1")
 
     # If the number is less than 2 ** 32 it doesn't need to
     # be split.
@@ -133,9 +133,9 @@ class XFile(file):
         # Now that we have all of these things we can try to lock the file.
         try:
             LockFileEx(self.__num_OSHandle, num_LockFlags, num_BytesToLockLow, num_BytesToLockHigh, self.__OverlappedObject)
-        except error, e:
+        except error as e:
             self.__LastException = e
-            raise LockError, e.args
+            raise LockError(e.args)
 
         # Place the start and end values as members in ourself so
         # the unlock() function can use the later.
@@ -150,18 +150,18 @@ class XFile(file):
         # We already have the overlapped object so we don't need to make it again.
         try:
             UnlockFileEx(self.__num_OSHandle, num_BytesToUnlockLow, num_BytesToUnlockHigh, self.__OverlappedObject)
-        except error, e:
+        except error as e:
             self.__LastException = e
-            raise LockError, e.args
+            raise LockError(e.args)
 
     def __LockPOSIX(self, num_LockFlags, num_Start, num_End):
         try:
             lockf(self.fileno(), num_LockFlags, num_End, num_Start, 0)
-        except IOError, Error:
+        except IOError as Error:
             # The lock was unsuccessful, so return False.
             if Error.errno == errno.EACCES or Error.errno == errno.EAGAIN:
                 self.__LastException = Error
-                raise LockError, Error.args
+                raise LockError(Error.args)
 
         # Place the start and end values as members in ourself so
         # the unlock() function can use the later.
@@ -171,10 +171,10 @@ class XFile(file):
     def __UnlockPOSIX(self, num_Start, num_End):
         try:
             lockf(self.fileno(), LOCK_UN, num_End, num_Start, 0)
-        except IOError, Error:
+        except IOError as Error:
             # If the unlock was unsuccessful, raise LockError.
             self.__LastException = Error
-            raise LockError, Error.args
+            raise LockError(Error.args)
 
     def __GetLockStatusInternal(self):
         return self.__bool_Locked
@@ -185,34 +185,34 @@ class XFile(file):
 
         # Check that the file is lockable; ie, not closed or already locked.
         if self.is_locked() == True:
-            raise LockError, "cannot lock file; file is already locked"
+            raise LockError("cannot lock file; file is already locked")
         if self.closed == True:
-            raise LockError, "cannot lock file; file is closed"
+            raise LockError("cannot lock file; file is closed")
 
         # Check that the flags are an integer.
-        if type(num_LockFlags) not in [int, long]:
-            raise LockError, "expected int or long for lock flags, got %s" % type(num_LockFlags).__name__
+        if type(num_LockFlags) not in [int, int]:
+            raise LockError("expected int or long for lock flags, got %s" % type(num_LockFlags).__name__)
 
         # Check that we're not doing LOCK_EX when in read mode on POSIX.
         if name == "POSIX" and num_LockFlags | LOCK_EX == num_LockFlags and "r" in self.mode and "+" not in self.mode: # pylint: disable=unsupported-membership-test
-            raise LockError, "LOCK_EX cannot be used in read mode on POSIX; use LOCK_SH instead"
+            raise LockError("LOCK_EX cannot be used in read mode on POSIX; use LOCK_SH instead")
 
         # Check that num_Start and num_End are integers.
-        if type(num_Start) not in [int, long]:
-            raise LockError, "expected int or long for lock range start, got %s" % type(num_Start).__name__
-        if type(num_End) not in [int, long]:
-            raise LockError, "expected int or long for lock range end, got %s" % type(num_End).__name__
+        if type(num_Start) not in [int, int]:
+            raise LockError("expected int or long for lock range start, got %s" % type(num_Start).__name__)
+        if type(num_End) not in [int, int]:
+            raise LockError("expected int or long for lock range end, got %s" % type(num_End).__name__)
 
         # Check that the ranges are positive.
         if num_Start < 0:
-            raise LockError, "lock range start must be a positive integer"
+            raise LockError("lock range start must be a positive integer")
         if num_End < 0:
-            raise LockError, "lock range end must be a positive integer"
+            raise LockError("lock range end must be a positive integer")
 
         # Check that the start and end are not the same.  The reason we ignore
         # a 0 for both values is that 0 is the default.
         if num_Start == num_End and num_Start != 0 and num_End != 0:
-            raise LockError, "lock range start and lock range end must be different"
+            raise LockError("lock range start and lock range end must be different")
 
         # Lock the file.
         self.__LockFile(num_LockFlags, num_Start, num_End)
@@ -227,9 +227,9 @@ class XFile(file):
 
         # Check that the file is unlockable; ie, not closed or already unlocked.
         if self.is_locked() == False:
-            raise LockError, "cannot unlock file; file is already unlocked"
+            raise LockError("cannot unlock file; file is already unlocked")
         if self.closed == True:
-            raise LockError, "cannot unlock file; file is closed"
+            raise LockError("cannot unlock file; file is closed")
 
         # Unlock the file.
         self.__UnlockFile(self.__num_Start, self.__num_End)
@@ -248,11 +248,11 @@ def Slurp(str_Filename, bool_Binary=False):
     # file and return them.
 
     # Check parameter types.
-    if type(str_Filename) not in [str, buffer, unicode]:
-        raise TypeError, "Filename must be str, buffer or unicode; got %s" % type(str_Filename).__name__
+    if type(str_Filename) not in [str, buffer, str]:
+        raise TypeError("Filename must be str, buffer or unicode; got %s" % type(str_Filename).__name__)
 
     if type(bool_Binary) != bool:
-        raise TypeError, "Binary indicator must be bool; got %s" % type(bool_Binary).__name__
+        raise TypeError("Binary indicator must be bool; got %s" % type(bool_Binary).__name__)
 
     File = XFile(str_Filename, "r" + ("b" * bool_Binary))
     File.lock(LOCK_SH)
@@ -267,14 +267,14 @@ def Dump(str_Filename, str_Data, bool_Binary=False):
     # of the string given to the file.
 
     # Check parameter types.
-    if type(str_Filename) not in [str, buffer, unicode]:
-        raise TypeError, "Filename must be str, buffer or unicode; got %s" % type(str_Filename).__name__
+    if type(str_Filename) not in [str, buffer, str]:
+        raise TypeError("Filename must be str, buffer or unicode; got %s" % type(str_Filename).__name__)
 
-    if type(str_Data) not in [str, buffer, unicode]:
-        raise TypeError, "Data must be str, buffer or unicode; got %s" % type(str_Data).__name__
+    if type(str_Data) not in [str, buffer, str]:
+        raise TypeError("Data must be str, buffer or unicode; got %s" % type(str_Data).__name__)
 
     if type(bool_Binary) != bool:
-        raise TypeError, "Binary indicator must be bool; got %s" % type(bool_Binary).__name__
+        raise TypeError("Binary indicator must be bool; got %s" % type(bool_Binary).__name__)
 
     File = XFile(str_Filename, "w" + ("b" * bool_Binary))
     File.lock(LOCK_EX)
@@ -287,14 +287,14 @@ def Append(str_Filename, str_Data, bool_Binary=False):
     # of the string given to the file.
 
     # Check parameter types.
-    if type(str_Filename) not in [str, buffer, unicode]:
-        raise TypeError, "Filename must be str, buffer or unicode; got %s" % type(str_Filename).__name__
+    if type(str_Filename) not in [str, buffer, str]:
+        raise TypeError("Filename must be str, buffer or unicode; got %s" % type(str_Filename).__name__)
 
-    if type(str_Data) not in [str, buffer, unicode]:
-        raise TypeError, "Data must be str, buffer or unicode; got %s" % type(str_Data).__name__
+    if type(str_Data) not in [str, buffer, str]:
+        raise TypeError("Data must be str, buffer or unicode; got %s" % type(str_Data).__name__)
 
     if type(bool_Binary) != bool:
-        raise TypeError, "Binary indicator must be bool; got %s" % type(bool_Binary).__name__
+        raise TypeError("Binary indicator must be bool; got %s" % type(bool_Binary).__name__)
 
     File = XFile(str_Filename, "a" + ("b" * bool_Binary))
     File.lock(LOCK_EX)

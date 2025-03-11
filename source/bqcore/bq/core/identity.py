@@ -91,7 +91,7 @@ class BisqueIdentity(object):
         @param user:  a username or :class:BQUser object
         @return: precious user or None
         """
-        if isinstance (user, basestring):
+        if isinstance (user, str):
             from bq.data_service.model.tag_model import BQUser
             user =  DBSession.query (BQUser).filter_by(resource_name = user).first()
 
@@ -119,7 +119,7 @@ def get_admin():
         user_admin = request.identity.get ('bisque.admin_user', None)
     if user_admin is None:
         from bq.data_service.model.tag_model import BQUser
-        user_admin = DBSession.query(BQUser).filter_by(resource_name=u'admin').first()
+        user_admin = DBSession.query(BQUser).filter_by(resource_name='admin').first()
         if hasattr(request, 'identity'):
             request.identity['bisque.admin_user'] = user_admin
     return user_admin

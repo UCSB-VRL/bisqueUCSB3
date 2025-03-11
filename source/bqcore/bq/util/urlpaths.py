@@ -49,8 +49,8 @@ Store resource all special clients to simulate a filesystem view of resources.
 """
 import os
 import string
-import urllib
-import urlparse
+import urllib.request, urllib.parse, urllib.error
+import urllib.parse
 import shutil
 import posixpath
 
@@ -74,7 +74,7 @@ if os.name == 'nt':
             path = path.encode('utf-8')
         except UnicodeDecodeError:
             pass # was encoded before
-        url = urllib.quote(path)
+        url = urllib.parse.quote(path)
         # KGK:would be better to add regexp matcher here
         if len(path)>3 and path[0] != '/' and path[1] == ':':
             # path starts with a drive letter: c:/ and is not a valid file like /:myfile/
@@ -88,8 +88,8 @@ if os.name == 'nt':
         "url should be utf8 encoded (but may actually be unicode from db)"
         if url.startswith('file://'):
             url = url[7:]
-        path = posixpath.normpath(urlparse.urlparse(url).path)
-        path = urllib.unquote(path)
+        path = posixpath.normpath(urllib.parse.urlparse(url).path)
+        path = urllib.parse.unquote(path)
         if len(path)>3 and path[0] == '/' and path[2] == ':':
             path = path[1:]
         path = force_filesys(path)
@@ -120,7 +120,7 @@ else:
             path = path.encode('utf-8')
         except UnicodeDecodeError:
             pass # was already encoded
-        url = urllib.quote(path)
+        url = urllib.parse.quote(path)
         url = 'file://%s'%url
         return url
 
@@ -131,12 +131,12 @@ else:
         # a bytestring
         # http://stackoverflow.com/questions/14539807/convert-unicode-with-utf-8-string-as-content-to-str
         try:
-            if isinstance(s, unicode):
+            if isinstance(s, str):
                 s = s.encode('latin1')
             # if we get here then we are  a bytestring (either ascii or utf8 encoded)
         except UnicodeEncodeError:
             # will be here if it *really* was unicode 16 (should still be unicode)
-            if isinstance(s, unicode):
+            if isinstance(s, str):
                 s =  s.encode('utf8')
         # We should have an 8bit utf8 string or  a unciode that we can encode as utf8
         return s
@@ -145,8 +145,8 @@ else:
         "url should be utf8 encoded (but may actually be unicode from db)"
         if url.startswith('file://'):
             url = url[7:]
-        path = posixpath.normpath(urlparse.urlparse(url).path)
-        path = urllib.unquote(path)
+        path = posixpath.normpath(urllib.parse.urlparse(url).path)
+        path = urllib.parse.unquote(path)
         path = force_filesys(path)
         return path
 
@@ -164,7 +164,7 @@ def config2url(conf):
 
 def url2unicode(url):
     "Unquote and try to decode"
-    url = urllib.unquote (url)
+    url = urllib.parse.unquote (url)
     try:
         return url.decode('utf-8')
     except UnicodeEncodeError:

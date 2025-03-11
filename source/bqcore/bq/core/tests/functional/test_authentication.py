@@ -39,7 +39,7 @@ class TestAuthentication(TestController):
         resp = resp.follow(status=200)
         form = resp.form
         # Submitting the login form:
-        form['login'] = u'admin'
+        form['login'] = 'admin'
         form['password'] = 'admin'
         post_login = form.submit(status=302)
         # Being redirected to the initially requested page:
@@ -56,7 +56,7 @@ class TestAuthentication(TestController):
         resp = self.app.get('/auth_service/login', status=200)
         form = resp.form
         # Submitting the login form:
-        form['login'] = u'admin'
+        form['login'] = 'admin'
         form['password'] = 'admin'
         post_login = form.submit(status=302)
         # Being redirected to the home page:
