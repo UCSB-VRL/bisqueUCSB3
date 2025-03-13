@@ -1,7 +1,7 @@
 """ Setup the environment for a docker execution.
 """
 
-from __future__ import with_statement
+
 
 import os
 import string
@@ -172,5 +172,5 @@ class DockerEnvironment(BaseEnvironment):
             path = os.path.join(dest, 'docker_run' )
         with open(path, 'w') as f:
             f.write (content)
-        os.chmod (path, 0744)
+        os.chmod (path, 0o744)
         return path

@@ -54,7 +54,7 @@ import os
 import sys
 import logging
 import traceback
-import urlparse
+import urllib.parse
 #import Queue
 #import multiprocessing
 from datetime import datetime
@@ -248,7 +248,7 @@ class EngineServer(ServiceController):
             #log.debug('sys.argv: %s', sys.argv)
             python_ent_env = os.path.join(os.path.dirname(sys.argv[0]), 'python.exe')
             sys.argv = [python_ent_env, 'bqengine\\bq\\engine\\controllers\\execone.py']
-            import execone
+            from . import execone
             sys.modules['__main__'] = execone
             from multiprocessing.forking import set_executable
             set_executable( python_ent_env )
@@ -280,7 +280,7 @@ class EngineServer(ServiceController):
     def index(self, refresh='false'):
         """Return the list of available modules urls"""
         #server = urlparse.urljoin(config.get('bisque.server'), self.service_type)
-        server = urlparse.urljoin (tg.request.host_url, self.service_type)
+        server = urllib.parse.urljoin (tg.request.host_url, self.service_type)
 
         if asbool (refresh):
             self.refresh()
@@ -292,7 +292,7 @@ class EngineServer(ServiceController):
     def _services(self, *path, **kw):
         resource = etree.Element('resource')
         for m in self.modules:
-            module_uri = urlparse.urljoin (tg.request.host_url, "/".join ([self.service_type, m.get('name')]))
+            module_uri = urllib.parse.urljoin (tg.request.host_url, "/".join ([self.service_type, m.get('name')]))
             etree.SubElement(resource, 'service', name=m.get('name'), value=module_uri)
         return etree.tostring(resource)
 
@@ -454,7 +454,7 @@ class EngineModuleResource(BaseController):
 
     def module_uri (self):
         'generate valid uri for module'
-        return urlparse.urljoin (tg.request.host_url, "/".join ([EngineServer.service_type, self.name]))
+        return urllib.parse.urljoin (tg.request.host_url, "/".join ([EngineServer.service_type, self.name]))
 
 
 
@@ -595,7 +595,7 @@ class EngineModuleResource(BaseController):
             #if not mextree.get ('asynchronous'):
             #    mextree.set('status', "FINISHED")
 
-        except EngineError, e:
+        except EngineError as e:
             log.exception ("EngineError")
             mextree.set('value', 'FAILED')
             mextree.append(etree.Element('tag', name='error_message', value=str(e)))

@@ -134,7 +134,7 @@ class BaseAdapter(object):
 
         # Add the index
         for i, node in enumerate(input_nodes):
-            if 'index' in node.keys():
+            if 'index' in list(node.keys()):
                 continue
             node.set ('index', str(i))
 
