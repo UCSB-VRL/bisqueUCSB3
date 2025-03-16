@@ -52,7 +52,7 @@ DESCRIPTION
     RESTful resource with caching
 
 """
-from __future__ import with_statement
+
 import os
 import re
 #import md5
@@ -60,7 +60,7 @@ import hashlib
 import logging
 import tempfile
 
-from urlparse import urlparse
+from urllib.parse import urlparse
 from datetime import datetime
 from time import gmtime, strptime
 
@@ -151,7 +151,7 @@ def safename(filename, user):
                 filename = filename.encode('ascii', 'xmlcharrefreplace')
     except UnicodeError:
         pass
-    if isinstance(filename,unicode):
+    if isinstance(filename,str):
         filename=filename.encode('utf-8')
     #filemd5 = md5.new(filename).hexdigest()
     filename = re_url_scheme.sub("", filename)
@@ -252,18 +252,18 @@ class ResponseCache(BaseCache):
             names.append ( '0,%s' % resource.resource_uniq if resource else '' )
         return names
     def _resource_query_names(self, resource, user, *args):
-        resource_type = getattr(resource, 'resource_type', None) or (isinstance (resource, basestring) and resource) or ''
+        resource_type = getattr(resource, 'resource_type', None) or (isinstance (resource, str) and resource) or ''
         base = "%s,%s" % (user if user else '', resource_type)
         top = "%s#" % (user if user else 0)
         return [ top, base ] + [ "#".join ([base, arg]) for arg in args ]
 
     def save(self, url, headers, value, user):
         cachename = os.path.join(self.cachepath, self._cache_name(url, user))
-	if ",value" in cachename:
-	    log.debug (u'NO NO NOcache write %s to %s', url, cachename)
-	    return
-        headers = dict ([ (k,v) for k,v in headers.items() if k in self.known_headers])
-        log.debug (u'cache write %s to %s', url, cachename )
+        if ",value" in cachename:
+            log.debug ('NO NO NOcache write %s to %s', url, cachename)
+            return
+        headers = dict ([ (k,v) for k,v in list(headers.items()) if k in self.known_headers])
+        log.debug ('cache write %s to %s', url, cachename )
         clen = headers.get ('Content-Length', None)
         if not clen or clen=='0':
             headers['Content-Length'] = str (len (value))
@@ -288,16 +288,16 @@ class ResponseCache(BaseCache):
         #log.debug ('cache fetch %s' % url)
         try:
             cachename = os.path.join(self.cachepath, self._cache_name(url, user))
-            log.debug (u'cache check %s', cachename)
+            log.debug ('cache check %s', cachename)
             if os.path.exists (cachename):
                 with open(cachename) as f:
                     headers, cached = f.read().split ('\n\n', 1)
-                    log.debug (u'cache fetch serviced %s', url)
+                    log.debug ('cache fetch serviced %s', url)
                     headers = eval (headers)
                     return headers, cached
-        except ValueError,e:
+        except ValueError as e:
             pass
-        except IOError, e:
+        except IOError as e:
             pass
         return None, None
 
@@ -347,7 +347,7 @@ class ResponseCache(BaseCache):
                         pass
                     files.remove (cf)
                     log.debug ('cache remove %s' % cf)
-            except Exception, e:
+            except Exception as e:
                 log.exception ("while removing %s from %s", cf, files)
 
     def modified(self, url, user):

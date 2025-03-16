@@ -48,4 +48,4 @@ class TestDSController():
                                   extra_environ=environ,
                                   )
         assert 'image' in response
-        print response
+        print(response)

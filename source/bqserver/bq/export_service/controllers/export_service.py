@@ -90,11 +90,11 @@ import gdata.docs
 import gdata.docs.service
 
 try:
-    from cStringIO import StringIO
+    from io import StringIO
 except Exception:
-    from StringIO import StringIO
+    from io import StringIO
 
-from urllib import quote
+from urllib.parse import quote
 from lxml import etree
 
 import tg
@@ -215,7 +215,7 @@ class export_serviceController(ServiceController):
         try:
             gd_client.ProgrammaticLogin()
         except Exception:
-            return dict(error= str(sys.exc_value) )
+            return dict(error= str(sys.exc_info()[1]) )
 
         m_file_handle = input_file
         m_content_type = 'text/csv'

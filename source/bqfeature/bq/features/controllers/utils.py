@@ -6,8 +6,8 @@ import numpy as np
 import re
 import logging
 import tempfile
-import urlparse
-import urllib
+import urllib.parse
+import urllib.request, urllib.parse, urllib.error
 from lxml import etree
 from tg import request
 
@@ -147,7 +147,7 @@ def mex_validation(resource):
         url = getattr(resource,name)
         log.debug("resource: %s" % url)
         try:
-            o = urlparse.urlsplit(url)
+            o = urllib.parse.urlsplit(url)
             url_path = o.path
             log.debug('url_path :%s' % url_path)
             m = re.match('\/(?P<service>[\w-]+)\/(image[s]?\/|)(?P<id>[\w-]+)', url_path)
@@ -186,7 +186,7 @@ def mex_validation(resource):
 
             raise InvalidResourceError(resource_url=url, error_code=403, error_message='Resource: %s Not Found' % url)
 
-        except StandardError:
+        except Exception:
             log.exception ("While retrieving URL %s" %str(resource))
             raise InvalidResourceError(resource_url=url, error_code=403, error_message='Resource: %s Not Found' % url)
 
@@ -234,7 +234,7 @@ def fetch_resource(uri):
         log.debug("User is not authorized to read resource externally: %s" % uri)
         raise InvalidResourceError(resource_url=uri, error_code=403, error_message='Resource: %s Not Found' % uri)
 
-    except StandardError:
+    except Exception:
         log.exception ("While retrieving URL %s" % uri)
         raise InvalidResourceError(resource_url=uri, error_code=403, error_message='Resource: %s Not Found' % uri)
 
@@ -252,7 +252,7 @@ def image2numpy(uri, **kw):
 
         @return numpy image
     """
-    o = urlparse.urlsplit(uri)
+    o = urllib.parse.urlsplit(uri)
 
     if 'image_service' in o.path:
         #finds image resource though local image service

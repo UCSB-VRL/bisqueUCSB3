@@ -61,7 +61,7 @@ from pylons.controllers.util import abort
 from tg import expose, redirect, response
 from tg import config
 from lxml import etree
-from urllib import urlencode
+from urllib.parse import urlencode
 from repoze.what import predicates
 from repoze.what.predicates import not_anonymous
 #from paste.debug.profile import profile_decorator

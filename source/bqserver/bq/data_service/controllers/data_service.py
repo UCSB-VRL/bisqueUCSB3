@@ -55,7 +55,7 @@ DESCRIPTION
 import os
 import logging
 import pkg_resources
-import urlparse
+import urllib.parse
 import tg
 
 # pylint: disable=E0611
@@ -215,7 +215,7 @@ class DataServerController(ServiceController):
         resource tree given.
         '''
         view = kw.pop('view', None)
-        if isinstance(resource, basestring):
+        if isinstance(resource, str):
             log.debug ('attributes= %s ' , kw )
             resource = etree.Element (resource, **kw)
             log.debug ('created %s ' , resource)
@@ -225,7 +225,7 @@ class DataServerController(ServiceController):
         else:
             if isinstance (parent, etree._Element):
                 parent = parent.get ('uri')
-            if isinstance(parent, basestring):
+            if isinstance(parent, str):
                 parent = load_uri(parent)
 
         node = bisquik2db(doc = resource, parent = parent)
@@ -242,7 +242,7 @@ class DataServerController(ServiceController):
         uri = None
         if isinstance (resource, etree._Element):
             uri = resource.get ('uri')
-        elif isinstance(resource, basestring):
+        elif isinstance(resource, str):
             uri,params = strip_url_params(resource)
             params.update(kw)
             kw = params
@@ -285,7 +285,7 @@ class DataServerController(ServiceController):
         uri = None
         if isinstance (resource, etree._Element):
             uri = resource.get ('uri')
-        elif isinstance(resource, basestring):
+        elif isinstance(resource, str):
             uri = resource
         if uri is not None:
             resource = load_uri (uri)
@@ -311,7 +311,7 @@ class DataServerController(ServiceController):
         log.debug ('resource  = %s' % resource)
         if isinstance (resource, etree._Element):
             uri = resource.get ('uri')
-        elif isinstance(resource, basestring):
+        elif isinstance(resource, str):
             uri = resource
             if new_resource is None:
                 raise BadValue('update_resource uri %s needs new_value to update  ' % uri )
@@ -344,7 +344,7 @@ class DataServerController(ServiceController):
 
 
     def auth_resource(self, resource, auth=None, notify=False, invalidate=False, flush=True, action='append', **kw):
-        if isinstance(resource, basestring):
+        if isinstance(resource, str):
             uri = resource
         elif isinstance (resource, etree._Element):
             uri = resource.get ('uri')
@@ -368,7 +368,7 @@ class DataServerController(ServiceController):
         parent_uri = getattr(parent, 'uri', None)
         if isinstance (parent, etree._Element):
             parent = parent.get ('uri')
-        if isinstance(parent, basestring):
+        if isinstance(parent, str):
             parent_uri = parent
             parent = load_uri(parent)
 
@@ -392,7 +392,7 @@ class DataServerController(ServiceController):
             nodelist = resource_query (resource_tag, parent=parent, **params)
             if view=='query':
                 return nodelist
-            full_url = "%s?%s" % (uri, "&".join ("%s=%s" % (k, v) for k,v in kw.items()))
+            full_url = "%s?%s" % (uri, "&".join ("%s=%s" % (k, v) for k,v in list(kw.items())))
             response  = etree.Element ('resource', uri=full_url)
             db2tree (nodelist, parent=response,
                      view=view, baseuri = self.url, **params)
@@ -406,13 +406,13 @@ class DataServerController(ServiceController):
         """Simulate a webfetch """
         log.debug ('parsing %s' , resource_url)
         #if resource_url.startswith(self.url):
-        url = urlparse.urlsplit (resource_url)
+        url = urllib.parse.urlsplit (resource_url)
         if url[3]:
             kwargs = dict ([p.split('=') for p in url[3].split('&')])
             kwargs.update (kw)
         else:
             kwargs = kw
-        serverpath = urlparse.urlsplit(self.url)[2]
+        serverpath = urllib.parse.urlsplit(self.url)[2]
         commonurl = os.path.commonprefix ([serverpath, url[2]])
         requesturl =  url[2][len(commonurl):]
         path = requesturl.rstrip('/').split ('/')

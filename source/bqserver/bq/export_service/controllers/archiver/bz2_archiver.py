@@ -1,6 +1,6 @@
 from bq.export_service.controllers.archiver.tar_archiver import TarArchiver
 import bz2
-from cStringIO import StringIO
+from io import StringIO
 
 class BZip2Archiver(TarArchiver):
     

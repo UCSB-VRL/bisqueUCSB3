@@ -55,7 +55,7 @@ Store resource all special clients to simulate a filesystem view of resources.
 import os
 import logging
 import string
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import posixpath
 
 from lxml import etree
@@ -113,12 +113,12 @@ def load_default_drivers():
     for store in store_list:
         # pull out store related params from config
         params = dict ( (x[0].replace('bisque.stores.%s.' % store, ''), x[1])
-                        for x in  config.items() if x[0].startswith('bisque.stores.%s.' % store))
+                        for x in  list(config.items()) if x[0].startswith('bisque.stores.%s.' % store))
         if 'mounturl' not in params:
             if 'path' in params:
                 path = params.pop ('path')
                 params['mounturl'] = string.Template(path).safe_substitute(OLDPARMS)
-                log.warn ("Use of deprecated path (%s) in  %s driver . Please change to mounturl and remove any from %s", path, store, OLDPARMS.keys())
+                log.warn ("Use of deprecated path (%s) in  %s driver . Please change to mounturl and remove any from %s", path, store, list(OLDPARMS.keys()))
                 log.info ("using mounturl = %s", params['mounturl'])
             else:
                 log.error ('cannot configure %s without the mounturl parameter' , store)
@@ -324,15 +324,15 @@ class MountServer(TGController):
         if root is None:
             update  = True
             root = etree.Element('store', name="(root)", resource_unid="(root)")
-            etree.SubElement(root, 'tag', name='order', value = ','.join (self.drivers.keys()))
-            for store_name,driver in self.drivers.items():
+            etree.SubElement(root, 'tag', name='order', value = ','.join (list(self.drivers.keys())))
+            for store_name,driver in list(self.drivers.items()):
                 mount_path = string.Template(driver['mounturl']).safe_substitute(datadir = data_url_path(), user = user_name)
                 etree.SubElement(root, 'store', name = store_name, resource_unid=store_name, value=config2url(mount_path))
         else:
             storeorder = get_tag(root, 'order')
             if storeorder is None:
                 log.warn ("order tag missing from root store adding")
-                storeorder = etree.SubElement(root, 'tag', name='order', value = ','.join (self.drivers.keys()))
+                storeorder = etree.SubElement(root, 'tag', name='order', value = ','.join (list(self.drivers.keys())))
                 update = True
             elif len(storeorder) == 1:
                 storeorder = storeorder[0]
@@ -341,7 +341,7 @@ class MountServer(TGController):
 
             # Check for store not already initialized
             user_stores   = dict ((x.get ('name'), x)  for x in root.xpath('store'))
-            for store_name, driver in self.drivers.items():
+            for store_name, driver in list(self.drivers.items()):
                 if store_name not in user_stores:
                     store = etree.SubElement (root, 'store', name = store_name, resource_unid = store_name)
                     # If there is a new store defined, better just to reset it to the default
@@ -350,7 +350,7 @@ class MountServer(TGController):
                     #if store_name not in ordervalue:
                     #    ordervalue.append(store_name)
                     #    storeorder.set ('value', ','.join(ordervalue))
-                    storeorder.set ('value', ','.join (self.drivers.keys()))
+                    storeorder.set ('value', ','.join (list(self.drivers.keys())))
                 else:
                     store = user_stores[store_name]
                 if store.get ('value') is None:
@@ -441,7 +441,7 @@ class MountServer(TGController):
         #log.debug ('ZOOM %s', q.get ('uri'))
         while q is not None and path:
             el= path.pop(0)
-            el = urllib.unquote (el)
+            el = urllib.parse.unquote (el)
             #q = data_service.query(parent=q, resource_unid=el, view='full', )
             q = data_service.query(parent=q, resource_unid=el, view='short', )
             if len(q) != 1:
@@ -528,7 +528,7 @@ class MountServer(TGController):
             log.warn ("No value in resource trying name")
             return None,None
 
-        for store_name, store in stores.items():
+        for store_name, store in list(stores.items()):
             prefix = store.get ('value')
             log.debug ("checking %s and %s" ,  prefix, storeurls[0])
             # KGK: TEMPORARY .. this should check readability by the driver
@@ -564,7 +564,7 @@ class MountServer(TGController):
 
         """
         stores = self._get_stores()
-        log.debug ("Available stores: %s", stores.keys())
+        log.debug ("Available stores: %s", list(stores.keys()))
         # Strip off an subpaths from storepath (at this point.. not suported by drivers)
         storepath, _ = split_subpath (resource.get ('name'))
         if storepath[0]=='/':
@@ -581,12 +581,12 @@ class MountServer(TGController):
                     stores = { store.get ('name') :  store}
 
         storeurl = lpath = None
-        log.debug ("Trying mounts %s", stores.keys())
-        for store_name, store in stores.items():
+        log.debug ("Trying mounts %s", list(stores.keys()))
+        for store_name, store in list(stores.items()):
             try:
                 storeurl, storepath, lpath = self._save_store (store, storepath, resource, fileobj, rooturl)
                 break
-            except IllegalOperation, e:
+            except IllegalOperation as e:
                 log.debug ("failed %s store on %s with %s", storepath, store_name, e )
                 storeurl = lpath = None
             except Exception:
@@ -765,7 +765,7 @@ class MountServer(TGController):
                 log.error ('fetch_blob: no files fetched for %s ', uniq)
                 return None
             log.debug('fetch_blob for %s url=%s localpath=%s sub=%s', uniq, bloburls[0], files[0], sub)
-            log.debug('fetch_blob %s', zip (bloburls, files))
+            log.debug('fetch_blob %s', list(zip(bloburls, files)))
             return blob_drivers.Blobs(files[0], sub, files)
 
 
@@ -873,7 +873,7 @@ class MountServer(TGController):
         "Create a  driver  for the user store"
         store_name = store.get ('name')
         if store_name not in self.drivers:
-            raise IllegalOperation ('invalid store %s:  not in available stores %s' % (store_name , self.drivers.keys()))
+            raise IllegalOperation ('invalid store %s:  not in available stores %s' % (store_name , list(self.drivers.keys())))
 
         driver_opts = dict(self.drivers.get (store_name))
 
@@ -919,12 +919,12 @@ class MountServer(TGController):
         @param resource_name: options name of resource
         """
 
-        if isinstance (path, basestring):
+        if isinstance (path, str):
             path = path.split ('/')
         path = list (path)
         root = None
         log.debug ("CREATE_PATH %s %s", store, path)
-        if isinstance(store, basestring):
+        if isinstance(store, str):
             resource = root = etree.Element ('store', name = store, resource_unid = store)
             store = self._load_root_mount()
 

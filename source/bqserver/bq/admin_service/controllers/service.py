@@ -57,7 +57,7 @@ import logging
 import os
 import string
 #from datetime import datetime
-from urllib import  unquote
+from urllib.parse import  unquote
 #import io
 #import itertools
 #import mmap
@@ -192,7 +192,7 @@ class AdminController(ServiceController):
         log.info("message_variables")
         variables = self.get_variables()
         resp = etree.Element('resource', name='message_variables')
-        for n,v in variables.iteritems():
+        for n,v in variables.items():
             etree.SubElement(resp, 'tag', name=n, value=v)
         return etree.tostring(resp)
 
@@ -238,7 +238,7 @@ class AdminController(ServiceController):
 
         if request.method == 'GET':
             loggers = [ {'name': ln, 'level': logging.getLevelName (lv.level)}
-                        for ln, lv in logging.Logger.manager.loggerDict.items()
+                        for ln, lv in list(logging.Logger.manager.loggerDict.items())
                         if hasattr (lv, 'level') #and lv.level != logging.NOTSET
             ]
 

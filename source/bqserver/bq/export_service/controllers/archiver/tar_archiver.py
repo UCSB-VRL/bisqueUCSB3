@@ -1,7 +1,7 @@
 import tarfile
 import copy
 from bq.export_service.controllers.archiver.archiver_factory import AbstractArchiver
-from cStringIO import StringIO
+from io import StringIO
 
 
 class TarArchiver(tarfile.TarFile, AbstractArchiver):

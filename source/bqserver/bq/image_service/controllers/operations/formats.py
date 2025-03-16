@@ -33,9 +33,9 @@ class FormatsOperation(BaseOperation):
 
     def action(self, token, arg):
         xml = etree.Element ('resource', uri='/images_service/formats')
-        for nc,c in self.server.converters.iteritems():
+        for nc,c in self.server.converters.items():
             format = etree.SubElement (xml, 'format', name=nc, version=c.version['full'])
-            for f in c.formats().itervalues():
+            for f in c.formats().values():
                 codec = etree.SubElement(format, 'codec', name=f.name )
                 etree.SubElement(codec, 'tag', name='fullname', value=f.fullname )
                 etree.SubElement(codec, 'tag', name='extensions', value=','.join(f.ext) )

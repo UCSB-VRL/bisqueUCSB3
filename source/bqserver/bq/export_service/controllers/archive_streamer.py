@@ -51,7 +51,7 @@ import os
 import sys
 import logging
 import requests
-import urlparse
+import urllib.parse
 import datetime
 from bq.release import __VERSION__
 
@@ -205,7 +205,7 @@ class ArchiveStreamer():
             log.debug('fileInfo files: %s', files)
 
             # find minimum relative path
-            min_length = sys.maxint
+            min_length = sys.maxsize
             for f in files:
                 min_length = min(min_length, len(os.path.dirname(f)))
             minpath = files[0][:min_length+1]
@@ -273,8 +273,8 @@ class ArchiveStreamer():
                               if name in request.headers)
 
             # test if URL is relative, httplib2 does not fetch relative
-            if urlparse.urlparse(url).scheme == '':
-                url = urlparse.urljoin(config.get('bisque.root'), url)
+            if urllib.parse.urlparse(url).scheme == '':
+                url = urllib.parse.urljoin(config.get('bisque.root'), url)
 
             log.debug ('ArchiveStreamer: Sending %s with %s'  % (url, headers))
             response = requests.get(url, headers=headers)

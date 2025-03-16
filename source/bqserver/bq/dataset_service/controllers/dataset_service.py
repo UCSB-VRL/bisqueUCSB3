@@ -76,7 +76,7 @@ class TagEditOp (DatasetOp):
         @poarag tagdoc
         """
         member = member.text
-        if isinstance(tagdoc, basestring):
+        if isinstance(tagdoc, str):
             tagdoc = etree.XML(tagdoc)
 
         log.debug ('TagEdit (%s) %s with %s' % (action, member, etree.tostring(tagdoc)))

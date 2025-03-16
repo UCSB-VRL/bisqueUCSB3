@@ -150,7 +150,7 @@ class FormatOperation(BaseOperation):
             if r is None:
                 log.debug('%s could not convert [%s] to [%s] format'%(first_name, ifile, fmt))
                 log.debug('Trying other converters directly')
-                for n,c in self.server.converters.iteritems():
+                for n,c in self.server.converters.items():
                     if n==first_name:
                         continue
                     if n == ConverterImgcnv.name or queue_size < 1:

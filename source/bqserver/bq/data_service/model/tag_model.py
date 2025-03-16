@@ -59,7 +59,7 @@ DESCRIPTION
 
 """
 import subprocess
-import urlparse
+import urllib.parse
 import sqlalchemy
 from datetime import datetime
 
@@ -92,7 +92,7 @@ from bq.core.permission import PUBLIC, PRIVATE, perm2code, perm2str
 from bq.util.memoize import memoized
 from bq.util.hash import make_uniq_code
 
-from irods_user import BisQueIrodsIntegration#from bq.MS import module_service
+from .irods_user import BisQueIrodsIntegration#from bq.MS import module_service
 #session.mex = None
 
 
@@ -258,7 +258,7 @@ def parse_uri(uri):
     @rtype:  A triplet (host, dbclass, id)
     @return: The parse resouece
     '''
-    url = urlparse.urlsplit(uri)
+    url = urllib.parse.urlsplit(uri)
     name, id = url[2].split('/')[-2:]
     return url[1], name, id
 
@@ -363,7 +363,7 @@ class Taggable(object):
 
     @validates('owner')
     def validate_owner (self, key, owner):
-        if isinstance(owner, basestring) and owner.startswith ('http'):
+        if isinstance(owner, str) and owner.startswith ('http'):
             log.warn ("validating owner  %s" , str(owner))
             return map_url (owner)
         return owner
@@ -523,7 +523,7 @@ class Tag(Taggable):
     xmltag = 'tag'
 
     def __str__(self):
-        return 'tag "%s":"%s"' % (unicode(self.name), unicode(self.value))
+        return 'tag "%s":"%s"' % (str(self.name), str(self.value))
 
     # def clear(self, what=None):
     #     '''Clear values from tag'''
@@ -556,7 +556,7 @@ class Value(object):
         elif self.valnum: value = self.valnum
         return value
     def setvalue(self, v):
-        if type(v) == str or type(v) == unicode:
+        if type(v) == str or type(v) == str:
             self.valstr = v
             self.valnum = None
             self.valobj = None

@@ -60,7 +60,7 @@ import logging
 
 import pkg_resources
 
-from urllib import urlencode
+from urllib.parse import urlencode
 from lxml import etree
 
 from pylons import app_globals
@@ -411,7 +411,7 @@ class ClientServer(ServiceController):
 
         # bisque metadata for the new image file. Different from the OME_TIFF metadata
         metadata = etree.Element('resource', name=new_fname)
-        metadata = unicode(etree.tostring(metadata))
+        metadata = str(etree.tostring(metadata))
 
         log.info('CKPT202-ckck-416-550pm')
         # store the array in bisque

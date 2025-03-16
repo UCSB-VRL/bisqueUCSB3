@@ -2,7 +2,7 @@
 # SCD,HTD2,EHD2,DCD,CSD,CLD,RSD
 import tables
 import numpy as np
-from pyMPEG7FlexLib import extractCSD,extractSCD,extractCLD,extractDCD,extractHTD,extractEHD,extractRSD
+from .pyMPEG7FlexLib import extractCSD,extractSCD,extractCLD,extractDCD,extractHTD,extractEHD,extractRSD
 from bq.features.controllers.utils import image2numpy, gobject2mask, except_image_only , calculation_lock
 from bq.features.controllers import Feature
 from bq.features.controllers.exceptions import FeatureExtractionError

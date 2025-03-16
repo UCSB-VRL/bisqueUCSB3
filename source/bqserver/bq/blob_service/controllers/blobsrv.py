@@ -105,7 +105,7 @@ def transfer_msg(flocal, transfer_t):
         return "NO FILE to measure %s" % flocal
     fsize = os.path.getsize (flocal)
     name  = os.path.basename(flocal)
-    if isinstance(name, unicode):
+    if isinstance(name, str):
         name  = name.encode('utf-8')
     if transfer_t == 0:
         return "transferred %s in 0 sec!" % fsize
@@ -387,7 +387,7 @@ class BlobServer(RestController, ServiceMixin):
                 if hasattr(resource, 'file'):
                     log.warn("XML Resource has file tag")
                     resource = resource.file.read()
-                if isinstance(resource, basestring):
+                if isinstance(resource, str):
                     log.debug ("reading XML %s" , resource)
                     try:
                         resource = etree.fromstring(resource)
@@ -396,7 +396,7 @@ class BlobServer(RestController, ServiceMixin):
                         resource = None
             return resource
 
-        for k,f in dict(transfers).items():
+        for k,f in list(dict(transfers).items()):
             if k.endswith ('_resource') or k.endswith('_tags'): continue
             if hasattr(f, 'file'):
                 resource = find_upload_resource(transfers, k)

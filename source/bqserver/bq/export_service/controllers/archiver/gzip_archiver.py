@@ -1,5 +1,5 @@
 from bq.export_service.controllers.archiver.tar_archiver import TarArchiver
-from cStringIO import StringIO
+from io import StringIO
 from zlib import Z_FULL_FLUSH
 import gzip
 

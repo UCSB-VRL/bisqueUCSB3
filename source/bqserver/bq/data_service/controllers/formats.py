@@ -52,7 +52,7 @@ DESCRIPTION
 
 """
 import logging
-from StringIO import StringIO
+from io import StringIO
 import csv
 import mimeparse
 
@@ -171,14 +171,14 @@ def find_formatter (format=None, accept_header=None, **kw):
     # Parse accept header until acceptable is found
     if accept_header is None:
         accept_header = "application/xml"
-    accept_header  = mimeparse.best_match (CONTENT_TYPE_CONVERTERS.keys(), accept_header)
+    accept_header  = mimeparse.best_match (list(CONTENT_TYPE_CONVERTERS.keys()), accept_header)
     converter =  CONTENT_TYPE_CONVERTERS.get (accept_header, NO_CONV)[0]
     return (converter, accept_header)
 
 def find_formatter_type (accept_header=None, **kw):
     if accept_header is None:
         accept_header = "application/xml"
-    accept_header  = mimeparse.best_match (CONTENT_TYPE_CONVERTERS.keys(), accept_header)
+    accept_header  = mimeparse.best_match (list(CONTENT_TYPE_CONVERTERS.keys()), accept_header)
     type_ =  CONTENT_TYPE_CONVERTERS.get (accept_header, NO_CONV)[2]
     return type_
 

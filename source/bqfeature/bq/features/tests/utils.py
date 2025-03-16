@@ -1,10 +1,10 @@
 #global variables for the test script
-import ConfigParser
+import configparser
 import os
 import ntpath
 from lxml import etree
-import urllib
-import urlparse
+import urllib.request, urllib.parse, urllib.error
+import urllib.parse
 import zipfile
 from bqapi import BQSession, BQCommError
 from bqapi.util import save_blob # local
@@ -36,19 +36,19 @@ def image_tiles(bqsession, image_service_url, tile_size=64):
         @param: image_service_url
         @param: tile_size (default: 64)
     """
-    o = urlparse.urlparse(image_service_url)
-    query = urlparse.parse_qsl(o.query, keep_blank_values=True)
+    o = urllib.parse.urlparse(image_service_url)
+    query = urllib.parse.parse_qsl(o.query, keep_blank_values=True)
     meta = [('meta','')]
-    meta_query = urllib.urlencode( query + meta)
-    meta = bqsession.fetchxml(urlparse.urlunparse([o.scheme, o.netloc, o.path, o.params, meta_query, o.fragment]))
+    meta_query = urllib.parse.urlencode( query + meta)
+    meta = bqsession.fetchxml(urllib.parse.urlunparse([o.scheme, o.netloc, o.path, o.params, meta_query, o.fragment]))
     x = int(meta.xpath('tag[@name="image_num_x"]')[0].attrib[ 'value'])
     y = int(meta.xpath('tag[@name="image_num_y"]')[0].attrib[ 'value'])
 
     for ix in range(int( x/tile_size)-1):
         for iy in range(int( y/tile_size)-1):
             tile = [( 'tile', '0,%s,%s,%s'%( str(ix), str(iy), str(tile_size)))]
-            tile_query = urllib.unquote(urllib.urlencode( query + tile))
-            yield urlparse.urlunparse([o.scheme, o.netloc, o.path, o.params, tile_query, o.fragment])
+            tile_query = urllib.parse.unquote(urllib.parse.urlencode( query + tile))
+            yield urllib.parse.urlunparse([o.scheme, o.netloc, o.path, o.params, tile_query, o.fragment])
 
 
 #test initalization
@@ -90,7 +90,7 @@ def fetch_zip( filename, local_dir='.'):
         os.makedirs( local_dir)
 
     if not os.path.exists(path):
-        urllib.urlretrieve(url, path)
+        urllib.request.urlretrieve(url, path)
 
     Zip = zipfile.ZipFile(path)
     Zip.extractall(local_dir)
@@ -104,7 +104,7 @@ def fetch_file(filename, store_location, local_dir='.'):
     url = posixpath.join(store_location, filename)
     path = os.path.join(local_dir, filename)
     if not os.path.exists(path):
-        urllib.urlretrieve(url, path)
+        urllib.request.urlretrieve(url, path)
     return path
 
 
@@ -113,7 +113,7 @@ def upload_new_file(bqsession, path):
         uploads files to bisque server
     """
     r = save_blob(bqsession,  path)
-    print 'Uploaded id: %s url: %s'%(r.get('resource_uniq'), r.get('uri'))
+    print('Uploaded id: %s url: %s'%(r.get('resource_uniq'), r.get('uri')))
     return r
 
 
@@ -124,7 +124,7 @@ def upload_image_resource(bqsession, path, filename):
     resource = etree.Element ('image', name=filename)
     content = bqsession.postblob(path, xml=resource) #upload image
     content = etree.XML(content)[0] #pull the resource out
-    print 'Uploaded id: %s url: %s'%(content.get('resource_uniq'), content.get('uri'))
+    print('Uploaded id: %s url: %s'%(content.get('resource_uniq'), content.get('uri')))
     return content
 
 #test breakdown
@@ -132,7 +132,7 @@ def delete_resource(bqsession, url):
     """
         Remove uploaded resource from bisque server
     """
-    print 'Deleting url: %s' % url
+    print('Deleting url: %s' % url)
     bqsession.deletexml(url)
 
 
@@ -140,7 +140,7 @@ def cleanup_dir():
     """
         Removes files downloaded into the local store
     """
-    print 'Cleaning-up %s'%TEMP_DIR
+    print('Cleaning-up %s'%TEMP_DIR)
     for root, dirs, files in os.walk(TEMP_DIR, topdown=False):
         for name in files:
             try:
@@ -161,7 +161,7 @@ def setup_simple_feature_test(ns):
     """
         Setup feature requests test
     """
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.read(CONFIG_FILE)
     root = config.get('Host', 'root') or DEFAULT_ROOT
     user = config.get('Host', 'user') or DEFAULT_USER
@@ -215,7 +215,7 @@ def setup_parallel_feature_test(ns):
     """
         Setup feature requests test
     """
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.read(CONFIG_FILE)
     test_image = config.get('ParallelTest', 'test_image') or None
     threads = config.get('ParallelTest', 'threads') or '4'
@@ -250,7 +250,7 @@ def setup_image_upload(ns):
     """
         Uploads a single image
     """
-    content = upload_image_resource(ns.session, ns.test_image_location, u'%s/%s'%(TEST_PATH, ns.test_image))
+    content = upload_image_resource(ns.session, ns.test_image_location, '%s/%s'%(TEST_PATH, ns.test_image))
     resource_uri = content.attrib['uri']
     image_uri = '%s/image_service/image/%s'%(ns.root, content.attrib['resource_uniq'])
 
@@ -271,7 +271,7 @@ def setup_parallel_image_upload(ns):
     """
         Uploads a single image
     """
-    content = upload_image_resource(ns.session, ns.test_image_location, u'%s/%s'%(TEST_PATH, ns.test_image))
+    content = upload_image_resource(ns.session, ns.test_image_location, '%s/%s'%(TEST_PATH, ns.test_image))
     resource_uri = content.attrib['uri']
     image_uri = '%s/image_service/image/%s'%(ns.root, content.attrib['resource_uniq'])
 
@@ -292,15 +292,15 @@ def setup_dataset_upload(ns):
     """
         Uploads a many image image
     """
-    content = upload_image_resource(ns.session, ns.test_image_location, u'%s/%s'%(TEST_PATH, ns.test_image))
+    content = upload_image_resource(ns.session, ns.test_image_location, '%s/%s'%(TEST_PATH, ns.test_image))
     resource_uri1 = content.attrib['uri']
     image_uri1 = '%s/image_service/image/%s'%(ns.root, content.attrib['resource_uniq'])
 
-    content = upload_image_resource(ns.session, ns.test_image_location, u'%s/%s'%(TEST_PATH, ns.test_image))
+    content = upload_image_resource(ns.session, ns.test_image_location, '%s/%s'%(TEST_PATH, ns.test_image))
     resource_uri2 = content.attrib['uri']
     image_uri2 = '%s/image_service/image/%s'%(ns.root, content.attrib['resource_uniq'])
 
-    content = upload_image_resource(ns.session, ns.test_image_location, u'%s/%s'%(TEST_PATH, ns.test_image))
+    content = upload_image_resource(ns.session, ns.test_image_location, '%s/%s'%(TEST_PATH, ns.test_image))
     resource_uri3 = content.attrib['uri']
     image_uri3 = '%s/image_service/image/%s'%(ns.root, content.attrib['resource_uniq'])
 
@@ -345,7 +345,7 @@ def setup_mask_upload(ns):
     tif = TIFF.open(os.path.join(ns.store_local_location, maskname), mode='w')
     tif.write_image(mask)
 
-    content = upload_image_resource(ns.session, os.path.join(ns.store_local_location, maskname), u'%s/%s'%(TEST_PATH, maskname))
+    content = upload_image_resource(ns.session, os.path.join(ns.store_local_location, maskname), '%s/%s'%(TEST_PATH, maskname))
     mask_resource_uri = content.attrib['uri']
     mask_uri = '%s/image_service/image/%s'%(ns.root, content.attrib['resource_uniq'])
 

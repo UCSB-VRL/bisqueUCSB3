@@ -10,10 +10,10 @@ import logging
 import os.path
 import shutil
 import re
-import StringIO
-from urllib import quote
-from urllib import unquote
-from urlparse import urlparse
+import io
+from urllib.parse import quote
+from urllib.parse import unquote
+from urllib.parse import urlparse
 from lxml import etree
 import datetime
 import math
@@ -70,7 +70,7 @@ def url2operationsOld(url, base):
     subpath = None
 
     # process UUID and path
-    path = filter(None, url.split('?', 1)[0].split('/')) # split and remove empty
+    path = [_f for _f in url.split('?', 1)[0].split('/') if _f] # split and remove empty
     path = path[path.index(base)+1:] # isolate query part
     if path[0].lower() in ['image', 'images']:
         path = path[1:]
@@ -103,7 +103,7 @@ def url2operationsNew(url, base):
     subpath = None
     query = []
 
-    path = filter(None, url.split('/')) # split and remove empty
+    path = [_f for _f in url.split('/') if _f] # split and remove empty
     path = path[path.index(base)+1:] # isolate query part
     if path[0].lower() in ['image', 'images']:
         path = path[1:]
@@ -158,7 +158,7 @@ class ImageServer(object):
     def init_converters(cls):
         # test all the supported command line decoders and remove missing
         missing = []
-        for n,c in cls.converters.iteritems():
+        for n,c in cls.converters.items():
             if not c.get_installed():
                 log.debug('%s is not installed, skipping support...', n)
                 missing.append(n)
@@ -249,7 +249,7 @@ class ImageServer(object):
                 if l.locked: # the file is not being currently written by another process
                     # parse image info from original file
                     file_speed = infofile.replace('.info', '.speed')
-                    for n,c in self.converters.iteritems():
+                    for n,c in self.converters.items():
                         info = c.info(ProcessToken(ifnm=filename, series=series), speed=file_speed)
                         if info is not None and len(info)>0:
                             info['converter'] = n
@@ -268,7 +268,7 @@ class ImageServer(object):
 
                     # cache file info into a file
                     image = etree.Element ('image')
-                    for k,v in info.iteritems():
+                    for k,v in info.items():
                         image.set(k, '%s'%v)
                     with open(infofile, 'w') as f:
                         f.write(etree.tostring(image))
@@ -282,7 +282,7 @@ class ImageServer(object):
                 raise ImageServiceFuture((1,10))
             try:
                 image = etree.parse(infofile).getroot()
-                for k,v in image.attrib.iteritems():
+                for k,v in image.attrib.items():
                     info[k] = safetypeparse(v)
                 return info
             except  etree.XMLSyntaxError:
@@ -364,7 +364,7 @@ class ImageServer(object):
 
             # if desired converter failed, perform exhaustive conversion
             if r is None:
-                for n,c in self.converters.iteritems():
+                for n,c in self.converters.items():
                     if n in [ConverterImgcnv.name, dims.get('converter')]: continue
                     r = c.convertToOmeTiff(token, ometiff, **kw)
                     if r is not None:
@@ -383,7 +383,7 @@ class ImageServer(object):
             subdir = image_id[0]
         log.debug('initialWorkPath Series: [%s]', series)
         if series != 0 and series is not None:
-            if isinstance(series, (int, long)) is not True:
+            if isinstance(series, int) is not True:
                 hash_object = hashlib.sha1(series)
                 series = hash_object.hexdigest()
                 image_id = '%s-%s'%(image_id, series)

@@ -221,10 +221,10 @@ class ConverterFfmpeg(ConverterBase):
 
             data = json.loads(output)
 
-            if 'streams' not in data.keys():
+            if 'streams' not in list(data.keys()):
                 return dict()
 
-            if 'format' not in data.keys():
+            if 'format' not in list(data.keys()):
                 return dict()
 
             vid_stream = [s for s in data['streams'] if s['codec_type']=='video'][0]
@@ -256,7 +256,7 @@ class ConverterFfmpeg(ConverterBase):
             out_dict['image_num_series'] = 0
             out_dict['filesize'] = f_format['size']
             #log.info("FOOBAR " + str(f_format) + '\n\n' + str(vid_stream))
-            if 'nb_frames' in vid_stream.keys():
+            if 'nb_frames' in list(vid_stream.keys()):
                 out_dict['image_num_t'] = vid_stream['nb_frames']
             else:
                 duration = float(f_format['duration'])

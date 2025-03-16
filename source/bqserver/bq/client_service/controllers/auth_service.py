@@ -129,7 +129,7 @@ class AuthenticationServer(ServiceController):
     def login_check(self, came_from='/', login='', **kw):
         log.debug ("login_check %s from=%s " , login, came_from)
         login_urls = self.login_map()
-        default_login = login_urls.values()[-1]
+        default_login = list(login_urls.values())[-1]
         if login:
             # Look up user
             user = DBSession.query (User).filter_by(user_name=login).first()
@@ -138,7 +138,7 @@ class AuthenticationServer(ServiceController):
                 redirect(update_url(default_login['url'], dict(username=login, came_from=came_from)))
             # Find a matching identifier
             login_identifiers = [ g.group_name for g in user.groups ]
-            for identifier in login_urls.keys():
+            for identifier in list(login_urls.keys()):
                 if  identifier in login_identifiers:
                     login_url  = login_urls[identifier]['url']
                     log.debug ("redirecting to %s handler" , identifier)
@@ -158,7 +158,7 @@ class AuthenticationServer(ServiceController):
         # Check if we have only 1 provider that is not local and just redirect there.
         login_urls = self.login_map()
         if len(login_urls) == 1:
-            provider, entries =  login_urls.items()[0]
+            provider, entries =  list(login_urls.items())[0]
             if provider != 'local':
                 redirect (update_url(entries['url'], dict(username=username, came_from=came_from)))
 

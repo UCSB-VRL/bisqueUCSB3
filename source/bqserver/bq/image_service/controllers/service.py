@@ -5,7 +5,7 @@ import os
 import logging
 import pkg_resources
 import tg
-import urlparse
+import urllib.parse
 import re
 from datetime import datetime
 from hashlib import md5
@@ -48,7 +48,7 @@ extensions_series = set(['cfg', 'xml'])
 series_header_files = ['DiskInfo5.kinetic']
 
 def get_image_id(url):
-    path = urlparse.urlsplit(url)[2]
+    path = urllib.parse.urlsplit(url)[2]
     if path[-1]=='/':
         path =path[:-1]
 
@@ -134,7 +134,7 @@ class ImageServiceController(ServiceController):
             r = self.srv.process(url, uniq, imagemeta=meta, resource=resource, user_name=user_name)
             log.info ("FINISHED INTERNAL (%s): %s", datetime.now().isoformat(), url)
             return r
-        except ImageServiceException, e:
+        except ImageServiceException as e:
             log.error('Responce Code: %s for %s: %s ' % (e.code, uniq, e.message))
             log.info ("FINISHED INTERNAL with ERROR (%s): %s", datetime.now().isoformat(), url)
             abort(e.code, e.message)
@@ -166,7 +166,7 @@ class ImageServiceController(ServiceController):
         non_series_cnv = ['imgcnv', 'openslide']
         exts = []
         ignore = []
-        for n in ImageServer.converters.iterkeys():
+        for n in ImageServer.converters.keys():
             if n in non_series_cnv:
                 ignore.extend(ImageServer.converters.extensions(n))
             else:
@@ -212,7 +212,7 @@ class ImageServiceController(ServiceController):
     def operations(self, **kw):
         try:
             token = self.srv.request( 'operations', ProcessToken(), None )
-        except ImageServiceException, e:
+        except ImageServiceException as e:
             abort(e.code, e.message)
         tg.response.headers['Content-Type']  = token.contentType
         cache_control( token.cacheInfo )
@@ -223,7 +223,7 @@ class ImageServiceController(ServiceController):
     def formats(self, **kw):
         try:
             token = self.srv.request( 'formats', ProcessToken(), None )
-        except ImageServiceException, e:
+        except ImageServiceException as e:
             abort(e.code, e.message)
         tg.response.headers['Content-Type']  = token.contentType
         cache_control( token.cacheInfo )
@@ -233,7 +233,7 @@ class ImageServiceController(ServiceController):
         #resource = data_service.resource_load (uniq = ident, view=view)
         try:
             resource = self.srv.cache.get_resource(ident)
-        except ImageServiceException, e:
+        except ImageServiceException as e:
             abort(e.code, e.message)
         if resource is None:
             if identity.not_anonymous():
@@ -315,7 +315,7 @@ class ImageServiceController(ServiceController):
         log.info ("PROCESSING (%s): %s", datetime.now().isoformat(), url)
         try:
             token = self.srv.process(url, ident, timeout=timeout, imagemeta=meta, resource=resource, user_name=user_name, **kw)
-        except ImageServiceFuture, e:
+        except ImageServiceFuture as e:
             message = 'The request is being processed by the system, come back soon...'
 
             # use a back-off strategy for long running tasks
@@ -334,7 +334,7 @@ class ImageServiceController(ServiceController):
             #abort(429, message) # 503, "Too many requests" - does not work
             #abort(503, message) # 503, "Service Unavailable" - does not work
             #return
-        except ImageServiceException, e:
+        except ImageServiceException as e:
             log.info ("FINISHED with ERROR (%s): %s", datetime.now().isoformat(), url)
             abort(e.code, e.message)
 

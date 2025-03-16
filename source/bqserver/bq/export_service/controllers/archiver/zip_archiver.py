@@ -2,7 +2,7 @@ import zipfile
 import zlib
 import time, struct
 import os
-from cStringIO import StringIO
+from io import StringIO
 from bq.export_service.controllers.archiver.archiver_factory import AbstractArchiver
 
 

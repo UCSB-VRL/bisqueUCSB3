@@ -15,7 +15,7 @@ from repoze.what import predicates
 from bq.core.service import ServiceController, service_registry
 from bq.client_service import model
 
-import client_service 
+from . import client_service 
 
 log = logging.getLogger("bq.client_service")
 class clientController(ServiceController):

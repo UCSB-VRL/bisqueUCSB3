@@ -128,10 +128,10 @@ def dicom_init_encoding(dataset):
 	return dicom_encoding[encoding]
 
 def safedecode(s, encoding):
-	if isinstance(s, unicode) is True:
+	if isinstance(s, str) is True:
 		return s
-	if isinstance(s, basestring) is not True:
-		return u'%s'%s
+	if isinstance(s, str) is not True:
+		return '%s'%s
 	try:
 		return s.decode(encoding)
 	except UnicodeDecodeError:
@@ -141,7 +141,7 @@ def safedecode(s, encoding):
 			try:
 				return s.decode('latin-1')
 			except UnicodeDecodeError:
-				return unicode(s.encode('ascii', 'replace'))
+				return str(s.encode('ascii', 'replace'))
 
 def dicom_parse_date(v):
 	# first take care of improperly stored values
@@ -796,7 +796,7 @@ class ConverterImgcnv(ConverterBase):
 
 		# other dimensions: -slice fov:345,rotation:23
 		nd = []
-		for k,v in kw.iteritems():
+		for k,v in kw.items():
 			if k in cls.extended_dimension_names:
 				if len(v)>1:
 					raise ImageServiceException(responses.UNPROCESSABLE_ENTITY, 'Ranges in extended dimensions are not yet supported')
