@@ -91,7 +91,7 @@ def _get_headers_types(data, startcol=None, endcol=None, has_header=False):
 def get_cb_csv(filename):
     def cb_csv(slices):
         # read only slices (skip header line)
-        return pd.read_csv(filename, skiprows=xrange(1,slices[0].start+1), nrows=slices[0].stop-slices[0].start, usecols=range(slices[1].start, slices[1].stop))  # TODO: use chunked reading to handle large datasets
+        return pd.read_csv(filename, skiprows=range(1,slices[0].start+1), nrows=slices[0].stop-slices[0].start, usecols=list(range(slices[1].start, slices[1].stop)))  # TODO: use chunked reading to handle large datasets
     return cb_csv
 
 #---------------------------------------------------------------------------------------
@@ -137,7 +137,7 @@ class TableCSV(TableLike):
             else:
                 data = pd.read_csv(self.filename, skiprows=0, nrows=10, header=None )
             # TODO: rows set to maxint for now
-            self.sizes = (sys.maxint, data.shape[1]) # pylint: disable=no-member
+            self.sizes = (sys.maxsize, data.shape[1]) # pylint: disable=no-member
             self.cb = get_cb_csv(self.filename)  # for lazy fetching
         else:
             data = self.data

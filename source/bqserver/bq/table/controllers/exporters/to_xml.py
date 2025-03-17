@@ -119,7 +119,7 @@ class ExporterXML (TableExporter):
                 etree.SubElement (el, 'tag', name=tab['path'], type=tab['type'])
 
         if table.meta is not None and len(table.meta)>0:
-            for n,v in table.meta.iteritems():
+            for n,v in table.meta.items():
                 etree.SubElement (xml, 'tag', name='%s'%n, value='%s'%v)
 
         return etree.tostring(xml)

@@ -74,13 +74,13 @@ log = logging.getLogger("bq.pipeline.import.dream3d")
 def _get_parameters(step, param_name):
     res = []
     for param in step['Parameters']:
-        if param.keys()[0] == param_name:
+        if list(param.keys())[0] == param_name:
             res.append(param[param_name].strip())
     return res
 
 def _set_parameter(step, param_name, param_value):
     for param in step['Parameters']:
-        if param.keys()[0] == param_name:
+        if list(param.keys())[0] == param_name:
             param[param_name] = param_value
 
 def upload_dream3d_pipeline(uf, intags):
@@ -123,7 +123,7 @@ def upload_dream3d_pipeline(uf, intags):
             new_pipeline[str(new_step_id)]['__Meta__']['module_num'] = str(new_step_id+1)
             new_parameters = []            
             for param in new_pipeline[str(new_step_id)]['Parameters']:
-                param_key, param_val = param.items()[0]
+                param_key, param_val = list(param.items())[0]
                 if converted_cnt < 10 and (any([param_key.lower().startswith(phrase) for phrase in ['max', 'min']]) or \
                                            any([param_key.lower().endswith(phrase) for phrase in ['size', 'tolerance', 'value']])):
                     param_name = "Step %s (%s) - %s" % (step_id, new_pipeline[str(new_step_id)]['__Label__'], param_key)
@@ -136,7 +136,7 @@ def upload_dream3d_pipeline(uf, intags):
                         # not a value... it may be a complex parameter (i.e., dictionary)
                         if isinstance(param_val, dict):
                             complex_val = {}
-                            for key,val in param_val.iteritems():
+                            for key,val in param_val.items():
                                 try:
                                     float(str(val))   # is this a number?
                                     complex_val[key] = "@NUMPARAM|%s - %s@%s" % (param_name, key, str(val))

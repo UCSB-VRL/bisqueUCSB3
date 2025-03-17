@@ -99,7 +99,7 @@ def _get_headers_types(data, startcol=None, endcol=None):
 def get_cb_excel(t, path):
     def cb_excel(slices):
         # read only slices
-        data = pd.read_excel(t, path, skiprows=xrange(1,slices[0].start+1), parse_cols=range(slices[1].start, slices[1].stop))  # TODO: use chunked reading to handle large datasets
+        data = pd.read_excel(t, path, skiprows=range(1,slices[0].start+1), parse_cols=list(range(slices[1].start, slices[1].stop)))  # TODO: use chunked reading to handle large datasets
         # excel cannot read only a specified number of rows, select now
         return data[0:slices[0].stop-slices[0].start]
     return cb_excel
@@ -158,7 +158,7 @@ class TableExcel(TableLike):
                 self.subpath = self.tables[0]['path']
     
             data = pd.read_excel(self.t, self.subpath, nrows=1)
-            self.sizes = (sys.maxint, data.shape[1])  # pylint: disable=no-member
+            self.sizes = (sys.maxsize, data.shape[1])  # pylint: disable=no-member
             self.cb = get_cb_excel(self.t, self.subpath)  # for lazy fetching
         else:
             data = self.data

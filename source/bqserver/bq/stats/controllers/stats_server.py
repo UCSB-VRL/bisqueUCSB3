@@ -105,16 +105,16 @@ import sys
 import inspect
 import json
     
-import cStringIO
-from urllib import quote
-from urllib import unquote
+import io
+from urllib.parse import quote
+from urllib.parse import unquote
 
 from itertools import *
-from bqapi import *
+from .bqapi import *
 
 # Import all required operations
-import stats_operators
-import stats_summarizers
+from . import stats_operators
+from . import stats_summarizers
 
 from bq import data_service
 
@@ -254,8 +254,8 @@ class statsController(ServiceController):
             for k in i:     
                 v = i[k]
                 if hasattr(v, '__iter__') and len(v)>0: 
-                    v = ','.join( [quote(unicode(x).encode ('utf8')) for x in v] )
-                BQTag(name=k, value=unicode(v)).toEtree(r)
+                    v = ','.join( [quote(str(x).encode ('utf8')) for x in v] )
+                BQTag(name=k, value=str(v)).toEtree(r)
         
         filename = kw.get('filename', 'stats.xml')
         try:
@@ -299,7 +299,7 @@ class statsController(ServiceController):
                 else:
                     mytitles.append( title.replace(',', ';') )
         
-        it = izip_longest(fillvalue='', *myiters)
+        it = zip_longest(fillvalue='', *myiters)
         ts = (t for t in it)
         rows = []
         for t in ts:
@@ -338,9 +338,9 @@ class statsController(ServiceController):
                 else:
                     mytitles.append( title.replace(',', ';') )
                             
-        it = izip_longest(fillvalue='', *myiters)
+        it = zip_longest(fillvalue='', *myiters)
         ts = (t for t in it)
-        stream = "\n".join([(', '.join([unicode(e).encode('utf8') for e in t])) for t in ts])
+        stream = "\n".join([(', '.join([str(e).encode('utf8') for e in t])) for t in ts])
         
         filename = kw.get('filename', 'stats.csv')
         try:

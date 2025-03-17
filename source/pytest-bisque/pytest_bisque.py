@@ -41,7 +41,7 @@ def load_test_application(filename):
     from paste.script.appinstall import SetupCommand
 
 
-    print "pytest_bisque:load_test_application:", filename
+    print("pytest_bisque:load_test_application:", filename)
     wsgiapp = loadapp('config:' + os.path.abspath(filename))
     logging.config.fileConfig (filename)
     app = TestApp(wsgiapp)
@@ -71,7 +71,7 @@ def load_api_config(filename):
 def config():
     "Load the bisque test config/test.ini"
     cfg =  load_api_config ("config/test.ini")
-    print "CFG", cfg
+    print("CFG", cfg)
     return cfg
 
 

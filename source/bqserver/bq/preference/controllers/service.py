@@ -112,7 +112,7 @@ def mergeDocuments(current, new, **attrib):
 
     def merge(new, current):
         #merges the new docucument to the current one
-        for k in new.sub_node_dict.keys():
+        for k in list(new.sub_node_dict.keys()):
             if k in current.sub_node_dict:
                 #deals with the cases when the current needs to be merged with the new document
                 #case 1: both current and new are parent nodes
@@ -217,7 +217,7 @@ def to_etree(dictionary, **attrib):
         @return: etree
     """
     def build(dict, node):
-        for k in dict.keys():
+        for k in list(dict.keys()):
             if type(dict[k]) is TagValueNode:
                 subNode = etree.Element('tag', **dict[k].node_attrib)
                 for e in dict[k].sub_node:
@@ -248,7 +248,7 @@ def update_level(new_doc, current_doc, **attrib):
         """
             merges TagNameNode elements
         """
-        for nk in new.sub_node_dict.keys():
+        for nk in list(new.sub_node_dict.keys()):
             if nk in current.sub_node_dict: #set current node
                 if type(new.sub_node_dict[nk]) is TagNameNode and type(current.sub_node_dict[nk]) is TagNameNode:
                     #both new and current are TagNameNodes
@@ -572,7 +572,7 @@ class PreferenceController(ServiceController):
         """
         """
         def strip(node):
-            for a in node.attrib.keys():
+            for a in list(node.attrib.keys()):
                 if a not in set(save_attrib):
                     del node.attrib[a]
             for n in node:

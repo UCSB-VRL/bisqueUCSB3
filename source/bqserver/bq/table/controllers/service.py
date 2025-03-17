@@ -155,7 +155,7 @@ import sys
 import logging
 import inspect
 from datetime import datetime
-import urllib
+import urllib.request, urllib.parse, urllib.error
 #import cStringIO as StringIO
 #from urllib import quote
 #from urllib import unquote
@@ -266,7 +266,7 @@ class TableController(ServiceController):
         """find export plugin and run export"""
         log.info ("STARTING table (%s): %s", datetime.now().isoformat(), request.url)
         path = path.split('/')
-        path = [urllib.unquote(p) for p in path if len(p)>0]
+        path = [urllib.parse.unquote(p) for p in path if len(p)>0]
         log.debug("Path: %s", path)
 
         # load table
@@ -283,7 +283,7 @@ class TableController(ServiceController):
             resource = self.check_access(uniq)
             log.debug('Resource: %s', etree.tostring(resource))
 
-            for n, r in self.importers.plugins.iteritems():
+            for n, r in self.importers.plugins.items():
                 #if '.' in resource.get('value', '') and resource.get('value').split('.')[-1].lower() not in r.ext:
                 ext =  os.path.splitext (resource.get('value', ''))[-1].lstrip('.').lower()
                 if ext and ext not in r.ext:

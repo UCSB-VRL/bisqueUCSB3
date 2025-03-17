@@ -33,7 +33,7 @@ def upgrade():
     for dataset in datasets:
         objs = OrderedSet (  val.valobj for val  in dataset.values )
         if len (objs) != len (dataset.values):
-            print "Replacing  ", dataset.resource_uniq
+            print("Replacing  ", dataset.resource_uniq)
             dataset.values[:] = [ Value (o = obj)  for obj in objs ]
             #dataset.values.reorder()
             DBSession.flush()

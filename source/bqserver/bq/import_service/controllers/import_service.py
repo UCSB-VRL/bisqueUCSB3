@@ -83,7 +83,7 @@ from bq.core.service import ServiceController
 import shutil
 import tarfile
 import zipfile
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import copy
 import mimetypes
 import shortuuid
@@ -156,7 +156,7 @@ def is_filesystem_file(filename):
 
 def sanitize_filename(filename):
     """ Removes any path info that might be inside filename, and returns results. """
-    return urllib.unquote(filename).split("\\")[-1].split("/")[-1]
+    return urllib.parse.unquote(filename).split("\\")[-1].split("/")[-1]
 
 
 def merge_resources (*resources):
@@ -1007,7 +1007,7 @@ class import_serviceController(ServiceController):
             log.debug('Inserting %s', uf)
             resource = blob_service.store_blob(resource=uf.resource, fileobj=uf.fileobj)
             log.debug('Inserted resource :::::\n %s', etree.tostring(resource) )
-        except Exception, e:
+        except Exception as e:
             log.exception("Error during store %s" ,  etree.tostring(uf.resource))
             return None
         finally:
@@ -1037,7 +1037,7 @@ class import_serviceController(ServiceController):
             # call filter on f with ingest tags
             #resources = self.filters[ intags['type'] ](UploadedResource(resource, orig=uf.orig), intags)
             resources = self.filters[ intags['type'] ](uf, intags)
-        except Exception, e:
+        except Exception as e:
             log.exception('Problem in processing file: %s : %s'  ,  intags.get ('type',''), str(uf))
             error = 'Problem processing the file: %s'%e
 
@@ -1251,7 +1251,7 @@ class import_serviceController(ServiceController):
         """
         try:
             return self.transfer_internal(**kw)
-        except Exception, e:
+        except Exception as e:
             log.exception("During transfer: %s" , str(kw))
             abort(500, 'Internal error during upload')
 
@@ -1392,7 +1392,7 @@ class import_serviceController(ServiceController):
                     if hasattr(resource, 'file'):
                         log.warn("XML Resource has file tag")
                         resource = resource.file.read()
-                    if isinstance(resource, basestring):
+                    if isinstance(resource, str):
                         log.debug ("reading XML %s" ,  resource)
                         try:
                             resource = etree.fromstring(resource)
@@ -1405,7 +1405,7 @@ class import_serviceController(ServiceController):
             return resource
 
         log.debug("INITIAL TRANSFER %s"  , str( transfers))
-        for pname, f in dict(transfers).items():
+        for pname, f in list(dict(transfers).items()):
             # We skip specially named fields (we will pull them out when processing the actual file)
             if pname.endswith ('_resource') or pname.endswith('_tags'): continue
             # This is a form field with an attached file (<input type='file'>)
@@ -1440,7 +1440,7 @@ class import_serviceController(ServiceController):
                 log.debug ("UPLOADED %s %s" , upload_resource, etree.tostring(resource))
         log.debug("TRANSFER after files %s"  , str( transfers))
 
-        for pname, f in transfers.items():
+        for pname, f in list(transfers.items()):
             if pname.endswith ('_resource'):
                 transfers.pop(pname)
                 try:
@@ -1509,7 +1509,7 @@ class import_serviceController(ServiceController):
             try:
                 tags = etree.fromstring(kw['tags'])
                 resource.extend(list(tags))
-            except Exception,e: # dima: possible exceptions here, ValueError, XMLSyntaxError
+            except Exception as e: # dima: possible exceptions here, ValueError, XMLSyntaxError
                 del kw['tags']
         kw['insert_resource'] = etree.tostring(resource)
         return self.transfer (** kw)
