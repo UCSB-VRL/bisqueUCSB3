@@ -731,7 +731,7 @@ def model_fields(dbo, baseuri=None):
         # Put value in attribute dictionary
         if attr_val is not None and attr_val!='':
             if isinstance(attr_val, str):
-               attrs[fn] = attr_val
+                attrs[fn] = attr_val
             else:
-               attrs[fn] = str(attr_val) #unicode(attr_val,'utf-8')
+                attrs[fn] = str(attr_val) #unicode(attr_val,'utf-8')
     return attrs

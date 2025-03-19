@@ -12,8 +12,8 @@ import email.utils
 import warnings
 
 import requests
-import requests.packages.urllib3 as urllib3
-from requests.packages.urllib3.packages import six
+import urllib3
+import six
 from .monkeypatch import monkeypatch_method
 
 

@@ -2,11 +2,11 @@
 
 import os
 import shutil
-#import urllib
+import urllib
 #import urlparse
 #import time
 import logging
-from six.moves import urllib
+# from six.moves import urllib
 
 #from lxml import etree as ET
 #from lxml import etree

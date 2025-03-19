@@ -63,7 +63,8 @@ import mimetypes
 import warnings
 import posixpath
 
-from six.moves import urllib
+# from six.moves import urllib
+import urllib
 
 
 import requests

@@ -1,15 +1,15 @@
 import pytest
 import os
 import numpy as np
-#import urllib
-from six.moves import urllib
+import urllib
+# from six.moves import urllib
 from datetime import datetime
 
-
+#!todo: need to check `bqsession` and `store` fixtures
 
 from bqapi import BQSession, BQServer
 from bqapi.util import  fetch_dataset
-from bq.util.mkdir import _mkdir
+from bqcore.bq.util.mkdir import _mkdir
 from .util import fetch_file
 from bqapi.comm import BQCommError
 from bqapi.util import *

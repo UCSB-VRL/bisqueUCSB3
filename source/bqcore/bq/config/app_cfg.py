@@ -214,7 +214,7 @@ class BisqueAppConfig(AppConfig):
             log.info ("MEX auth only")
             # Add mex only authentication
             from repoze.who.plugins.basicauth import BasicAuthPlugin
-            from bq.core.lib.mex_auth import make_plugin
+            from bqcore.bq.core.lib.mex_auth import make_plugin
             from repoze.who.classifiers import default_request_classifier
             from repoze.who.classifiers import default_challenge_decider
             basicauth = BasicAuthPlugin('repoze.who')

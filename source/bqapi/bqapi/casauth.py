@@ -26,6 +26,5 @@ def caslogin(session, caslogin, username, password, service=None):
 
     signin_page = session.post(caslogin, login_data, cookies=cas_page.cookies, params = params)
     if signin_page.status_code != requests.codes.ok: #pylint: disable=no-member
-        logging.warn ("ERROR on CAS signin headers %s cookies %s text %s",
-                      signin_page.headers, signin_page.cookies, signin_page.text)
+        logging.warn ("ERROR on CAS signin headers %s cookies %s text %s", signin_page.headers, signin_page.cookies, signin_page.text)
     return  signin_page.status_code == requests.codes.ok #pylint: disable=no-member

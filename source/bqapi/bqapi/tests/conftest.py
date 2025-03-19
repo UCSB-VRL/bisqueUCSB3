@@ -3,8 +3,8 @@
 import pytest
 from collections import OrderedDict, namedtuple
 
-from bq.util.bunch import Bunch
-from bq.util.mkdir import _mkdir
+from bqcore.bq.util.bunch import Bunch
+from bqcore.bq.util.mkdir import _mkdir
 from .util import  fetch_file
 from bqapi import BQServer
 
