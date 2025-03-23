@@ -2,25 +2,22 @@ import os
 import pkg_resources
 import logging
 
-log = logging.getLogger('bq.engine_service.condor_templates')
+log = logging.getLogger("bq.engine_service.condor_templates")
 
 
 # Variables (mex_id, post_exec, post_args)
-templateDAG =\
-"""JOB ${mex_id}  ./${mex_id}.cmd
+templateDAG = """JOB ${mex_id}  ./${mex_id}.cmd
 CONFIG ./${mex_id}.dag.config
 SCRIPT POST ${mex_id} ${post_exec} ${post_args}
 RETRY ${mex_id} 3
 """
 
-templateDAGCONF = \
-"""DAGMAN_LOG_ON_NFS_IS_ERROR = FALSE
+templateDAGCONF = """DAGMAN_LOG_ON_NFS_IS_ERROR = FALSE
 """
 
 
 # Variables (script, script_args, transfers, staging, cmd_extra)
-templateCMD = \
-"""universe = vanilla
+templateCMD = """universe = vanilla
 executable=${executable}
 error = ./launcher.err
 output = ./launcher.out
@@ -54,8 +51,7 @@ queue
 %endfor
 """
 
-LAUNCHER_SCRIPT = \
-"""#!/usr/bin/env python
+LAUNCHER_SCRIPT = """#!/usr/bin/env python
 import sys
 from bq.engine.controllers.module_run import ModuleRunner
 if __name__ == "__main__":
@@ -69,20 +65,17 @@ if __name__ == "__main__":
 ##### transfer_input_files  =  matlab_launch or nothing...
 
 
-
-
-
 CONDOR_TEMPLATES = {
-    'condor.submit_template' : templateCMD,
-    'condor.dag_config_template' : templateDAGCONF,
-    'condor.dag_template' : templateDAG,
-    }
+    "condor.submit_template": templateCMD,
+    "condor.dag_config_template": templateDAGCONF,
+    "condor.dag_template": templateDAG,
+}
 
 
 # Stolen form Turbogears.view.base.py
 # and modified for using in the condor engine.
 #
-def load_engines(wanted=None, defaults= {} ):
+def load_engines(wanted=None, defaults={}):
     """Load and initialize all templating engines.
 
     This is called during startup after the configuration has been loaded.
@@ -95,33 +88,32 @@ def load_engines(wanted=None, defaults= {} ):
     engine_options = {
         "cheetah.importhooks": get("cheetah.importhooks", False),
         "cheetah.precompiled": get("cheetah.precompiled", False),
-#        "genshi.encoding": get("genshi.encoding", "utf-8"),
-#        "genshi.default_doctype": get("genshi.default_doctype", None),
-#        "genshi.lookup_errors": get("genshi.lookup_errors", "strict"),
-#        "genshi.loader_callback" : get("genshi.loader_callback", None),
-#         "json.skipkeys": get("json.skipkeys", False),
-#         "json.sort_keys": get("json.sort_keys", False),
-#         "json.check_circular": get("json.check_circular", True),
-#         "json.allow_nan": get("json.allow_nan", True),
-#         "json.indent": get("json.indent", None),
-#         "json.separators": get("json.separators", None),
-#         "json.ensure_ascii": get("json.ensure_ascii", False),
-#         "json.encoding": get("json.encoding", "utf-8"),
-#         "json.assume_encoding": get("json.assume_encoding", "utf-8"),
-#         "json.descent_bases": get("json.descent_bases", get("turbojson.descent_bases", True)),
-#        "kid.encoding": get("kid.encoding", "utf-8"),
-#        "kid.assume_encoding": get("kid.assume_encoding", "utf-8"),
-#        "kid.precompiled": get("kid.precompiled", False),
-#        "kid.i18n.run_template_filter": get("i18n.run_template_filter", False),
-#        "kid.i18n_filter": i18n_filter,
-#        "kid.sitetemplate": get("tg.sitetemplate", "turbogears.view.templates.sitetemplate"),
-#        "kid.reloadbases": get("kid.reloadbases", False),
+        #        "genshi.encoding": get("genshi.encoding", "utf-8"),
+        #        "genshi.default_doctype": get("genshi.default_doctype", None),
+        #        "genshi.lookup_errors": get("genshi.lookup_errors", "strict"),
+        #        "genshi.loader_callback" : get("genshi.loader_callback", None),
+        #         "json.skipkeys": get("json.skipkeys", False),
+        #         "json.sort_keys": get("json.sort_keys", False),
+        #         "json.check_circular": get("json.check_circular", True),
+        #         "json.allow_nan": get("json.allow_nan", True),
+        #         "json.indent": get("json.indent", None),
+        #         "json.separators": get("json.separators", None),
+        #         "json.ensure_ascii": get("json.ensure_ascii", False),
+        #         "json.encoding": get("json.encoding", "utf-8"),
+        #         "json.assume_encoding": get("json.assume_encoding", "utf-8"),
+        #         "json.descent_bases": get("json.descent_bases", get("turbojson.descent_bases", True)),
+        #        "kid.encoding": get("kid.encoding", "utf-8"),
+        #        "kid.assume_encoding": get("kid.assume_encoding", "utf-8"),
+        #        "kid.precompiled": get("kid.precompiled", False),
+        #        "kid.i18n.run_template_filter": get("i18n.run_template_filter", False),
+        #        "kid.i18n_filter": i18n_filter,
+        #        "kid.sitetemplate": get("tg.sitetemplate", "turbogears.view.templates.sitetemplate"),
+        #        "kid.reloadbases": get("kid.reloadbases", False),
         "mako.directories": get("mako.directories", []),
-        "mako.output_encoding": get("mako.output_encoding", "utf-8")
+        "mako.output_encoding": get("mako.output_encoding", "utf-8"),
     }
     engines = {}
-    for entrypoint in pkg_resources.iter_entry_points(
-            "python.templating.engines"):
+    for entrypoint in pkg_resources.iter_entry_points("python.templating.engines"):
         if wanted and entrypoint.name not in wanted:
             continue
         engine = entrypoint.load()
@@ -129,9 +121,10 @@ def load_engines(wanted=None, defaults= {} ):
     return engines
 
 
-
 # Default templating engine
 import mako
+
+
 class CondorTemplates(object):
     """Condor script construction helper
 
@@ -155,28 +148,30 @@ class CondorTemplates(object):
     request_cpus =2
     request_memory = 2048
     """
+
     @classmethod
     def mk_path(cls, name, mapping):
-        return os.path.join('%(staging_path)s' % mapping,
-                            name % mapping)
+        return os.path.join("%(staging_path)s" % mapping, name % mapping)
 
     def __init__(self, cfg):
-        engine = cfg.get('condor.template_engine', 'mako')
-        self.engines = load_engines(engine,  cfg)
+        engine = cfg.get("condor.template_engine", "mako")
+        self.engines = load_engines(engine, cfg)
         self.engine = self.engines[engine]
         self.template = {}
         for x in list(CONDOR_TEMPLATES.keys()):
-            path = cfg.get (x)
+            path = cfg.get(x)
             if path and os.path.exists(path):
-                self.template[x] = open (path).read()
+                self.template[x] = open(path).read()
             else:
-                log.warn('template %s: %s not found: defaulting to internal version' % (x,path))
+                log.warn(
+                    "template %s: %s not found: defaulting to internal version"
+                    % (x, path)
+                )
                 self.template[x] = CONDOR_TEMPLATES[x]
 
-
-    def create_file(self,output_path, template, mapping):
+    def create_file(self, output_path, template, mapping):
         try:
-            f = open(output_path, 'w')
+            f = open(output_path, "w")
 
             # default templates are in mako
             if not os.path.exists(template):
@@ -187,26 +182,26 @@ class CondorTemplates(object):
             return output_path
         except:
             x = mako.exceptions.text_error_template().render()
-            log.exception('Bad template : %s' , x)
+            log.exception("Bad template : %s", x)
         return None
 
     def construct_launcher(self, mapping):
-        self.launch_path = self.mk_path('%(mex_id)s_launch.py', mapping)
+        self.launch_path = self.mk_path("%(mex_id)s_launch.py", mapping)
         if self.create_file(self.launch_path, LAUNCHER_SCRIPT, mapping):
             return self.launch_path
         return None
 
-
     def prepare_submit(self, mapping):
         """Create the condor required files"""
-        self.dag_path = self.mk_path('%(mex_id)s.dag', mapping)
-        self.create_file(self.dag_path,
-                         self.template['condor.dag_template'], mapping)
+        self.dag_path = self.mk_path("%(mex_id)s.dag", mapping)
+        self.create_file(self.dag_path, self.template["condor.dag_template"], mapping)
 
-        self.conf_path = self.mk_path('%(mex_id)s.dag.config', mapping)
-        self.create_file(self.conf_path,
-                         self.template['condor.dag_config_template'], mapping)
+        self.conf_path = self.mk_path("%(mex_id)s.dag.config", mapping)
+        self.create_file(
+            self.conf_path, self.template["condor.dag_config_template"], mapping
+        )
 
-        self.submit_path = self.mk_path('%(mex_id)s.cmd', mapping)
-        self.create_file(self.submit_path,
-                         self.template['condor.submit_template'], mapping)
+        self.submit_path = self.mk_path("%(mex_id)s.cmd", mapping)
+        self.create_file(
+            self.submit_path, self.template["condor.submit_template"], mapping
+        )

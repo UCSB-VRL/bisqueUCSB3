@@ -59,8 +59,6 @@ import mimetypes
 import logging
 
 
-
-
 log = logging.getLogger("bisquik.util.http")
 
 

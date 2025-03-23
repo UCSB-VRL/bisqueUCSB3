@@ -7,7 +7,7 @@ should be updated.
 
 """
 
-from bq.core.tests import TestController
+from bqcore.bq.core.tests import TestController
 
 
 class TestAuthentication(TestController):
@@ -22,7 +22,7 @@ class TestAuthentication(TestController):
 
     """
 
-    application_under_test = 'main'
+    application_under_test = "main"
 
     def test_forced_login(self):
         """Anonymous users are forced to login
@@ -33,38 +33,46 @@ class TestAuthentication(TestController):
 
         """
         # Requesting a protected area
-        resp = self.app.get('/client_service/upload', status=302)
-        assert resp.location.startswith('http://localhost/auth_service/login')
+        resp = self.app.get("/client_service/upload", status=302)
+        assert resp.location.startswith("http://localhost/auth_service/login")
         # Getting the login form:
         resp = resp.follow(status=200)
         form = resp.form
         # Submitting the login form:
-        form['login'] = 'admin'
-        form['password'] = 'admin'
+        form["login"] = "admin"
+        form["password"] = "admin"
         post_login = form.submit(status=302)
         # Being redirected to the initially requested page:
-        assert post_login.location.startswith('http://localhost/auth_service/post_login')
+        assert post_login.location.startswith(
+            "http://localhost/auth_service/post_login"
+        )
         initial_page = post_login.follow(status=302)
-        assert 'auth_tkt' in initial_page.request.cookies, \
-               "Session cookie wasn't defined: %s" % initial_page.request.cookies
-        assert initial_page.location.startswith('http://localhost/client_service/upload'), \
-               initial_page.location
+        assert "auth_tkt" in initial_page.request.cookies, (
+            "Session cookie wasn't defined: %s" % initial_page.request.cookies
+        )
+        assert initial_page.location.startswith(
+            "http://localhost/client_service/upload"
+        ), initial_page.location
 
     def test_voluntary_login(self):
         """Voluntary logins must work correctly"""
         # Going to the login form voluntarily:
-        resp = self.app.get('/auth_service/login', status=200)
+        resp = self.app.get("/auth_service/login", status=200)
         form = resp.form
         # Submitting the login form:
-        form['login'] = 'admin'
-        form['password'] = 'admin'
+        form["login"] = "admin"
+        form["password"] = "admin"
         post_login = form.submit(status=302)
         # Being redirected to the home page:
-        assert post_login.location.startswith('http://localhost/auth_service/post_login')
+        assert post_login.location.startswith(
+            "http://localhost/auth_service/post_login"
+        )
         home_page = post_login.follow(status=302)
-        assert 'auth_tkt' in home_page.request.cookies, \
-               'Session cookie was not defined: %s' % home_page.request.cookies
-        assert home_page.location == 'http://localhost/'
+        assert "auth_tkt" in home_page.request.cookies, (
+            "Session cookie was not defined: %s" % home_page.request.cookies
+        )
+        assert home_page.location == "http://localhost/"
+
 
 #     def test_logout(self):
 #         """Logouts must work correctly"""

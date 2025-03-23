@@ -2,26 +2,22 @@
 """Test suite for the TG app's models"""
 from nose.tools import eq_
 
-from bq.core import model
-from bq.core.tests.models import ModelTest
+from bqcore.bq.core import model
+from bqcore.bq.core.tests.models import ModelTest
+
 
 class TestGroup(ModelTest):
     """Unit test case for the ``Group`` model."""
+
     klass = model.Group
-    attrs = dict(
-        group_name = "test_group",
-        display_name = "Test Group"
-        )
+    attrs = dict(group_name="test_group", display_name="Test Group")
 
 
 class TestUser(ModelTest):
     """Unit test case for the ``User`` model."""
 
     klass = model.User
-    attrs = dict(
-        user_name = "ignucius",
-        email_address = "ignucius@example.org"
-        )
+    attrs = dict(user_name="ignucius", email_address="ignucius@example.org")
 
     def test_obj_creation_username(self):
         """The obj constructor must set the user name right"""
@@ -46,6 +42,5 @@ class TestPermission(ModelTest):
 
     klass = model.Permission
     attrs = dict(
-        permission_name = "test_permission",
-        description = "This is a test Description"
-        )
+        permission_name="test_permission", description="This is a test Description"
+    )

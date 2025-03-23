@@ -3,7 +3,7 @@ import os
 import logging
 
 log = logging.getLogger('bq.util.mkdir')
-
+# ? doesn't os.makedirs exactly do the same? A question for later.
 def _mkdir(newdir):
     """works the way a good mkdir should :)
         - already exists, silently complete

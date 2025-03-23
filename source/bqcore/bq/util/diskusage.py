@@ -11,9 +11,10 @@ namedtuple.  Values are expressed in bytes.
 import os
 import collections
 
-_ntuple_diskusage = collections.namedtuple('usage', 'total used free')
+_ntuple_diskusage = collections.namedtuple("usage", "total used free")
 
-if hasattr(os, 'statvfs'):  # POSIX
+if hasattr(os, "statvfs"):  # POSIX
+
     def disk_usage(path):
         st = os.statvfs(path)
         free = st.f_bavail * st.f_frsize
@@ -21,7 +22,7 @@ if hasattr(os, 'statvfs'):  # POSIX
         used = (st.f_blocks - st.f_bfree) * st.f_frsize
         return _ntuple_diskusage(total, used, free)
 
-elif os.name == 'nt':       # Windows
+elif os.name == "nt":  # Windows
     import ctypes
     import sys
 
@@ -36,10 +37,11 @@ elif os.name == 'nt':       # Windows
             raise ctypes.WinError()
         used = total.value - free.value
         return _ntuple_diskusage(total.value, used, free.value)
+
 else:
     raise NotImplementedError("platform not supported")
 
 disk_usage.__doc__ = __doc__
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(disk_usage(os.getcwd()))

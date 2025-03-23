@@ -12,7 +12,7 @@ Please read http://pythonpaste.org/webtest/ for more information.
 """
 from nose.tools import assert_true
 
-from bq.core.tests import TestController
+from bqcore.bq.core.tests import TestController
 
 
 class TestRootController(TestController):
@@ -20,8 +20,8 @@ class TestRootController(TestController):
 
     def test_index(self):
         """The front page is working properly"""
-        msg = 'Welcome'
-        response = self.app.get('/', status=302)
+        msg = "Welcome"
+        response = self.app.get("/", status=302)
         response = response.follow(status=200)
 
         # You can look for specific strings:
@@ -31,14 +31,15 @@ class TestRootController(TestController):
         # (First run $ easy_install BeautifulSoup
         # and then uncomment the next two lines)
 
-        #links = response.html.findAll('a')
-        #print links
-        #assert_true(links, "Mummy, there are no links here!")
+        # links = response.html.findAll('a')
+        # print links
+        # assert_true(links, "Mummy, there are no links here!")
 
     def test_services(self):
-        """Displaying Services works """
-        response = self.app.get('/services')
-        assert_true('client_service' in response)
+        """Displaying Services works"""
+        response = self.app.get("/services")
+        assert_true("client_service" in response)
+
 
 #     def test_data(self):
 #         """The data display demo works with HTML"""

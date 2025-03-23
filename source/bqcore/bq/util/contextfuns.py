@@ -52,9 +52,10 @@ DESCRIPTION
 """
 from contextlib import contextmanager
 
+
 @contextmanager
 def optional_cm(cm, *args, **kw):
-    """Create a special contect manager to not duplicate code
+    """Create a special context manager to not duplicate code
     See http://bugs.python.org/issue10049
     """
     if cm is None:
@@ -65,10 +66,10 @@ def optional_cm(cm, *args, **kw):
 
 
 @contextmanager
-def opener_cm (path):
+def opener_cm(path):
     "open a filename or return the already opened file"
-    if hasattr(path, 'read'):
+    if hasattr(path, "read"):
         yield path
     else:
-        with open(path, 'rb') as f:
+        with open(path, "rb") as f:
             yield f

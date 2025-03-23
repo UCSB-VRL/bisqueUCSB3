@@ -12,41 +12,46 @@ from webtest import TestApp
 from nose.tools import eq_
 import transaction
 
-from bq.core import model
-from bq.core.model import DBSession
+from bqcore.bq.core import model
+from bqcore.bq.core.model import DBSession
 
-__all__ = ['setup_db', 'teardown_db', 'TestController', 'url_for']
+__all__ = ["setup_db", "teardown_db", "TestController", "url_for"]
+
 
 def setup_db():
     """Method used to build a database"""
-    engine = config['pylons.app_globals'].sa_engine
+    engine = config["pylons.app_globals"].sa_engine
     model.init_model(engine)
     model.metadata.create_all(engine)
     print("SETUP DB")
+
 
 def teardown_db():
     """Method used to destroy a database"""
     DBSession.rollback()
     DBSession.remove()
-    engine = config['pylons.app_globals'].sa_engine
+    engine = config["pylons.app_globals"].sa_engine
     model.metadata.drop_all(engine)
     print("TEARDOWN DB")
 
-    #transaction.doom()
+    # transaction.doom()
 
-def setup_app(section = 'main_without_authn'):
-    conf_dir = 'config'  # config.here
-    wsgiapp = loadapp('config:test.ini#%s' % section , relative_to=conf_dir)
+
+def setup_app(section="main_without_authn"):
+    conf_dir = "config"  # config.here
+    wsgiapp = loadapp("config:test.ini#%s" % section, relative_to=conf_dir)
     app = TestApp(wsgiapp)
     # Setting it up:
-    test_file = path.join(conf_dir, 'test.ini')
-    cmd = SetupCommand('setup-app')
+    test_file = path.join(conf_dir, "test.ini")
+    cmd = SetupCommand("setup-app")
     cmd.run([test_file])
-    #transaction.commit()
+    # transaction.commit()
     return app
 
-def teardown_app ():
+
+def teardown_app():
     teardown_db()
+
 
 class TestController(object):
     """
@@ -65,7 +70,7 @@ class TestController(object):
 
     """
 
-    application_under_test = 'main_without_authn'
+    application_under_test = "main_without_authn"
 
     @classmethod
     def setup_class(cls):
@@ -79,14 +84,15 @@ class TestController(object):
     def teardown_class(cls):
         """Method called by nose after running each test"""
         # Cleaning up the database:
-        #DBSession.rollback()
-        #DBSession.expunge_all()
+        # DBSession.rollback()
+        # DBSession.expunge_all()
         print("TestController TEARDOWN")
         teardown_db()
 
+
 class DBTest(object):
-    """Test that only uses datatbase resources
-    """
+    """Test that only uses datatbase resources"""
+
     application_under_test = "main"
 
     def setUp(self):
@@ -95,6 +101,6 @@ class DBTest(object):
     def tearDown(self):
         """Method called by nose after running each test"""
         # Cleaning up the database:
-        #DBSession.rollback()
-        #DBSession.expunge_all()
+        # DBSession.rollback()
+        # DBSession.expunge_all()
         print("DBTEST.teardown")

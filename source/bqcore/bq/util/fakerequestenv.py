@@ -47,16 +47,17 @@ DESCRIPTION
 
 """
 
-from tg import  session, request
+from tg import session, request
 from paste.registry import Registry
-from beaker.session import  SessionObject
+from beaker.session import SessionObject
 from pylons.controllers.util import Request
+
 
 def create_fake_env():
     registry = Registry()
     registry.prepare()
     registry.register(session, SessionObject({}))
-    registry.register(request, Request.blank('/bootstrap'))
+    registry.register(request, Request.blank("/bootstrap"))
     request.identity = {}
 
     return session, request
