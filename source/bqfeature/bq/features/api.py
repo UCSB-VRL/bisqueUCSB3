@@ -58,40 +58,41 @@ import urllib.parse
 import functools
 from tg import config
 
-from bq.core.service import service_registry
+from bqcore.bq.core.service import service_registry
 from .controllers.TablesInterface import Tables
 
-log = logging.getLogger('bq.features')
+log = logging.getLogger("bq.features")
+
 
 def find_server():
-    return service_registry.find_service ('features')
+    return service_registry.find_service("features")
 
 
-def return_feature_vector(feature_name,**resource):
+def return_feature_vector(feature_name, **resource):
     """
-        returns feature on the resource from the feature service
+    returns feature on the resource from the feature service
     """
     server = find_server()
     feature_init = server.FEATURE_ARCHIVE[feature_name]()
-    resource_list = server.ResourceList( None, feature_name, 'none')
+    resource_list = server.ResourceList(None, feature_name, "none")
     resource_list.append(**resource)
     format = server.NumPy(feature_init, None)
     feature_table = Tables(feature_init)
-    return format.return_from_tables( feature_table, resource_list)
+    return format.return_from_tables(feature_table, resource_list)
 
 
 def return_feature_location_in_tables(feature_name, **resource):
     """
-        returns the location of the features requested on the resource from the stored tables
+    returns the location of the features requested on the resource from the stored tables
     """
     server = find_server()
     feature_init = server.FEATURE_ARCHIVE[feature_name]()
-    resource_list = server.ResourceList( None, feature_name, 'none')
+    resource_list = server.ResourceList(None, feature_name, "none")
     resource_list.append(**resource)
     format = server.LocalPath(feature_init, None)
     feature_table = Tables(feature_init)
-    localpath = format.return_from_tables( feature_table, resource_list)
-    if len(localpath)==1:
+    localpath = format.return_from_tables(feature_table, resource_list)
+    if len(localpath) == 1:
         return localpath[0]
     else:
         return (None, None)
@@ -103,30 +104,30 @@ def return_feature_list():
     return list(server.FEATURE_ARCHIVE.keys())
 
 
-#def return_feature_info(feature_name):
+# def return_feature_info(feature_name):
 #    """
 #        returns information in the xml format
 #    """
 #    return
 
-#def return_table_length(feature_name):
+# def return_table_length(feature_name):
 #    """returns amount of features in the feature table storage"""
 #    server = find_server()
 #    feature_init = server.FEATURE_ARCHIVE[feature_name]()
 #    return len(server.Tables(feature_init))
 
-#def cached_feature(feature_name,**resource):
+# def cached_feature(feature_name,**resource):
 #    """Checks to see if the features are stored in the feature tables"""
 #    return
 
-#def delete(feature_name,**resource):
+# def delete(feature_name,**resource):
 #    """Delete feature vectors attached to this resource"""
 #    pass
 #
-#def delete_table(feature_name):
+# def delete_table(feature_name):
 #    """Deletes a feature tables"""
 #    pass
 #
-#def delete_cache(feature_name):
+# def delete_cache(feature_name):
 #    """Deletes a table in the workdir"""
 #    pass
