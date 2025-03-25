@@ -62,46 +62,49 @@ Operations are added by simply deriving from StatOperator and adding your code h
 
 """
 
-__module__    = "blob_plugins.py"
-__author__    = "Dmitry Fedorov"
-__version__   = "1.0"
-__revision__  = "$Rev$"
-__date__      = "$Date$"
+__module__ = "blob_plugins.py"
+__author__ = "Dmitry Fedorov"
+__version__ = "1.0"
+__revision__ = "$Rev$"
+__date__ = "$Date$"
 __copyright__ = "Center for BioImage Informatics, University California, Santa Barbara"
 
 import imp
 import os
 import inspect
 import logging
-#from lxml import etree
 
-log = logging.getLogger('bq.blobs.plugins')
+# from lxml import etree
 
-#__all__ = [ 'ResourcePlugin', 'ResourcePluginManager' ]
+log = logging.getLogger("bq.blobs.plugins")
+
+# __all__ = [ 'ResourcePlugin', 'ResourcePluginManager' ]
 
 ################################################################################
 # Base class for resource plugins
 ################################################################################
 
-#from bq.blob_service.controllers.blob_plugins import ResourcePlugin
+# from bq.blob_service.controllers.blob_plugins import ResourcePlugin
 
-class ResourcePlugin (object):
-    '''Maps vector of objects into a vector of numbers or strings'''
+
+class ResourcePlugin(object):
+    """Maps vector of objects into a vector of numbers or strings"""
+
     name = "ResourcePlugin"
-    version = '1.0'
-    ext = ''
-    resource_type = 'resource'
-    mime_type = 'application/octet-stream'
+    version = "1.0"
+    ext = ""
+    resource_type = "resource"
+    mime_type = "application/octet-stream"
 
     def __init__(self):
         pass
 
     def __str__(self):
-        return '(%s, %s)'%(self.resource_type, self.ext)
+        return "(%s, %s)" % (self.resource_type, self.ext)
 
     def is_supported(self, filename):
         ext = os.path.splitext(filename)[1][1:]
-        #return os.path.splitext(filename)[1][1:] in self.ext
+        # return os.path.splitext(filename)[1][1:] in self.ext
         return ext.lower() == self.ext.lower()
 
     def guess_type(self, filename):
@@ -123,25 +126,25 @@ class ResourcePlugin (object):
     #
     # outputs:
     #   list of ingested resources
-    #def process_on_import(self, f, intags):
+    # def process_on_import(self, f, intags):
     #    # do import processing here
     #    return resources
-
 
 
 ################################################################################
 # Plugin manager
 ################################################################################
 
-def walk_deep(path, ext=['py']):
-    """Splits sub path that follows # sign if present
-    """
+
+def walk_deep(path, ext=["py"]):
+    """Splits sub path that follows # sign if present"""
     files = []
     for root, _, filenames in os.walk(path):
         for f in filenames:
             if os.path.splitext(f)[1][1:] in ext:
                 files.append(os.path.join(root, f))
     return files
+
 
 class ResourcePluginManager(object):
 
@@ -153,12 +156,12 @@ class ResourcePluginManager(object):
         for f in files:
             module_name = os.path.splitext(os.path.basename(f))[0]
             o = imp.load_source(module_name, f)
-            for n,item in inspect.getmembers(o):
+            for n, item in inspect.getmembers(o):
                 if inspect.isclass(item) and issubclass(item, ResourcePlugin):
-                    if item.name != 'ResourcePlugin':
-                        log.debug('Adding plugin: %s'%item.name)
+                    if item.name != "ResourcePlugin":
+                        log.debug("Adding plugin: %s" % item.name)
                         self.plugins.append(item())
-        log.info('Resource plugins: %s', [str(p) for p in self.plugins])
+        log.info("Resource plugins: %s", [str(p) for p in self.plugins])
 
     def guess_type(self, filename):
         for p in self.plugins:

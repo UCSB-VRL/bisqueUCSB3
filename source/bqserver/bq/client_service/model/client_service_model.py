@@ -3,7 +3,7 @@ from sqlalchemy import Table, ForeignKey, Column
 from sqlalchemy.types import Integer, Unicode
 from sqlalchemy.orm import mapper, relation
 #from sqlalchemy.orm import relation, backref
-from bq.core.model import DeclarativeBase, metadata, DBSession
+from bqcore.bq.core.model import DeclarativeBase, metadata, DBSession
 
 #class SampleModel(DeclarativeBase):
 #    __tablename__ = 'sample_model'

@@ -1,4 +1,3 @@
-
 import sys
 import os
 import io
@@ -12,15 +11,14 @@ from nose.tools import assert_true, assert_equal, assert_false
 
 
 def setup():
-    'module test setup '
+    "module test setup"
 
 
 def teardown():
-    'teardown'
-    
+    "teardown"
+
+
 class TestDemo(object):
 
-
     def test_a(self):
-        'a test'
-
+        "a test"
