@@ -6,7 +6,7 @@ from  bisquik.util.http import request, post_files
 from bisquik import identity
 import base64
 import sys
-import cStringIO 
+import io 
 
 import itk
 import GeodesicSegmentation as seg
@@ -52,7 +52,7 @@ class BQNodeFactory(object):
         xmlname = xmlnode.tag
         if xmlname in known_gobjects:
             node = BQGObject()
-            node.tag_type =  unicode(xmlname)
+            node.tag_type =  str(xmlname)
             if parent:
                 parent.gobjects.append(node)
         elif xmlname == "tag":
@@ -121,13 +121,13 @@ class itkGeodesicSegmentationPY:
 
     def processImage(self):        
         log.debug("IMAGE: " +  self.image.z + ',' + self.image.t + ',' + self.image.ch)
-        print 'In process image'
+        print('In process image')
         if int(self.image.z) == 1  and  int(self.image.t) == 1 and (int(self.image.ch) ==1 or int(self.image.ch) == 3):
 			# read image from Bisque system
 			resp, content = request(self.image.src + '?format=png', "GET", userpass = self.userpass )
 
-			print str(resp)
-			print len(content)
+			print(str(resp))
+			print(len(content))
 
 			tempinfile = 'ac_in.png' 
 			tempoutfile = 'ac_out.png'
@@ -135,16 +135,16 @@ class itkGeodesicSegmentationPY:
 			f = open(tempinfile,'w')
 			f.write(content)
 			f.close()
-			print 'Done writing the file'
+			print('Done writing the file')
 
 			InitialDistance = 5.0
 
 			seg.doSegment(tempinfile,tempoutfile, self.seedX, self.seedY, InitialDistance, self.Sigma, self.SigmoidAlpha, self.SigmoidBeta,self.PropagationScaling)
-			print 'Segmentation done!'
+			print('Segmentation done!')
 
 			buffer = open(tempoutfile,'r')
 
-			print ' posting the output to the server ..'
+			print(' posting the output to the server ..')
 			file = [('upload', tempoutfile, buffer.read())] 
 			resp, content =  post_files (self.client_server + '/bisquik/upload_raw_image', file,  [], userpass = self.userpass,)
 			log.debug("RESP: " +  str(content))
@@ -165,7 +165,7 @@ class itkGeodesicSegmentationPY:
         return resp
    
     def main(self, client_server, image_url,user='admin',password='admin'):
-		print'Running in main'
+		print('Running in main')
 		self.userpass  = ( user, password )
 		self.client_server = client_server
 		self.image_url = image_url

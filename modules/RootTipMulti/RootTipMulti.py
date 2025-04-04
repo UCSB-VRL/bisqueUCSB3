@@ -38,7 +38,7 @@ class RootTip(object):
         tips = self.bq.mex.find('inputs', 'tag').find('image_url', 'tag').find('tips', 'gobject')
         with open('inputtips.csv', 'w') as TIPS:
             for point in tips.gobjects:
-                print >>TIPS, "%(y)s, %(x)s" % dict(x=point.vertices[0].x,y=point.vertices[0].y)
+                print("%(y)s, %(x)s" % dict(x=point.vertices[0].x,y=point.vertices[0].y), file=TIPS)
 
 
 
@@ -134,7 +134,7 @@ class RootTip(object):
             for command in commands:
                 command = getattr(self, command)
                 r = command()
-        except Exception, e:
+        except Exception as e:
             logging.exception ("problem during %s" % command)
             self.bq.fail_mex(msg = "Exception during %s: %s" % (command,  e))
             sys.exit(1)

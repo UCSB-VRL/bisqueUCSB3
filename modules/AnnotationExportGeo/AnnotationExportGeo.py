@@ -109,7 +109,7 @@ if __name__ == "__main__":
 
     try:
         M.main(mex_url=mex_url, bq=bq )
-    except Exception, e:
+    except Exception as e:
         bq.fail_mex(traceback.format_exc())
     sys.exit(0)
 

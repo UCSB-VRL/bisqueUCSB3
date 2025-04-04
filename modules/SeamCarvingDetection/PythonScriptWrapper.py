@@ -51,12 +51,12 @@ class PythonScriptWrapper(object):
         outputs_tag = self.root.find("./*[@name='outputs']")
         print(outputs_tag)
         nonimage_tag = outputs_tag.find("./*[@name='NonImage']")
-        print(nonimage_tag.tag, nonimage_tag.attrib)
+        print((nonimage_tag.tag, nonimage_tag.attrib))
         
         # Upload each resource with the corresponding service
         for resource in (nonimage_tag.findall(".//*[@type]") + outputs_tag.findall("./*[@type='image']")): 
-            print(resource.tag, resource.attrib)
-            print("NonImage type output with name %s" % resource.attrib['name'])
+            print((resource.tag, resource.attrib))
+            print(("NonImage type output with name %s" % resource.attrib['name']))
             resource_name = resource.attrib['name']
             resource_type = resource.attrib['type']
             resource_path = self.output_data_path_dict[resource_name]
@@ -112,7 +112,7 @@ class PythonScriptWrapper(object):
 #        print(inputs_tag)
         for input_resource in inputs_tag.findall("./*[@type='resource']"):
             # for child in node.iter():
-            print(input_resource.tag, input_resource.attrib)
+            print((input_resource.tag, input_resource.attrib))
 
             input_name = input_resource.attrib['name']
             # log.info(f"***** Processing resource named: {input_name}")

@@ -4,7 +4,7 @@ import csv
 from operator import itemgetter
 import itertools
 from datetime import datetime
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 try:
     from lxml import etree as etree
@@ -66,7 +66,7 @@ class AnnotationRename(object):
             bq.update_mex('processing "%s"'%dataset_name)
 
             # only fetch resources of interest
-            q = urllib.quote(value_old)
+            q = urllib.parse.quote(value_old)
             sep = seps[annotation_attribute]
             qurl = '%s/value?tag_query=%%22%s%%22%s'%(ds_url, q, sep)
             dataset = bq.fetchxml (qurl, view='short')

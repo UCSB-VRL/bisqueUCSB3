@@ -325,25 +325,25 @@ class Botanicam(object):
             
             try: #run setup and retrieve mex variables
                 self.setup()
-            except Exception, e:
+            except Exception as e:
                 log.exception("Exception during setup")
                 self.bqSession.fail_mex(msg = "Exception during setup: %s" %  str(e))
                 return
             
             try: #run module operation
                 self.run()
-            except BotanicamError, e:
+            except BotanicamError as e:
                 log.exception("Exception during run")
                 self.bqSession.fail_mex(msg = "Exception during run: %s" % str(e.message))
                 return                
-            except Exception, e:
+            except Exception as e:
                 log.exception("Exception during run")
                 self.bqSession.fail_mex(msg = "Exception during run: %s" % str(e))
                 return
 
             try: #post module
                 self.teardown()
-            except Exception, e:
+            except Exception as e:
                 log.exception("Exception during teardown %s")
                 self.bqSession.fail_mex(msg = "Exception during teardown: %s" %  str(e))
                 return

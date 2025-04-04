@@ -221,7 +221,7 @@ def main():
             os.rename(image_name,image_name.replace('.gz',''))
             image_name=image_name.replace('.gz','')
         z, covid, pna, normal = predict_label(logging, image_name)
-        print(z, covid, pna, normal)
+        print((z, covid, pna, normal))
 
     else:
         print('Input image path')

@@ -65,7 +65,7 @@ class Dimensions(object):
     def write(self, filename):
         maxrows = 0
         header = []
-        for n,c in self.classes.iteritems():
+        for n,c in self.classes.items():
             #print '%s\n'%c
             if len(c.areas)>0:
                 header.append('%s (area)'%n)
@@ -84,7 +84,7 @@ class Dimensions(object):
             for i in range(maxrows):
                 row = [''] * maxcols
                 j = 0
-                for c in self.classes.itervalues():
+                for c in self.classes.values():
                     try:
                         row[j] = c.areas[i]
                         row[j+1] = c.units_area[i]
@@ -187,7 +187,7 @@ class AnnotationHistograms(object):
 
             refs = dataset.xpath('value[@type="object"]')
             for r in refs:
-                print 'Fetching %s'%r.text
+                print('Fetching %s'%r.text)
                 xml = bq.fetchxml (r.text, view='deep')
                 if xml.tag != 'image':
                     continue
@@ -233,6 +233,6 @@ if __name__ == "__main__":
 
     try:
         M.main(mex_url=mex_url, bq=bq )
-    except Exception, e:
+    except Exception as e:
         bq.fail_mex(traceback.format_exc())
     sys.exit(0)

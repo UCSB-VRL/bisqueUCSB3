@@ -42,7 +42,7 @@ class VideoDataset(Dataset):
                 labels.append(label)
 
         assert len(labels) == len(self.fnames)
-        print('Number of {} videos: {:d}'.format(split, len(self.fnames)))
+        print(('Number of {} videos: {:d}'.format(split, len(self.fnames))))
 
         # Prepare a mapping between the label names (strings) and indices (ints)
         self.label2index = {label: index for index, label in enumerate(sorted(set(labels)))}
@@ -100,7 +100,7 @@ if __name__ == "__main__":
         inputs = sample[0]
         labels = sample[1]
         print(inputs)
-        print(labels.size())
+        print((labels.size()))
 
         if i == 1:
             break

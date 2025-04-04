@@ -90,7 +90,7 @@ def find_matches(image, preferred='secondary'):
             y = float(v.get('y'))
             points.append({'g': g, 'coord': (x,y), 'type': t})
         except IndexError:
-            print 'IndexError in %s'%g
+            print('IndexError in %s'%g)
             pass
     points = sorted(points, key=itemgetter('coord'))
 
@@ -124,10 +124,10 @@ def find_matches(image, preferred='secondary'):
 
         if selected is None:
             selected = matched[0]
-            print 'In %s (%s) could not select from matched points'%(filename, uri)
+            print('In %s (%s) could not select from matched points'%(filename, uri))
             for m in matched:
-                print 'matched: %s, %s'%(m['type'], m['coord'])
-            print 'Selected: %s, %s'%(selected['type'], selected['coord'])
+                print('matched: %s, %s'%(m['type'], m['coord']))
+            print('Selected: %s, %s'%(selected['type'], selected['coord']))
 
         filtered.append(selected)
 
@@ -135,9 +135,9 @@ def find_matches(image, preferred='secondary'):
     filtered = list(reversed(filtered))
 
     if len(filtered)!=100 and len(filtered) != len(gobs):
-        print '%s (%s) found %s preferred of %s'%(filename, uri, len(filtered), len(gobs))
+        print('%s (%s) found %s preferred of %s'%(filename, uri, len(filtered), len(gobs)))
     elif len(gobs)<100:
-        print '%s (%s) has only %s annotations'%(filename, uri, len(gobs))
+        print('%s (%s) has only %s annotations'%(filename, uri, len(gobs)))
     return filtered
 
 def find_gobjects (xml):
@@ -259,7 +259,7 @@ class AnnotationHistograms(object):
                 matches = find_gobjects (image)
                 #if len(matches)<1:
                 #    continue
-                print 'Image %s found %s gobjects'%(image.get('resource_uniq'), len(matches))
+                print('Image %s found %s gobjects'%(image.get('resource_uniq'), len(matches)))
 
 
                 i = Occurrences()
@@ -325,6 +325,6 @@ if __name__ == "__main__":
 
     try:
         M.main(mex_url=mex_url, bq=bq )
-    except Exception, e:
+    except Exception as e:
         bq.fail_mex(traceback.format_exc())
     sys.exit(0)

@@ -168,7 +168,7 @@ class PythonScriptWrapper(object):
             bq.fail_mex(msg="Exception during pre-process: %s" % str(e))
             return
         try:
-            print(os.listdir(results_outdir))
+            print((os.listdir(results_outdir)))
             self.outfiles = []
             for files in os.listdir(results_outdir):
                 if files.endswith("1.nii.gz"):

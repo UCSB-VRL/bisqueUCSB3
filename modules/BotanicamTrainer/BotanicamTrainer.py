@@ -6,7 +6,7 @@ import re
 import tables
 import sys
 import time
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import logging
 import itertools
 from lxml import etree
@@ -51,7 +51,7 @@ def _mkdir(newdir):
         if tail:
             try:
                 os.mkdir(newdir)
-            except OSError, e:
+            except OSError as e:
                 log.warn ('mkdir: %s', str(e))
                 
 
@@ -220,8 +220,8 @@ class BotanicamTrainer(object):
         #removing query_tag from the resource_url and adding it back in later
         resource_url_wo_query = resource_url_values
         resource_query = None
-        from urlparse import urlsplit, urlunsplit, parse_qs
-        from urllib import urlencode
+        from urllib.parse import urlsplit, urlunsplit, parse_qs
+        from urllib.parse import urlencode
         o = urlsplit(resource_url_values)
         q = parse_qs(o.query)
         if q.get('tag_query'):
@@ -234,7 +234,7 @@ class BotanicamTrainer(object):
         for tag_query in tag_query_list:
             encoded_tag_query = tag_query
             if resource_query: encoded_tag_query+=resource_query #adding back in the query_tag from the resource_url
-            encoded_tag_query = map(urllib.quote, tag_query)
+            encoded_tag_query = list(map(urllib.parse.quote, tag_query))
             encoded_tag_query='%s' % ' AND '.join(encoded_tag_query)
             query_xml = self.bqSession.fetchxml(resource_url_wo_query, tag_query=encoded_tag_query, view='full,clean')
             if len(query_xml.xpath('image'))>0:
@@ -329,7 +329,7 @@ class BotanicamTrainer(object):
         tag_classes = etree.SubElement(cl_model, 'tag', name='Classes')
         for i, name_value_pairs in enumerate(self.complete_tag_list) :
             tag_labels = etree.SubElement(tag_classes, 'tag', name='Class_%s'%str(i), value=str(i))
-            for n in name_value_pairs.keys():
+            for n in list(name_value_pairs.keys()):
                 etree.SubElement(tag_labels, 'tag', name=n, value=name_value_pairs[n])
                 
         etree.SubElement(cl_model, 'tag', name='Number of Classes', value=str(len(self.complete_tag_list)))

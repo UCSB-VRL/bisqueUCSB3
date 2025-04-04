@@ -11,21 +11,21 @@ from bq.util.converters import asbool
 def setup(params, *args, **kw):
     docker_params = read_config('runtime-bisque.cfg', "docker")
     if not asbool(docker_params.get('docker.enabled', False)):
-        print "No Docker available... cannot set up module."
+        print("No Docker available... cannot set up module.")
         return 1
     
     try:
         # clone Dream.3D UCSB repo and build Docker image
         tmp_dir = tempfile.mkdtemp()
-        print "Cloning code into %s..." % tmp_dir
+        print("Cloning code into %s..." % tmp_dir)
         p = Popen(['git', 'clone', 'git@github.com:wlenthe/UCSB_DREAM3D', '%s/source' % tmp_dir],
                   stdout=PIPE)
         if p.wait() != 0:
-            print "Dream.3D repo could not be cloned... cannot set up module."
+            print("Dream.3D repo could not be cloned... cannot set up module.")
             return 1
      
         # build Docker image
-        print "Building Dream.3D docker image..."
+        print("Building Dream.3D docker image...")
         p = Popen(['timeout', '-s', 'SIGKILL', '120m',
                    'docker', 'build', '--tag', 'dream3d_ucsb', '%s/source' % tmp_dir],
                   stdout=PIPE)
@@ -35,12 +35,12 @@ def setup(params, *args, **kw):
                 break
             m = re.search('\[[ ]*[0-9]+%\]', line)
             if m:
-                print '\r\r\r\r\r\r',
-                print m.group(0),
+                print('\r\r\r\r\r\r', end=' ')
+                print(m.group(0), end=' ')
                 sys.stdout.flush()            
-        print
+        print()
         if p.wait() != 0:
-            print "Dream.3D image could not be built... cannot set up module."
+            print("Dream.3D image could not be built... cannot set up module.")
             return 1
         
         python_setup('Dream3D.py',  params=params )            

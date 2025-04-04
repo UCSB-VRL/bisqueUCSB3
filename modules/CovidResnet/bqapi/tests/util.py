@@ -1,6 +1,6 @@
 from bq.util.mkdir import _mkdir
 import posixpath
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import os
 
 def fetch_file(filename, url, dir):
@@ -16,5 +16,5 @@ def fetch_file(filename, url, dir):
     url = posixpath.join(url, filename)
     path = os.path.join(dir, filename)
     if not os.path.exists(path):
-        urllib.urlretrieve(url, path)
+        urllib.request.urlretrieve(url, path)
     return path

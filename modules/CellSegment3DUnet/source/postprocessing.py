@@ -147,7 +147,7 @@ def compute_contact_points(seg_img, Adj_matrix):
                 bound_len = np.zeros(slices)
                 for kk in range(slices):
                     bound_len[kk] = draw_board[kk, :, :].sum()
-                print
+                print()
                 bound_len
                 for kk in range(slices - 1, 0, -1):
                     if kk < slices - 1:
@@ -168,7 +168,7 @@ def compute_segments(seg_img, Adj_list):
     [slices, x, y] = seg_img.shape
     final_dict = {}
     plane = seg_img[int(len(seg_img) / 2 + 1)]
-    for i in Adj_list.keys():
+    for i in list(Adj_list.keys()):
         A = i
         A_neighbors = Adj_list[A]
         for j in range(len(A_neighbors)):
@@ -203,7 +203,7 @@ def compute_conjunction_points(seg_img, Adj_list):
     plane = seg_img[int(len(seg_img) / 2 + 1)]
     final = np.zeros((x, y))
     final_dict = {}
-    for i in Adj_list.keys():
+    for i in list(Adj_list.keys()):
         A = i
         A_neighbors = Adj_list[A]
         for j in range(len(A_neighbors)):
@@ -242,7 +242,7 @@ def cell_volumn(seg_img):
     all_labels = np.unique(seg_img)
     cell_volumn = []
     unique, counts = np.unique(seg_img, return_counts=True)
-    result = dict(zip(unique, counts))
+    result = dict(list(zip(unique, counts)))
     result.pop(0)
     return result
 
@@ -409,7 +409,7 @@ def propagate(img, one_cell, sli_ind):
     # plt.show()
     one_cell[sli_ind] = boundaries * 1
     while (sli_start > 0 or sli_end < z - 1):
-        print
+        print()
         sli_start
         if sli_start > 0:
             cur = img[sli_start]
@@ -418,7 +418,7 @@ def propagate(img, one_cell, sli_ind):
             prev_sli = np.zeros((x, y))
             for point in points:
                 # print len(point)
-                print
+                print()
                 point
                 prev = img[sli_start - 1]
                 # print cur[point].shape
@@ -466,7 +466,7 @@ def main(bq, prob_map_dir, outdir, testing_data_dir, min_distance, label_thresho
     with tifffile.TiffFile(original_input) as tiff:
         imMeta = tiff.is_imagej
     for file in files:
-        print
+        print()
         file
         # slice_ind = seeds_slice_id # input('Please input the slice number for seeds:')
         blk_threshold = black_threshold  # input('Please input the threhold for black voxels')
@@ -548,7 +548,7 @@ def main(bq, prob_map_dir, outdir, testing_data_dir, min_distance, label_thresho
         coordinates = seg_img_coord(masks)
         # for label in np.unique(seg):
         adj_table = compute_cell_adjacent_table(masks)
-        adj_table_done = tuple([(k, v) for k, v in adj_table.items()])
+        adj_table_done = tuple([(k, v) for k, v in list(adj_table.items())])
         # df = pd.DataFrame(adj_table)
         # df.to_csv("result/adj_table.csv")
         center = cell_center(masks)
@@ -559,15 +559,15 @@ def main(bq, prob_map_dir, outdir, testing_data_dir, min_distance, label_thresho
         segments = compute_segments(masks, adj_table)
         print(segments)
         
-        points_done = tuple([(k, [x for xs in v for x in xs]) for k, v in points.items()])
+        points_done = tuple([(k, [x for xs in v for x in xs]) for k, v in list(points.items())])
         # np.savetxt("result/points.csv", points, delimiter=",")
 
         cell_vol = cell_volumn(masks)
-        cell_vol_done = tuple([(k, v) for k, v in cell_vol.items()])
+        cell_vol_done = tuple([(k, v) for k, v in list(cell_vol.items())])
         # df1 = pd.DataFrame(cell_volumn(masks))
         # df1.to_csv("result/cell_volumn.csv")
         output_files.append('source/result/' + file + 'seg.tif')
-        tfu = adj_table.values()
+        tfu = list(adj_table.values())
         b = np.full([len(tfu), len(max(tfu, key=lambda x: len(x)))], fill_value=np.nan)
         for i, j in enumerate(tfu):
             b[i][0:len(j)] = j
@@ -581,20 +581,20 @@ def main(bq, prob_map_dir, outdir, testing_data_dir, min_distance, label_thresho
             grp5 = hf.create_group("Segmented Image")
             grp6 = hf.create_group("Segments")
             grp7 = hf.create_group("Three Way Junctions")
-            grp2.create_dataset("Cell Center", data=(np.array(list((center.values())))))
-            grp3.create_dataset("Cell Volume", data=(np.array(list((cell_vol.values())))))
+            grp2.create_dataset("Cell Center", data=(np.array(list((list(center.values()))))))
+            grp3.create_dataset("Cell Volume", data=(np.array(list((list(cell_vol.values()))))))
             grp4.create_dataset("Adjacency Table", data=b)
-            grp0.create_dataset("Cell Labels", data=np.array(list((center.keys()))))
+            grp0.create_dataset("Cell Labels", data=np.array(list((list(center.keys())))))
 #            grp6.create_dataset("Segments", data=(np.array(list((segments.values())))))
 #             grp7.create_dataset("Three Way Junction Points", data=(np.array(list((segments.values())))))
             grp5.create_dataset("Segmented Image", data=masks, compression='gzip', compression_opts=9)
             for ix in range(num_cells):
                 grp1.create_dataset("Cell Label: {}".format(ix), compression='gzip', compression_opts=9,
-                                    data=(np.array(list((coordinates.values()))))[ix])
-            for key in segments.keys():
+                                    data=(np.array(list((list(coordinates.values())))))[ix])
+            for key in list(segments.keys()):
                 grp6.create_dataset("Cell Labels: {}".format(str(key)), compression='gzip', compression_opts=9,
                                     data=(np.array((segments[key]))))
-            for key in points.keys():
+            for key in list(points.keys()):
                 grp7.create_dataset("Cell Labels: {}".format(str(key)), compression='gzip', compression_opts=9,
                                     data=(np.array([points[key][0], points[key][1]])))
         # outtable_xml_adj_table = table_service.store_array(adj_table_done, name='adj_table')

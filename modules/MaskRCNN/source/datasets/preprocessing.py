@@ -21,7 +21,7 @@ def image_processing(raw_data,data_path,height,width):
             category_count+=1
         else:
             number_of_classes=len(i[1])
-            print(number_of_classes,i[1])
+            print((number_of_classes,i[1]))
             class_labels=i[1][:]
 
 if __name__=='__main__':

@@ -22,9 +22,7 @@ class Parser(object):
 
     def __str__(self):
         attrs = sorted(vars(self))
-        attrs = map(
-                lambda x:'%s: %s\n' % (x.ljust(20), str(getattr(self, x))),
-                attrs)
+        attrs = ['%s: %s\n' % (x.ljust(20), str(getattr(self, x))) for x in attrs]
         return ''.join(attrs)
 
     def from_file(self, fname, args=None):
@@ -33,7 +31,7 @@ class Parser(object):
 
         if args: S.update(**vars(args))
 
-        for key, value in S.items():
+        for key, value in list(S.items()):
             setattr(self, key, value)
 
     def getdir(self):

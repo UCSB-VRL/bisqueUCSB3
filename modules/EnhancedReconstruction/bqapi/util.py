@@ -98,13 +98,13 @@ def safecopy (*largs):
             dest = d
             if os.path.isdir (d):
                 dest = os.path.join (d, os.path.basename(f))
-            print ("linking %s to %s"%(f,dest))
+            print(("linking %s to %s"%(f,dest)))
             if os.path.exists(dest):
-                print ("Found existing file %s: removing .." % dest)
+                print(("Found existing file %s: removing .." % dest))
                 os.unlink (dest)
             os.link(f, dest)
         except (OSError, AttributeError) as e:
-            print ("Problem in link %s .. trying copy" % e)
+            print(("Problem in link %s .. trying copy" % e))
             shutil.copy2(f, dest)
 
 def parse_qs(query):
@@ -302,7 +302,7 @@ def fetch_dataset(session, uri, dest, uselocalpath=False):
     results = {}
     for i, imgxml in enumerate(members):
         uri =  imgxml.text   #imgxml.get('uri')
-        print ("FETCHING", uri)
+        print(("FETCHING", uri))
         #fname = os.path.join (dest, "%.5d.tif" % i)
         x = fetch_image_pixels(session, uri, dest, uselocalpath=uselocalpath)
         results.update (x)
@@ -360,7 +360,7 @@ def fetchDataset(session, uri, dest, uselocalpath=False):
 
     for i, imgxml in enumerate(members):
         uri = imgxml.text
-        print ("FETCHING: ", uri)
+        print(("FETCHING: ", uri))
         #fname = os.path.join (dest, "%.5d.tif" % i)
         result = fetchImage(session, uri, dest, uselocalpath=uselocalpath)
         results[uri] = result[uri]

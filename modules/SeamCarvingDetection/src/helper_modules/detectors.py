@@ -115,7 +115,7 @@ def detect_sc(img, model_loaded_sr_detect, model_loaded_si_detect, thresh=0.5):
 		for row_i in range(1,len(row_start_list)):
 			for col_i in range(1,len(col_start_list)):
 				patch_count += 1
-				print("Working on patch-"+str(patch_count)+"/"+str((len(row_start_list)-1)*(len(col_start_list)-1)))
+				print(("Working on patch-"+str(patch_count)+"/"+str((len(row_start_list)-1)*(len(col_start_list)-1))))
 				row_start = row_start_list[row_i-1]
 				row_end = row_start_list[row_i]
 				col_start = col_start_list[col_i-1]

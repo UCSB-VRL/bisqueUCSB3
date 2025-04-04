@@ -3,13 +3,13 @@ import pytest
 from collections import OrderedDict, namedtuple
 import os
 from lxml import etree
-import urllib
+import urllib.request, urllib.parse, urllib.error
 from datetime import datetime
 import time
 
 from bqapi import BQSession
 
-TEST_PATH = 'tests_%s'%urllib.quote(datetime.now().strftime('%Y%m%d%H%M%S%f'))  #set a test dir on the system so not too many repeats occur
+TEST_PATH = 'tests_%s'%urllib.parse.quote(datetime.now().strftime('%Y%m%d%H%M%S%f'))  #set a test dir on the system so not too many repeats occur
 
 # default mark is function.. may be overridden
 pytestmark = pytest.mark.functional
@@ -186,7 +186,7 @@ def test_fetchblob_1():
 
 def test_postblob_1(session, stores):
     """ Test post blob """
-    resource = etree.Element ('resource', name=u'%s/%s'%(TEST_PATH, stores.files[0].name))
+    resource = etree.Element ('resource', name='%s/%s'%(TEST_PATH, stores.files[0].name))
     content = session.postblob(stores.files[0].location, xml=resource)
     assert len(content), "No content returned"
 
@@ -195,7 +195,7 @@ def test_postblob_2(session, stores):
     """ Test post blob and save the returned document to disk """
     filename = 'postblob_test_2.xml'
     path = os.path.join(stores.results,filename)
-    resource = etree.Element ('resource', name=u'%s/%s'%(TEST_PATH, stores.files[0].name))
+    resource = etree.Element ('resource', name='%s/%s'%(TEST_PATH, stores.files[0].name))
     path = session.postblob(stores.files[0].location, xml=resource, path=path)
 
     try:
@@ -214,7 +214,7 @@ def test_postblob_3(session, stores):
     <image name="%s">
         <tag name="my_tag" value="test"/>
     </image>
-    """%u'%s/%s'%(TEST_PATH, stores.files[0].name)
+    """%'%s/%s'%(TEST_PATH, stores.files[0].name)
     content = session.postblob(stores.files[0].location, xml=test_document)
 
 

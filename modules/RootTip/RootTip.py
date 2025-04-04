@@ -58,7 +58,7 @@ class RootTip(object):
         tips = csv.reader(open('tips.csv','rb'))
         angles = csv.reader(open('angle.csv','rb'))
         grates = csv.reader(open('gr.csv','rb'))
-        for index, (tip, angle, gr)  in enumerate(itertools.izip(tips, angles, grates)):
+        for index, (tip, angle, gr)  in enumerate(zip(tips, angles, grates)):
             results.append({
                     'type' : 'tipangle',
                     'tag' : [{ 'name': 'angle', 'value': angle[0]},
@@ -108,7 +108,7 @@ class RootTip(object):
             for command in commands:
                 command = getattr(self, command)
                 r = command()
-        except Exception, e:
+        except Exception as e:
             logging.exception ("problem during %s" % command)
             self.bq.fail_mex(msg = "Exception during %s: %s" % (command,  e))
             sys.exit(1)

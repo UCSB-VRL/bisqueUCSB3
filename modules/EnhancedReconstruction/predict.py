@@ -62,7 +62,7 @@ def main(data_path, output_dir, jump, pretrained_path, force):
 
     with torch.no_grad():
         model.eval()
-        for t_idx in tqdm(range(num_slices), desc="Processing stack"):
+        for t_idx in tqdm(list(range(num_slices)), desc="Processing stack"):
             img = transform(Image.fromarray(data[t_idx]).convert('RGB'))
             img = img.to(device)
             output_images, _ = model(img.unsqueeze_(0))
@@ -85,7 +85,7 @@ def main(data_path, output_dir, jump, pretrained_path, force):
             os.makedirs(output_dir, exist_ok=True)
 
         outputFile = os.path.join(output_dir, filename.split('.')[0] + '_enhanced.tif')
-        print("Output Stored at:", outputFile)
+        print(("Output Stored at:", outputFile))
         enhanced_data = np.expand_dims(enhanced_data[:,0,...],0)
         tifffile.imsave(outputFile, enhanced_data.astype(np.uint16), metadata=imMeta)
         return outputFile

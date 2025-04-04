@@ -19,10 +19,10 @@ else:
     import unittest
 import os
 import posixpath
-import urlparse
+import urllib.parse
 import time
 from lxml import etree
-import ConfigParser
+import configparser
 from bqapi.comm import BQSession, BQCommError
 
 from bq.image_service.tests.tests_base import ImageServiceTestBase
@@ -55,7 +55,7 @@ class NuclearDetector3DTests(ImageServiceTestBase):
 
     @classmethod
     def setUpClass(self):
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         config.read('config.cfg')
 
         self.root = config.get('Host', 'root') or 'localhost:8080'
@@ -79,7 +79,7 @@ class NuclearDetector3DTests(ImageServiceTestBase):
         resource = self.resource_2k
         self.assertIsNotNone(resource, 'Resource was not uploaded')
         
-        url = urlparse.urljoin(self.root, posixpath.join(url_module, 'execute'))
+        url = urllib.parse.urljoin(self.root, posixpath.join(url_module, 'execute'))
         request = request_xml.replace('{IMAGE_URL}', resource.get('uri', ''))
         request = request.replace('{NUCLEAR_CHANNEL}', '1')
         request = request.replace('{NUCLEAR_SIZE}', '5')
