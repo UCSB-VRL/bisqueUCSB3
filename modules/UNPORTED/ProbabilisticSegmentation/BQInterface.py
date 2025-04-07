@@ -20,7 +20,7 @@ class BQInterface:
         image = etree.XML(txt)[0]
         d = {}
         
-        for (name, value) in image.attrib.items():
+        for (name, value) in list(image.attrib.items()):
             d[name] = value
         
         return d

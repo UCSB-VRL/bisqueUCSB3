@@ -5,7 +5,7 @@ import os
 import re
 import sys
 import time
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import logging
 import itertools
 import subprocess
@@ -35,7 +35,7 @@ def _replace_placeholders(myjson, input_file, output_file, params):
         for jsonkey in myjson:
             if type(myjson[jsonkey]) in (list, dict):
                 _replace_placeholders(myjson[jsonkey], input_file, output_file, params)
-            elif isinstance(myjson[jsonkey], basestring):
+            elif isinstance(myjson[jsonkey], str):
                 try:
                     if myjson[jsonkey] == '@INPUT':
                         myjson[jsonkey] = input_file

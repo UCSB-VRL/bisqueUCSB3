@@ -6,7 +6,7 @@ from  bisquik.util.http import request, post_files, xmlrequest
 from bisquik import identity
 import base64
 import sys
-import StringIO 
+import io 
 import time
 
 import itk
@@ -55,7 +55,7 @@ class BQNodeFactory(object):
         xmlname = xmlnode.tag
         if xmlname in known_gobjects:
             node = BQGObject()
-            node.tag_type =  unicode(xmlname)
+            node.tag_type =  str(xmlname)
             if parent:
                 parent.gobjects.append(node)
         elif xmlname == "tag":
@@ -128,7 +128,7 @@ class itkModulePY:
         log.debug("REQ: " + etree.tostring(req))
         resp, content = request(parent.uri, "POST", body = etree.tostring(req), headers={'content-type':'text/xml' }, userpass = self.userpass )
         log.debug("RESP: " + str(content))
-        print etree.tostring(response)
+        print(etree.tostring(response))
         return resp
 
     def createXML(self,client_server,image_url,seedX, seedY, Sigma, SigmoidAlpha, SigmoidBeta):
@@ -158,7 +158,7 @@ class itkModulePY:
 		return request    	
     	   
     def main(self,client_server, image_url,user=None, password=None):
-		print'Running in main'
+		print('Running in main')
 		
 		#client_server = sys.argv[1]
 		#image_url = sys.argv[2]
@@ -180,36 +180,36 @@ class itkModulePY:
 			response = self.createXML(client_server,image_url,seedX[i], seedY[i], Sigma[i], SigmoidAlpha[i], SigmoidBeta[i])			
 			resp, content = xmlrequest(requesturl , method="POST", body=etree.tostring(response), userpass=self.userpass )
 			
-			print 'RESPONSE = ', str(resp)
-			print 'CONTENT = ',str(content)
-			print 'CONTENT LENGTH = ',len(content)
+			print('RESPONSE = ', str(resp))
+			print('CONTENT = ',str(content))
+			print('CONTENT LENGTH = ',len(content))
 
 			# Check mex status 
 			#mex = etree.parse(content)
 			#print '\n\n parsing \n\n'
-			mex = etree.parse(StringIO.StringIO(content))
+			mex = etree.parse(io.StringIO(content))
 			uri = mex.getroot().get('uri') 
 			#print '\nURI = ' ,str(uri)
 		    
 			condCount = 0
 			while 1:
 				resp,content = request(uri)
-				mex = etree.parse(StringIO.StringIO(content))
+				mex = etree.parse(io.StringIO(content))
 				if mex.getroot()[0].get('status') == 'FINISHED':
-					print ' Finished module 1'
+					print(' Finished module 1')
 					break
 				elif mex.getroot()[0].get('status') =='FAILURE':
 					if condCount < 3:
-						print 'Failure module 1 == Retrying for a free engine',condCount
-						print 'Sleeping for 5 seconds'
+						print('Failure module 1 == Retrying for a free engine',condCount)
+						print('Sleeping for 5 seconds')
 						time.sleep(5)
 						resp, content = xmlrequest(requesturl , method="POST", body=etree.tostring(response), userpass=self.userpass )
-						mex = etree.parse(StringIO.StringIO(content))
+						mex = etree.parse(io.StringIO(content))
 						uri = mex.getroot().get('uri')
 						condCount+=1
 						
 					else:
-						print 'Failure module 1'
+						print('Failure module 1')
 						break
 				#else:
 					#print '### Waiting..'   
@@ -269,29 +269,29 @@ class itkModulePY:
 			#print 'CONTENT = ',str(content)
 			#print 'CONTENT LENGTH = ',len(content)
 		
-			mex = etree.parse(StringIO.StringIO(content))
+			mex = etree.parse(io.StringIO(content))
 			uri = mex.getroot().get('uri') 
 			#print '\nURI = ' ,str(uri)
 			
 			condCount = 0
 			while 1:
 				resp,content = request(uri)
-				mex = etree.parse(StringIO.StringIO(content))
+				mex = etree.parse(io.StringIO(content))
 				if mex.getroot()[0].get('status') == 'FINISHED':
-					print ' Finished module 2'
+					print(' Finished module 2')
 					break
 				elif mex.getroot()[0].get('status') =='FAILURE':
 					if condCount < 3:
-						print 'Failure module 2 == Retrying for a free engine',condCount
-						print 'Sleeping for 5 seconds'
+						print('Failure module 2 == Retrying for a free engine',condCount)
+						print('Sleeping for 5 seconds')
 						time.sleep(5)
 						resp, content = xmlrequest(requesturl , method="POST", body=etree.tostring(response), userpass=self.userpass )
-						mex = etree.parse(StringIO.StringIO(content))
+						mex = etree.parse(io.StringIO(content))
 						uri = mex.getroot().get('uri')
 						condCount+=1
 						
 					else:
-						print 'Failure module 2'
+						print('Failure module 2')
 						break
 				#else:
 					#print '### Waiting..'   

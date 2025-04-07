@@ -88,7 +88,7 @@ def doSegment(inputImage,outputImage, seedX, seedY, Sigma, SigmoidAlpha, Sigmoid
 
 	#return thresholder.GetOutput()
 	writer.Update()
-	print 'output file written to disk'
+	print('output file written to disk')
 
 	## other outputs
 	#def rescaleAndWrite(filter, fileName):

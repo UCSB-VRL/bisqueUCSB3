@@ -108,13 +108,13 @@ class AnnotationHistograms(object):
             matches[k].append(mm)
             matches_by_type[t] = mm
 
-        print '\n\nmatches'
-        for k,m in matches.iteritems():
-            print '%s: %s'%(k, m)
+        print('\n\nmatches')
+        for k,m in matches.items():
+            print('%s: %s'%(k, m))
 
-        print '\n\nmatches_by_type'
-        for k,m in matches_by_type.iteritems():
-            print '%s: %s'%(k, m)
+        print('\n\nmatches_by_type')
+        for k,m in matches_by_type.items():
+            print('%s: %s'%(k, m))
 
         # fetch spreadsheet and load
         #url = '%s/table/%s/0;100000,/format:json'%(bq.bisque_root, spreadsheet_uuid)
@@ -124,7 +124,7 @@ class AnnotationHistograms(object):
 
         # index columns by header title
         headers = dict([(h, i) for i,h in enumerate(table['headers'])])
-        print '\n\nheaders: ',headers
+        print('\n\nheaders: ',headers)
 
         # index rows by file name
         n = headers[matches_by_type['file.name']['name']]
@@ -141,7 +141,7 @@ class AnnotationHistograms(object):
             datasets = [image_url]
 
         # annotate resources
-        print '\n\nAnnotating\n'
+        print('\n\nAnnotating\n')
         resources = {}
         for ds_url in datasets:
             dataset = bq.fetchxml (ds_url, view='full')
@@ -154,7 +154,7 @@ class AnnotationHistograms(object):
                 uri = r.text
                 resource = bq.fetchxml (uri, view='deep')
                 name = resource.get('name', '').strip()
-                print '>>> Filename: ', name
+                print('>>> Filename: ', name)
                 try:
                     n = files[name]
                     row = data[n]
@@ -166,7 +166,7 @@ class AnnotationHistograms(object):
                 #print 'Row: ', row
 
                 # iterate over headers and create annotations
-                for k,m in matches.iteritems():
+                for k,m in matches.items():
                     if k not in headers: continue # if key not found in spreadsheet headers
                     v = str(row[headers[k]])
                     #print '%s: %s'%(k, v)
@@ -224,7 +224,7 @@ class AnnotationHistograms(object):
 
         outputs = etree.Element('tag', name='outputs')
         summary = etree.SubElement(outputs, 'tag', name='summary')
-        for r,v in resources.iteritems():
+        for r,v in resources.items():
             etree.SubElement(summary, 'tag', name=r, value=v)
 
         bq.finish_mex(tags=[outputs])
@@ -249,6 +249,6 @@ if __name__ == "__main__":
 
     try:
         M.main(mex_url=mex_url, bq=bq )
-    except Exception, e:
+    except Exception as e:
         bq.fail_mex(traceback.format_exc())
     sys.exit(0)

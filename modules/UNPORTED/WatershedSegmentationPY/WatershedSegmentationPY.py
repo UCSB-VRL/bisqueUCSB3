@@ -7,8 +7,8 @@ from  bisquik.util.http import request, post_files
 from bisquik import identity
 import base64
 
-import cStringIO # *much* faster than StringIO
-import StringIO # *much* faster than StringIO
+import io # *much* faster than StringIO
+import io # *much* faster than StringIO
 #from struct import pack
 from numpy import *
 from PIL import Image, ImageOps
@@ -58,7 +58,7 @@ class BQNodeFactory(object):
         xmlname = xmlnode.tag
         if xmlname in known_gobjects:
             node = BQGObject()
-            node.tag_type =  unicode(xmlname)
+            node.tag_type =  str(xmlname)
             if parent:
                 parent.gobjects.append(node)
         elif xmlname == "tag":
@@ -131,12 +131,12 @@ class WatershedSegmentationPY:
 
     def processImage(self):        
         log.debug("IMAGE: " +  self.image.z + ',' + self.image.t + ',' + self.image.ch)
-        print 'In process image'
+        print('In process image')
         if int(self.image.z) == 1  and  int(self.image.t) == 1 and (int(self.image.ch) ==1 or int(self.image.ch) == 3):
             # read image from Bisque system
             resp, content = request(self.image.src + '?format=tiff', "GET", userpass = self.userpass )
             # convert stream into Image
-            im = cStringIO.StringIO(content)            
+            im = io.StringIO(content)            
             img = Image.open(im)
             log.debug("IMAGE: " +  str(img.format) + ',' + str(img.size) + ',' + str(img.mode))
             ''' IMAGE PROCESSING '''
@@ -161,7 +161,7 @@ class WatershedSegmentationPY:
             img_out = Image.fromarray(wh_im.astype('uint8'))
             ''' IMAGE PROCESSING '''
             # convert Image into stream
-            buffer = StringIO.StringIO()
+            buffer = io.StringIO()
             img_out.save(buffer, 'TIFF')
             # upload image into Bisque system
             buffer.seek(0)
@@ -187,7 +187,7 @@ class WatershedSegmentationPY:
 #   def main(self, client_server='http://bodzio.ece.ucsb.edu:8080', image_url='http://bodzio.ece.ucsb.edu:8080/ds/images/17131', ThresholdValue = 50, user='admin', password='admin'):
     def main(self, client_server, image_url, ThresholdValue, user=None, password=None):
      	
-     	print'Running in main'
+     	print('Running in main')
         self.userpass  = ( user, password )
         self.client_server = client_server
         self.image_url = image_url

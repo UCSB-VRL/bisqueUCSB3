@@ -5,12 +5,12 @@ import os
 import re
 import sys
 import time
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import logging
 import itertools
 import subprocess
 import json
-import urlparse
+import urllib.parse
 from datetime import datetime
 
 from lxml import etree
@@ -166,7 +166,7 @@ class Dream3D(object):
 
     def _cache_ppops(self, pipeline_url):
         if not self.ppops or self.ppops_url != pipeline_url:            
-            pipeline_path = urlparse.urlsplit(pipeline_url).path.split('/')
+            pipeline_path = urllib.parse.urlsplit(pipeline_url).path.split('/')
             pipeline_uid = pipeline_path[1] if is_uniq_code(pipeline_path[1]) else pipeline_path[2]
             url = self.bqSession.service_url('pipeline', path = '/'.join([pipeline_uid]+['ppops:dream3d']))
             self.ppops = json.loads(self.bqSession.c.fetch(url))
@@ -236,7 +236,7 @@ class Dream3D(object):
         """
         instantiate dream.3d pipeline file with provided parameters
         """
-        pipeline_path = urlparse.urlsplit(pipeline_url).path.split('/')
+        pipeline_path = urllib.parse.urlsplit(pipeline_url).path.split('/')
         pipeline_uid = pipeline_path[1] if is_uniq_code(pipeline_path[1]) else pipeline_path[2]
         url = self.bqSession.service_url('pipeline', path = '/'.join([pipeline_uid]+["setvar:%s|%s"%(tag,params[tag]) for tag in params]+['exbsteps:dream3d']), query={'format':'dream3d'})
         pipeline = self.bqSession.c.fetch(url)

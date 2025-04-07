@@ -14,13 +14,13 @@ from torch.utils.data import DataLoader
 import torch.backends.cudnn as cudnn
 cudnn.benchmark = True
 from torchvision import transforms,utils
-from model import Modified3DUNet
-from celldataset import cell_training,IndexTracker,IndexTracker2,cell_testing,cell_testing_inter
-from utils import Parser, criterions
+from .model import Modified3DUNet
+from .celldataset import cell_training,IndexTracker,IndexTracker2,cell_testing,cell_testing_inter
+from .utils import Parser, criterions
 #import matplotlib
 #import matplotlib.pyplot as plt
 from skimage.transform import resize
-import losses
+from . import losses
 from skimage.transform import resize
 #import pdb
 parser = argparse.ArgumentParser()
@@ -78,7 +78,7 @@ def main():
     for i, sample in enumerate(test_loader):
         input = sample['data']
         img_size = sample['image_size']
-        print img_size[0]
+        print(img_size[0])
         file_name = sample['name']
         file_name = str(file_name[0])
         _,_,z,x,y = input.shape

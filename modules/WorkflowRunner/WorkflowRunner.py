@@ -9,12 +9,12 @@ import sys
 import math
 import csv
 import time
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import logging
 import itertools
 import subprocess
 import json
-import urlparse
+import urllib.parse
 from datetime import datetime
 import cgi
 
@@ -110,7 +110,7 @@ class WorkflowRunner(object):
         try:
             # Run the workflow
             self.output_resources = [ET.Element('tag', name='initial state', value=cgi.escape(str(self.global_vars)))]
-            for step_id in xrange(len(pipeline)-1):
+            for step_id in range(len(pipeline)-1):
                 curr_step = pipeline.get(str(step_id))
                 if curr_step is None:
                     raise WFError("workflow step %s missing" % step_id)
@@ -143,7 +143,7 @@ class WorkflowRunner(object):
         """
         read workflow json doc
         """
-        pipeline_path = urlparse.urlsplit(pipeline_url).path.split('/')
+        pipeline_path = urllib.parse.urlsplit(pipeline_url).path.split('/')
         pipeline_uid = pipeline_path[1] if is_uniq_code(pipeline_path[1]) else pipeline_path[2]
         url = self.bqSession.service_url('pipeline', path = pipeline_uid, query={'format':'json'})
         pipeline = self.bqSession.c.fetch(url)
@@ -191,19 +191,19 @@ class WorkflowRunner(object):
         try:
             if method.upper() == 'GETXML':
                 params = prep_input_map
-                url = urlparse.urljoin( self.bqSession.service_map[service_name], path )
+                url = urllib.parse.urljoin( self.bqSession.service_map[service_name], path )
                 res = self.bqSession.fetchxml(url=url, **params)
             elif method.upper() == 'POSTXML':
-                params = {key:val for (key,val) in prep_input_map.iteritems() if key not in ['__xmlbody__']}
-                url = urlparse.urljoin( self.bqSession.service_map[service_name], path )
+                params = {key:val for (key,val) in prep_input_map.items() if key not in ['__xmlbody__']}
+                url = urllib.parse.urljoin( self.bqSession.service_map[service_name], path )
                 xml = prep_input_map.get('__xmlbody__')
                 res = self.bqSession.postxml(url=url, xml=xml, **params)
             elif method.upper() == 'GETBLOB':
                 params = prep_input_map
-                url = urlparse.urljoin( self.bqSession.service_map[service_name], path )
+                url = urllib.parse.urljoin( self.bqSession.service_map[service_name], path )
                 res = self.bqSession.fetchblob(url=url, **params)
             elif method.upper() == 'POSTBLOB':
-                params = {key:val for (key,val) in prep_input_map.iteritems() if key not in ['__xmlbody__']}
+                params = {key:val for (key,val) in prep_input_map.items() if key not in ['__xmlbody__']}
                 if service_name != 'import':
                     raise WFError("POSTBLOB method used for service other than import")
                 xml = prep_input_map.get('__xmlbody__')

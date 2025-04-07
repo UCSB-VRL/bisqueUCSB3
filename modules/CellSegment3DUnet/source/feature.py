@@ -99,7 +99,7 @@ def compute_conjunction_points(seg_img,Adj_list):
     n = len(Adj_list)
     plane = seg_img[len(seg_img)/2+1]
     final = np.zeros((x,y))
-    for i in Adj_list.keys():
+    for i in list(Adj_list.keys()):
         A = i
         A_neighbors = Adj_list[A]
         for j in range(len(A_neighbors)):
@@ -133,7 +133,7 @@ def cell_volumn(seg_img):
     all_labels = np.unique(seg_img)
     cell_volumn = []
     unique,counts = np.unique(seg_img,return_counts=True)
-    return dict(zip(unique,counts))
+    return dict(list(zip(unique,counts)))
 
 
 # def f_1score(slice1,slice2):

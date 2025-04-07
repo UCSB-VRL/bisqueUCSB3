@@ -137,7 +137,7 @@ def run_module(input_path_dict, output_folder_path, bq=None):
 
     overall_score = get_overall_score(pred_results, img, args["model_fname_stage2"])
 
-    print("Overall Manipulation Score (0:Pristine, 1:Manipulated):",overall_score)
+    print(("Overall Manipulation Score (0:Pristine, 1:Manipulated):",overall_score))
 
     ##########################################################
     # Save heatmap to args.output_fname
@@ -166,7 +166,7 @@ def run_module(input_path_dict, output_folder_path, bq=None):
 
     plt.savefig(str(args["output_fname"]), bbox_inches='tight')
 
-    print("Output has been saved to '"+args["output_fname"]+"'.")
+    print(("Output has been saved to '"+args["output_fname"]+"'."))
 
     outputs_path_dict = {}
     outputs_path_dict['Output Image'] = str(args["output_fname"])

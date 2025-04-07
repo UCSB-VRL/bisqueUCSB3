@@ -49,7 +49,7 @@ class SeedSize(object):
     def teardown(self):
         with  open(self.image_map_name, 'rb') as f:
             self.url2file = pickle.load(f) #
-            self.file2url =  dict((v,k) for k,v in self.url2file.iteritems())
+            self.file2url =  dict((v,k) for k,v in self.url2file.items())
 
         summary    = os.path.join(self.images, 'summary.csv')
 
@@ -100,7 +100,7 @@ class SeedSize(object):
     def _get_submexes(self):
         submex = []
         localfiles = glob.glob(os.path.join(self.images, '*C.csv'))
-        result2url = dict( (os.path.splitext(f)[0] + 'C.csv', u) for f, u in self.file2url.items())
+        result2url = dict( (os.path.splitext(f)[0] + 'C.csv', u) for f, u in list(self.file2url.items()))
         for result in localfiles:
             gobs = self._read_results(result)
             if result not in result2url:
@@ -139,7 +139,7 @@ class SeedSize(object):
 
         # Read one row(rows.next()) and zip ( name, col) unpacking in d2xml format
         summary_tags = [ { 'name': n[0], 'value' : n[1] }
-                         for n in itertools.izip(tag_names, rows.next()) ]
+                         for n in zip(tag_names, next(rows)) ]
         f.close()
 
         return summary_tags
@@ -216,7 +216,7 @@ class SeedSize(object):
             for command in commands:
                 command = getattr(self, command)
                 r = command()
-        except Exception, e:
+        except Exception as e:
             logging.exception ("problem during %s" % command)
             self.bq.fail_mex(msg = "Exception during %s: %s" % (command,  str(e)))
             sys.exit(1)

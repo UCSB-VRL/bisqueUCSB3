@@ -7,12 +7,12 @@ import sys
 import math
 import csv
 import time
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import logging
 import itertools
 import subprocess
 import json
-import urlparse
+import urllib.parse
 from datetime import datetime
 
 from lxml import etree
@@ -32,7 +32,7 @@ log = logging.getLogger('bq.modules')
 
 from bqapi.comm import BQSession
 #from bq.util.mkdir import _mkdir
-from bq.util.hash import is_uniq_code
+from source.bqcore.bq.util.hash import is_uniq_code
 
 
 class CPError(Exception):
@@ -153,7 +153,7 @@ class CellProfiler(object):
 
     def _cache_ppops(self, pipeline_url):
         if not self.ppops or self.ppops_url != pipeline_url:            
-            pipeline_path = urlparse.urlsplit(pipeline_url).path.split('/')
+            pipeline_path = urllib.parse.urlsplit(pipeline_url).path.split('/')
             pipeline_uid = pipeline_path[1] if is_uniq_code(pipeline_path[1]) else pipeline_path[2]
             url = self.bqSession.service_url('pipeline', path = '/'.join([pipeline_uid]+['ppops:cellprofiler']))
             self.ppops = json.loads(self.bqSession.c.fetch(url))
@@ -238,7 +238,7 @@ class CellProfiler(object):
         """
         instantiate cellprofiler pipeline file with provided parameters
         """
-        pipeline_path = urlparse.urlsplit(pipeline_url).path.split('/')
+        pipeline_path = urllib.parse.urlsplit(pipeline_url).path.split('/')
         pipeline_uid = pipeline_path[1] if is_uniq_code(pipeline_path[1]) else pipeline_path[2]
         url = self.bqSession.service_url('pipeline', path = '/'.join([pipeline_uid]+["setvar:%s|%s"%(tag,params[tag]) for tag in params]+['exbsteps:cellprofiler']), query={'format':'cellprofiler'})
         pipeline = self.bqSession.c.fetch(url)
@@ -322,7 +322,7 @@ class CellProfiler(object):
         records = []
         handle = open(fileName, 'rb')
         csvHandle = csv.reader(handle)
-        header = csvHandle.next()
+        header = next(csvHandle)
  
         for row in csvHandle:
             records.append(row)

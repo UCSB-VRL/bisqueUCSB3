@@ -19,16 +19,16 @@ X="""
 
 def test_conversion():
     'test simple xml conversions'
-    print "ORIGINAL"
-    print X
+    print("ORIGINAL")
+    print(X)
 
     factory = BQFactory(None)
 
     r = factory.from_string(X)
-    print "PARSED"
+    print("PARSED")
 
     x = factory.to_string (r)
 
-    print "XML"
-    print r
+    print("XML")
+    print(r)
     assert x == X.translate(None, '\r\n')

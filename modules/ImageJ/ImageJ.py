@@ -7,12 +7,12 @@ import sys
 import math
 import csv
 import time
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import logging
 import itertools
 import subprocess
 import json
-import urlparse
+import urllib.parse
 from datetime import datetime
 
 from lxml import etree
@@ -58,7 +58,7 @@ def _simplifyDouglasPeucker(points, tolerance=0.6):
 
 def _simplifyDPStep(points, first, last, sqTolerance, simplified):
     maxSqDist = sqTolerance
-    for i in xrange(first+1, last):
+    for i in range(first+1, last):
         sqDist = _getSqSegDist(points[i], points[first], points[last])
         if sqDist > maxSqDist:
             index = i
@@ -211,7 +211,7 @@ class ImageJ(object):
 
     def _cache_ppops(self, pipeline_url):
         if not self.ppops or self.ppops_url != pipeline_url:            
-            pipeline_path = urlparse.urlsplit(pipeline_url).path.split('/')
+            pipeline_path = urllib.parse.urlsplit(pipeline_url).path.split('/')
             pipeline_uid = pipeline_path[1] if is_uniq_code(pipeline_path[1]) else pipeline_path[2]
             url = self.bqSession.service_url('pipeline', path = '/'.join([pipeline_uid]+['ppops:imagej']))
             self.ppops = json.loads(self.bqSession.c.fetch(url))
@@ -274,7 +274,7 @@ class ImageJ(object):
             matches = doc.xpath(op['ops'])
             if len(matches) > 0:
                 with open(csv_file, 'w') as fo:
-                    for match_id in xrange(0,len(matches)):
+                    for match_id in range(0,len(matches)):
                         match = matches[match_id]
                         line = '\t'.join([match.get(attr_name, '') for attr_name in op['attrs']]) + '\n'
                         fo.write(line)
@@ -332,7 +332,7 @@ class ImageJ(object):
         """
         instantiate ImageJ pipeline file with provided parameters
         """
-        pipeline_path = urlparse.urlsplit(pipeline_url).path.split('/')
+        pipeline_path = urllib.parse.urlsplit(pipeline_url).path.split('/')
         pipeline_uid = pipeline_path[1] if is_uniq_code(pipeline_path[1]) else pipeline_path[2]
         url = self.bqSession.service_url('pipeline', path = '/'.join([pipeline_uid]+["setvar:%s|%s"%(tag,params[tag]) for tag in params]+['exbsteps:imagej']), query={'format':'imagej'})
         pipeline = self.bqSession.c.fetch(url)
@@ -396,7 +396,7 @@ class ImageJ(object):
         records = []
         handle = open(fileName, 'rb')
         csvHandle = csv.reader(handle)
-        header = csvHandle.next()
+        header = next(csvHandle)
  
         for row in csvHandle:
             records.append(row)

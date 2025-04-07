@@ -6,7 +6,7 @@ from  bisquik.util.http import request, post_files
 from bisquik import identity
 import base64
 import sys
-import cStringIO 
+import io 
 
 import itk
 import FastMarchingSegmentation as seg
@@ -52,7 +52,7 @@ class BQNodeFactory(object):
         xmlname = xmlnode.tag
         if xmlname in known_gobjects:
             node = BQGObject()
-            node.tag_type =  unicode(xmlname)
+            node.tag_type =  str(xmlname)
             if parent:
                 parent.gobjects.append(node)
         elif xmlname == "tag":
@@ -121,13 +121,13 @@ class itkFastMarchingSegmentationPY:
 
     def processImage(self):        
         log.debug("IMAGE: " +  self.image.z + ',' + self.image.t + ',' + self.image.ch)
-        print 'In process image'
+        print('In process image')
         if int(self.image.z) == 1  and  int(self.image.t) == 1 and (int(self.image.ch) ==1 or int(self.image.ch) == 3):
 			# read image from Bisque system
 			resp, content = request(self.image.src + '?format=tiff', "GET", userpass = self.userpass )
 
-			print str(resp)
-			print len(content)
+			print(str(resp))
+			print(len(content))
 
 			tempinfile = 'in.tiff' 
 			tempoutfile = 'out.tiff'
@@ -135,7 +135,7 @@ class itkFastMarchingSegmentationPY:
 			f = open(tempinfile,'w')
 			f.write(content)
 			f.close()
-			print 'Done writing the file'
+			print('Done writing the file')
 
 			# define all the input values for now
 			seedX = 81
@@ -147,7 +147,7 @@ class itkFastMarchingSegmentationPY:
 			StoppingValue = 100
 
 			seg.doSegment(tempinfile,tempoutfile, seedX, seedY, Sigma, SigmoidAlpha, SigmoidBeta, TimeThreshold, StoppingValue)
-			print 'Segmentation done!'
+			print('Segmentation done!')
 
 			#OutputPixelType = itk.UC
 			#OutputImageType = itk.Image[OutputPixelType, 2]
@@ -161,7 +161,7 @@ class itkFastMarchingSegmentationPY:
 			buffer = open(tempoutfile,'r')
 			#buffer= cStringIO.StringIO(tempoutfile)
 			
-			print ' posting the output to the server ..'
+			print(' posting the output to the server ..')
 			file = [('upload', tempoutfile, buffer.read())] 
 			resp, content =  post_files (self.client_server + '/bisquik/upload_raw_image', file,  [], userpass = self.userpass,)
 			log.debug("RESP: " +  str(content))
@@ -182,7 +182,7 @@ class itkFastMarchingSegmentationPY:
         return resp
 
     def segment(self, client_server, image_url, user=None, password=None):
-     	print'Running in main'
+     	print('Running in main')
         self.userpass  = ( user, password )
         self.client_server = client_server
         self.image_url = image_url

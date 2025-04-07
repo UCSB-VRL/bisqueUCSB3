@@ -168,7 +168,7 @@ class PythonScriptWrapper(object):
 
         outputTag = ET.Element('tag', name ='outputs')
         for r_xml in self.output_resources:
-            if isinstance(r_xml, basestring):
+            if isinstance(r_xml, str):
                 r_xml = ET.fromstring(r_xml) 
             res_type = r_xml.get('type', None) or r_xml.get('resource_type', None) or r_xml.tag
             # append reference to output

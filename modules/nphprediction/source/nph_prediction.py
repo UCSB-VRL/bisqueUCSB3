@@ -42,11 +42,11 @@ import sys
 import argparse
 import os
 #from source  import imUtils, segUtils, postUtils, unetSeg
-from convUtils import *
-from imUtils import *
-from segUtils import *
-from postUtils import *
-from unetSeg import *
+from .convUtils import *
+from .imUtils import *
+from .segUtils import *
+from .postUtils import *
+from .unetSeg import *
 
 
 

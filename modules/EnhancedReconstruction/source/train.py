@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 from source.model import DQLR
 from scheduler import CycleScheduler
-from dataloader import VideoDataset
+from .dataloader import VideoDataset
 
 def train(epoch, loader, model, optimizer, scheduler):
     loader = tqdm(loader)
@@ -156,7 +156,7 @@ if __name__ == '__main__':
     if not args.pretrained == None:
         print('Loading pretrained weights...')
         pre_w = torch.load(args.pretrained)
-        for key in pre_w.keys():
+        for key in list(pre_w.keys()):
             model.state_dict()[key] = pre_w[key]
             if 'dec' in key: 
                 key2 = key.replace('dec','dec1')

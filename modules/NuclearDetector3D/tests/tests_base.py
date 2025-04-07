@@ -18,10 +18,10 @@ if sys.version_info  < ( 2, 7 ):
 else:
     import unittest
 
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import os
 import posixpath
-import ConfigParser
+import configparser
 import os
 from lxml import etree
 from subprocess import Popen, call, PIPE
@@ -47,7 +47,7 @@ resource_image      = 'image'
 ###############################################################
 
 def print_failed(s, f='-'):
-    print 'FAILED %s'%(s)
+    print('FAILED %s'%(s))
 
 class InfoComparator(object):
     '''Compares two info dictionaries'''
@@ -142,7 +142,7 @@ class ImageServiceTestBase(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         config.read('config.cfg')
 
         self.root = config.get('Host', 'root') or 'localhost:8080'
@@ -169,16 +169,16 @@ class ImageServiceTestBase(unittest.TestCase):
         url = posixpath.join(url_image_store, filename)
         path = os.path.join(local_store_images, filename)
         if not os.path.exists(path):
-            urllib.urlretrieve(url, path)
+            urllib.request.urlretrieve(url, path)
         return path
 
     @classmethod
     def upload_file(self, path, resource=None):
         r = save_blob(self.session,  path, resource=resource)
         if r is None:
-            print 'Error uploading: %s'%path
+            print('Error uploading: %s'%path)
             return None
-        print 'Uploaded id: %s url: %s'%(r.get('resource_uniq'), r.get('uri'))
+        print('Uploaded id: %s url: %s'%(r.get('resource_uniq'), r.get('uri')))
         return r
 
     @classmethod
@@ -186,7 +186,7 @@ class ImageServiceTestBase(unittest.TestCase):
         if r is None:
             return
         url = r.get('uri')
-        print 'Deleting id: %s url: %s'%(r.get('resource_uniq'), url)
+        print('Deleting id: %s url: %s'%(r.get('resource_uniq'), url))
         self.session.postxml(url, etree.Element ('resource') , method='DELETE')
 
     @classmethod
@@ -200,7 +200,7 @@ class ImageServiceTestBase(unittest.TestCase):
 
     @classmethod
     def cleanup_tests_dir(self):
-        print 'Cleaning-up %s'%local_store_tests
+        print('Cleaning-up %s'%local_store_tests)
         for root, dirs, files in os.walk(local_store_tests, topdown=False):
             for name in files:
                 os.remove(os.path.join(root, name))

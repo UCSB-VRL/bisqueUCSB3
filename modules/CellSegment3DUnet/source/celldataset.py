@@ -251,7 +251,7 @@ class IndexTracker(object):
         self.update()
 
     def onscroll(self, event):
-        print("%s %s" % (event.button, event.step))
+        print(("%s %s" % (event.button, event.step)))
         if event.button == 'up':
             self.ind = (self.ind + 1) % self.slices
         else:
@@ -278,7 +278,7 @@ class IndexTracker2(object):
         self.update()
 
     def onscroll(self, event):
-        print("%s %s" % (event.button, event.step))
+        print(("%s %s" % (event.button, event.step)))
         if event.button == 'up':
             self.ind = (self.ind + 1) % self.slices
         else:
@@ -306,7 +306,7 @@ class IndexTracker2plot(object):
         self.update()
 
     def onscroll(self, event):
-        print("%s %s" % (event.button, event.step))
+        print(("%s %s" % (event.button, event.step)))
         if event.button == 'up':
             self.ind = (self.ind + 1) % self.slices
         else:

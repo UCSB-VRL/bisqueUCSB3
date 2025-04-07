@@ -90,7 +90,7 @@ def main(input_tiff, output_dir, area_thresh=500, plot_segment=False):
     num_slices = imgList.shape[0]
     # outputFiles = []
     masks = []
-    for idx, img_idx in enumerate(tqdm(range(num_slices), desc="Segmenting Slices")):
+    for idx, img_idx in enumerate(tqdm(list(range(num_slices)), desc="Segmenting Slices")):
         threshMatrix = np.zeros((len(threshRange), 5))
         # print(idx)
         # img = imread(os.path.join(input_dir,imgPath),img_gray)
@@ -116,7 +116,7 @@ def main(input_tiff, output_dir, area_thresh=500, plot_segment=False):
         try:
             labels, labels_bd = getWatershed(gBlurImg, optThresh, area_thresh=500)
         except:
-            print("[INFO] Unable to segment slice #{}. Generating empty mask.".format(idx))
+            print(("[INFO] Unable to segment slice #{}. Generating empty mask.".format(idx)))
             labels_bd = np.zeros_like(gBlurImg)
 
         masks.append(labels_bd)

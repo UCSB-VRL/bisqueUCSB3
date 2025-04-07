@@ -68,7 +68,7 @@ class ProbabilisticSegmentation:
                 
                 # Call the Solver program
                 cmd = './RWalk  -in ' + OPT_IMAGEIN + ' -cells ' + OPT_CELLS + ' -seg all ' + OPT_THRESHOLD + ' ' +  OPT_RESTART
-                print cmd
+                print(cmd)
                 #print os.system('pwd')
                 os.system(cmd)
         

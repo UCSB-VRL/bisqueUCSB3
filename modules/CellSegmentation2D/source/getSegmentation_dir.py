@@ -106,7 +106,7 @@ def getSegment(bq,log,directory,area_thresh,plot_segment):
             #plt.savefig('./
             plt.show()
              
-        print('Optimal Threshold = {}'.format(optThresh))    
+        print(('Optimal Threshold = {}'.format(optThresh)))    
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='UCR Watershed Segmentation')
