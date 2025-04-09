@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 from skimage.morphology import label
 import SimpleITK as sitk
@@ -23,7 +25,7 @@ from skimage.segmentation import watershed, random_walker, find_boundaries
 import os
 from skimage.external import tifffile
 # from denseinference import CRFProcessor
-from bqapi.comm import BQCommError
+from source.bqapi.bqapi.comm import BQCommError
 import h5py
 
 #######################################################################

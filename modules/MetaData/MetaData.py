@@ -3,8 +3,8 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 
-from bqapi import BQSession, BQTag
-from bqapi.blockable_module import BlockableModule
+from source.bqapi.bqapi import BQSession, BQTag
+from source.bqapi.bqapi.blockable_module import BlockableModule
 
 import logging
 

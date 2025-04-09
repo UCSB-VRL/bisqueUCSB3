@@ -7,7 +7,7 @@ import urllib.request, urllib.parse, urllib.error
 from datetime import datetime
 import time
 
-from bqapi import BQSession
+from source.bqapi.bqapi import BQSession
 
 TEST_PATH = 'tests_%s'%urllib.parse.quote(datetime.now().strftime('%Y%m%d%H%M%S%f'))  #set a test dir on the system so not too many repeats occur
 

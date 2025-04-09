@@ -1,6 +1,6 @@
 # Install script for Metalab
 import sys
-from bq.setup.module_setup import matlab_setup, python_setup, read_config
+from source.bqcore.bq.setup.module_setup import matlab_setup, python_setup, read_config
 
 def setup(params, *args, **kw):
     python_setup('MyData.py',  params=params )

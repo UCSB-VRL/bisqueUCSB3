@@ -12,12 +12,12 @@ import pytest
 import nose
 from nose import with_setup
 
-from bq.util.mkdir import _mkdir
-from bqapi import BQSession, BQServer
-from bqapi.util import  fetch_dataset
-from bqapi.comm import BQCommError
-from bqapi.util import *
-from bqapi.bqfeature import *
+from source.bqcore.bq.util.mkdir import _mkdir
+from source.bqapi.bqapi import BQSession, BQServer
+from source.bqapi.bqapi.util import  fetch_dataset
+from source.bqapi.bqapi.comm import BQCommError
+from source.bqapi.bqapi.util import *
+from source.bqapi.bqapi.bqfeature import *
 
 
 

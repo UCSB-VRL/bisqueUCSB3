@@ -15,8 +15,8 @@ from sklearn.decomposition import RandomizedPCA
 import numpy as np
 from sklearn.externals import joblib
 from optparse import OptionParser
-from bqapi.comm import BQSession
-from bqapi.bqfeature import Feature, ParallelFeature, FeatureResource, FeatureError
+from source.bqapi.bqapi.comm import BQSession
+from source.bqapi.bqapi.bqfeature import Feature, ParallelFeature, FeatureResource, FeatureError
 
 #constants
 PARALLEL                        = True

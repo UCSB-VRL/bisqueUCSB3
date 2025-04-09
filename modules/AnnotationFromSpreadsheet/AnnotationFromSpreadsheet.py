@@ -12,7 +12,7 @@ try:
 except ImportError:
     import xml.etree.ElementTree as etree
 
-from bqapi import BQSession, BQTag, BQCommError
+from source.bqapi.bqapi import BQSession, BQTag, BQCommError
 
 import logging
 logging.basicConfig(filename='AnnotationFromSpreadsheet.log', level=logging.DEBUG)

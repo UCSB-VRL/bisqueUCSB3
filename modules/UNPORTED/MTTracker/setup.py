@@ -1,7 +1,7 @@
 # Install script for MTTracker
 
 import sys
-from bq.util.module_setup import matlab_setup, matlab, require, read_config
+from source.bqcore.bq.setup.module_setup import matlab_setup, matlab, require, read_config
 
 def setup(params, *args, **kw):
     # Compile boost graphics library

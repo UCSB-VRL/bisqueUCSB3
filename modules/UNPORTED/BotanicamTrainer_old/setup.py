@@ -1,6 +1,6 @@
 # Install script for BotanicamTrainer
 import sys
-from bq.setup.module_setup import matlab_setup, read_config, ensure_binary
+from source.bqcore.bq.setup.module_setup import matlab_setup, read_config, ensure_binary
 
 def setup(params, *args, **kw):
     ensure_binary('svm-predict')

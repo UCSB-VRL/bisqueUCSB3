@@ -1,5 +1,5 @@
 import sys
-from bq.setup.module_setup import python_setup, read_config
+from source.bqcore.bq.setup.module_setup import python_setup, read_config
 
 def setup(params, *args, **kw):
     python_setup('PythonScriptWrapper.py',  params=params )

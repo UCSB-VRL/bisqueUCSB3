@@ -22,8 +22,8 @@ from lxml import etree as ET
 from optparse import OptionParser
 from mako.template import Template
 
-from bqapi.comm import BQSession, BQCommError
-from bq.util.hash import is_uniq_code
+from source.bqapi.bqapi.comm import BQSession, BQCommError
+from source.bqcore.bq.util.hash import is_uniq_code
 
 import logging
 

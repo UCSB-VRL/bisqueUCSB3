@@ -1,6 +1,6 @@
 # Install script for ImageJ
 import sys
-from bq.setup.module_setup import python_setup, require, read_config, docker_setup
+from source.bqcore.bq.setup.module_setup import python_setup, require, read_config, docker_setup
 
 
 def setup(params, *args, **kw):

@@ -4,8 +4,8 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
-from bqapi.comm import BQCommError
-from bqapi.comm import BQSession
+from source.bqapi.bqapi.comm import BQCommError
+from source.bqapi.bqapi.comm import BQSession
 
 from scipy import ndimage as ndi
 from skimage.io import imread

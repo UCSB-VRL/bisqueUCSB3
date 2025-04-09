@@ -6,7 +6,7 @@ import json
 import torch
 from torchvision import transforms, utils
 from tqdm import tqdm
-from source.model import DQLR
+from ..source.model import DQLR
 from PIL import Image, ImageEnhance
 
 

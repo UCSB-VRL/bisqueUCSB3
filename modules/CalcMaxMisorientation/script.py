@@ -1,6 +1,6 @@
 import numpy as np
 
-from bqapi.comm import BQCommError
+from source.bqapi.bqapi.comm import BQCommError
 
 
 """

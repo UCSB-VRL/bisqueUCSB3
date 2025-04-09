@@ -1,6 +1,6 @@
 # Install script for NuclearDetector3D
 import sys
-from bq.setup.module_setup import matlab_setup, read_config
+from source.bqcore.bq.setup.module_setup import matlab_setup, read_config
 
 def setup(params, *args, **kw):
     matlab_setup('PlantcellSegment', params=params)

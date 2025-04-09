@@ -1,6 +1,6 @@
 # Install script for Nuclie Detector 
 import sys
-from bq.util.module_setup import matlab_setup, require, read_config
+from source.bqcore.bq.setup.module_setup import matlab_setup, require, read_config
 
 def setup(params, *args, **kw):
     if not require (['matlab_home'], params):

@@ -10,8 +10,8 @@ import zipfile
 from lxml import etree
 import numpy as np
 from optparse import OptionParser
-from bqapi.comm import BQSession, BQCommError
-from bqapi.bqfeature import Feature, ParallelFeature, FeatureResource, FeatureError
+from source.bqapi.bqapi.comm import BQSession, BQCommError
+from source.bqapi.bqapi.bqfeature import Feature, ParallelFeature, FeatureResource, FeatureError
 from sklearn.externals import joblib
 
 #Constants

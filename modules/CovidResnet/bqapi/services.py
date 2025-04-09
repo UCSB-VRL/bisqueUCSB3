@@ -334,7 +334,7 @@ class ServiceFactory (object):
 
 
 def test_module():
-    from bqapi import BQSession
+    from source.bqapi.bqapi import BQSession
     session = BQSession ().init_local ('admin', 'admin', 'http://localhost:8080')
     admin = session.service('admin')
     data = session.service('data_service')

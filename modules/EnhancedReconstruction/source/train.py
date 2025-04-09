@@ -9,7 +9,7 @@ from torchvision import datasets, transforms, utils
 
 from tqdm import tqdm
 
-from source.model import DQLR
+from ..source.model import DQLR
 from scheduler import CycleScheduler
 from .dataloader import VideoDataset
 

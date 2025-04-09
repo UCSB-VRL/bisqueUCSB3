@@ -4,8 +4,8 @@ from sklearn.externals import joblib
 import numpy as np
 #import h5py
 # import logging
-from bqapi.comm import BQCommError
-from bqapi.comm import BQSession
+from source.bqapi.bqapi.comm import BQCommError
+from source.bqapi.bqapi.comm import BQSession
 import logging
 import os
 

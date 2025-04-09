@@ -4,8 +4,8 @@ import tempfile
 import shutil
 import re
 from subprocess import Popen, PIPE
-from bq.setup.module_setup import python_setup, read_config, docker_setup
-from bq.util.converters import asbool
+from source.bqcore.bq.setup.module_setup import python_setup, read_config, docker_setup
+from source.bqcore.bq.util.converters import asbool
 
 
 def setup(params, *args, **kw):

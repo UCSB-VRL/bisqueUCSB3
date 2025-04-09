@@ -10,8 +10,8 @@ logging.basicConfig(filename='PythonScript.log', filemode='a', level=logging.DEB
 log = logging.getLogger('bq.modules')
 
 # from bqapi.comm import BQCommError
-from bqapi.comm import BQSession
-from bqapi.util import fetch_blob
+from source.bqapi.bqapi.comm import BQSession
+from source.bqapi.bqapi.util import fetch_blob
 
 # standardized naming convention for running modules.
 from src.BQ_run_module import run_module

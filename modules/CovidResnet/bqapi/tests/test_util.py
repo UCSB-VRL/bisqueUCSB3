@@ -7,12 +7,12 @@ from datetime import datetime
 
 
 
-from bqapi import BQSession, BQServer
-from bqapi.util import  fetch_dataset
-from bq.util.mkdir import _mkdir
+from source.bqapi.bqapi import BQSession, BQServer
+from source.bqapi.bqapi.util import  fetch_dataset
+from source.bqcore.bq.util.mkdir import _mkdir
 from .util import fetch_file
-from bqapi.comm import BQCommError
-from bqapi.util import *
+from source.bqapi.bqapi.comm import BQCommError
+from source.bqapi.bqapi.util import *
 try:
     from lxml import etree
 except ImportError:

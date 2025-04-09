@@ -1,7 +1,7 @@
 import sys
 import collections
 
-from bqapi import BQSession
+from source.bqapi.bqapi import BQSession
 
 
 import logging

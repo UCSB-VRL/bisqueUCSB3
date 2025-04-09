@@ -426,7 +426,7 @@ class BQSession(object):
         @return: self
 
         Example
-        >>>from bqapi import BQSession
+        >>>from source.bqapi.bqapi import BQSession
         >>>s = BQSession()
         >>>s.init_cas (CASNAME, CASPASS, bisque_root='http://bisque.iplantcollaborative.org', create_mex=False)
         >>>s.fetchxml('/data_serice/image', limit=10)

@@ -18,7 +18,7 @@ from datetime import datetime
 from lxml import etree
 from optparse import OptionParser
 #from bqapi import BQGObject, BQEllipse, BQVertex
-from bqapi.util import fetch_image_pixels, save_image_pixels
+from source.bqapi.bqapi.util import fetch_image_pixels, save_image_pixels
 
 
 #constants
@@ -30,7 +30,7 @@ logging.basicConfig(filename='CPfile.log',filemode='a',level=logging.DEBUG)
 log = logging.getLogger('bq.modules')
 
 
-from bqapi.comm import BQSession
+from source.bqapi.bqapi.comm import BQSession
 #from bq.util.mkdir import _mkdir
 from source.bqcore.bq.util.hash import is_uniq_code
 

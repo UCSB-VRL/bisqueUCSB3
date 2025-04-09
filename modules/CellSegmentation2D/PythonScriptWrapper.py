@@ -22,9 +22,9 @@ except ImportError:
     
 	
 
-from bqapi.comm import BQCommError
-from bqapi.comm import BQSession
-from bqapi.util import save_blob
+from source.bqapi.bqapi.comm import BQCommError
+from source.bqapi.bqapi.comm import BQSession
+from source.bqapi.bqapi.util import save_blob
 
 
 

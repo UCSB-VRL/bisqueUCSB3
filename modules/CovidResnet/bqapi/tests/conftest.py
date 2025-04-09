@@ -3,10 +3,10 @@
 import pytest
 from collections import OrderedDict, namedtuple
 
-from bq.util.bunch import Bunch
-from bq.util.mkdir import _mkdir
+from source.bqcore.bq.util.bunch import Bunch
+from source.bqcore.bq.util.mkdir import _mkdir
 from .util import  fetch_file
-from bqapi import BQServer
+from source.bqapi.bqapi import BQServer
 
 @pytest.fixture(scope="module")
 def server():

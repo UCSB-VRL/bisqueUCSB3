@@ -1,8 +1,8 @@
 # Install script for Botanicam
 import sys
-from bqapi.comm import BQSession
-from bq.setup.module_setup import python_setup, read_config
-from bq.setup.bisque_setup import getanswer
+from source.bqapi.bqapi.comm import BQSession
+from source.bqcore.bq.setup.module_setup import python_setup, read_config
+from source.bqcore.bq.setup.bisque_setup import getanswer
 
 
 def setup(params, *args, **kw):

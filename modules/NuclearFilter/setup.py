@@ -1,6 +1,6 @@
 # Install script for NuclearFilter
 import sys
-from bq.setup.module_setup import matlab_setup, read_config, docker_setup
+from source.bqcore.bq.setup.module_setup import matlab_setup, read_config, docker_setup
 
 def setup(params, *args, **kw):
      matlab_setup('NuclearFilter', params=params)

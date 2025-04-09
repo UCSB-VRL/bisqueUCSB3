@@ -1,6 +1,6 @@
 # Install script for ImageMatting
 import sys
-from bq.setup.module_setup import matlab_setup, read_config, ensure_matlab, mex_compile, docker_setup
+from source.bqcore.bq.setup.module_setup import matlab_setup, read_config, ensure_matlab, mex_compile, docker_setup
 
 def setup(params, *args, **kw):
     ensure_matlab(params)

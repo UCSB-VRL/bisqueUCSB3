@@ -9,8 +9,8 @@ import os
 logging.basicConfig(filename='PythonScript.log', filemode='a', level=logging.DEBUG) 
 log = logging.getLogger('bq.modules')
 
-from bqapi.comm import BQCommError
-from bqapi.comm import BQSession
+from source.bqapi.bqapi.comm import BQCommError
+from source.bqapi.bqapi.comm import BQSession
 
 # ROOT_DIR = './'
 # sys.path.append(os.path.join(ROOT_DIR, "source/"))

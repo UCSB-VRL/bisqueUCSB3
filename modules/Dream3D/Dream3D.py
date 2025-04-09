@@ -26,9 +26,9 @@ logging.basicConfig(filename='Dream3Dfile.log',filemode='a',level=logging.DEBUG)
 log = logging.getLogger('bq.modules')
 
 
-from bqapi.comm import BQSession
-from bq.util.mkdir import _mkdir
-from bq.util.hash import is_uniq_code
+from source.bqapi.bqapi.comm import BQSession
+from source.bqcore.bq.util.mkdir import _mkdir
+from source.bqcore.bq.util.hash import is_uniq_code
 
 
 # replace "@..." placeholders in json structure based on provided params dict

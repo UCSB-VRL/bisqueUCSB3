@@ -1,4 +1,4 @@
-from bq.util.mkdir import _mkdir
+from source.bqcore.bq.util.mkdir import _mkdir
 import posixpath
 import urllib.request, urllib.parse, urllib.error
 import os

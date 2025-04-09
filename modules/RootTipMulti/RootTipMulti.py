@@ -9,8 +9,8 @@ import pickle
 import logging
 import itertools
 
-from bqapi import BQSession
-from bqapi.util import fetch_image_planes, AttrDict
+from source.bqapi.bqapi import BQSession
+from source.bqapi.bqapi.util import fetch_image_planes, AttrDict
 from lxml.builder import E
 
 

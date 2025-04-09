@@ -19,7 +19,7 @@ from lxml import etree
 from optparse import OptionParser
 
 #from bqapi import BQGObject, BQEllipse, BQVertex
-from bqapi.util import fetch_image_pixels, save_image_pixels
+from source.bqapi.bqapi.util import fetch_image_pixels, save_image_pixels
 
 
 #constants

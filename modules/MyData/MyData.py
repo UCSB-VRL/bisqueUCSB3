@@ -1,5 +1,5 @@
 from lxml import etree as ET
-from bqapi import BQSession, BQTag
+from source.bqapi.bqapi import BQSession, BQTag
 
 
 wanted_tags = [

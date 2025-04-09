@@ -1,6 +1,6 @@
 # Install script for Strength Prediction 
 import sys
-from bq.setup.module_setup import python_setup, docker_setup, require, read_config
+from source.bqcore.bq.setup.module_setup import python_setup, docker_setup, require, read_config
 
 
 def setup(params, *args, **kw):

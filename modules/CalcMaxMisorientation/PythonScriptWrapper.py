@@ -9,7 +9,7 @@ logging.basicConfig(filename='PythonScript.log',filemode='a',level=logging.DEBUG
 log = logging.getLogger('bq.modules')
 
 
-from bqapi.comm import BQSession
+from source.bqapi.bqapi.comm import BQSession
 
 from script import run_script
 
