@@ -16,8 +16,8 @@ from bq.util.paths import site_cfg_path, data_path, config_path, defaults_path
 
 
 
-logging.basicConfig(level=logging.INFO, formatter="%(name)s:%(levelname)s:%(message)s")
-#logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.INFO, formatter="%(name)s:%(levelname)s:%(message)s")
+logging.basicConfig(level=logging.DEBUG) #!!! Added this for py3
 
 def load_config(filename):
     from paste.deploy import appconfig

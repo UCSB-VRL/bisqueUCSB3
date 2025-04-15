@@ -294,7 +294,7 @@ def getanswer(question, default, help=None, envvar=None):
 
         if ans=='?':
             if help is not None:
-                print (textwrap.dedent(help))
+                print((textwrap.dedent(help)))
             else:
                 print ("Sorry no help available currently.")
             continue
@@ -341,7 +341,7 @@ def sql(DBURI, statement, verbose = False):
         return 1, ''
 
 
-    print ( "SQL: NOT IMPLEMEMENT %s" % statement )
+    print(( "SQL: NOT IMPLEMEMENT %s" % statement ))
     return 0, ''
     # OLD SHell out version
     # command = ["psql"]
@@ -368,31 +368,31 @@ class STemplate (string.Template):
     idpattern = r'[_a-z][._a-z0-9]*'
 
 
-def call(cmd, echo=False, capture=False, **kw):
-    """Special version subprocess.call that write output
-    """
-    lines = []
-    if echo:
-        print( "Executing '%s'" % ' '.join (cmd))
-    if 'stdout' not in kw:
-        p = subprocess.Popen(cmd,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT, **kw)
-        while True:
-            l = p.stdout.readline()
-            if not l: break
-            print (l, end='')
-            lines .append(l)
-            #p.wait()
-    else:
-        p = subprocess.Popen(cmd, **kw)
+# def call(cmd, echo=False, capture=False, **kw):
+#     """Special version subprocess.call that write output
+#     """
+#     lines = []
+#     if echo:
+#         print( "Executing '%s'" % ' '.join (cmd))
+#     if 'stdout' not in kw:
+#         p = subprocess.Popen(cmd,
+#                              stdout=subprocess.PIPE,
+#                              stderr=subprocess.STDOUT, **kw)
+#         while True:
+#             l = p.stdout.readline()
+#             if not l: break
+#             print (l, end='')
+#             lines .append(l)
+#             #p.wait()
+#     else:
+#         p = subprocess.Popen(cmd, **kw)
 
-    p.wait()
+#     p.wait()
 
-    if capture:
-        return p.returncode, "".join(lines)
-    else:
-        return p.returncode
+#     if capture:
+#         return p.returncode, "".join(lines)
+#     else:
+#         return p.returncode
 
 
 def unpack_zip (zfile, dest, strip_root=None):
@@ -902,18 +902,18 @@ def install_driver(DBURL):
 
     else:
         try:
-            print( 'Trying to import driver %s...' % py_drname)
+            print(( 'Trying to import driver %s...' % py_drname))
             __import__(py_drname)
             print( 'Driver successfully imported.')
             return True
         except ImportError:
-            print ('\nImport failed, trying to install package %s...' % ei_drname)
+            print(('\nImport failed, trying to install package %s...' % ei_drname))
             try:
                 #easy_install.main(['-U',ei_drname])
                 pipmain(['install', '-U', ei_drname]) #pylint: disable=no-member
                 # The following line is needed to make installed module importable
                 pkg_resources.require(ei_drname)
-                print('Package %s successfully installed.' % ei_drname)
+                print(('Package %s successfully installed.' % ei_drname))
                 return True
             except Exception:
                 print( "ERROR: Could not easy install package")
@@ -940,7 +940,7 @@ def test_db_existance(DBURL):
     Returns True if database exists and is accessible, False otherwise.
     """
     try:
-        print( 'Checking whether database "%s" already exists...' % DBURL.database)
+        print(( 'Checking whether database "%s" already exists...' % DBURL.database))
         d = sa.create_engine(DBURL)
         try:
             c = d.connect()
@@ -1056,11 +1056,11 @@ def create_database(DBURL):
                     log.exception('Could not create database')
 
     if not db_exists:
-        print( """
+        print(( """
         Database was NOT prepared -- either server has no database '%s'
         or user "%s" has no rights to access this database.
         Please fix the problem(s) and re-run 'bq-admin setup createdb'
-        """ % (DBURL.database,DBURL.username) )
+        """ % (DBURL.database,DBURL.username) ))
         return False
     return True
 
@@ -1139,7 +1139,7 @@ def install_matlab(params, runtime_params, cfg = None):
     if matlab_home:
         runtime_params['runtime.matlab_home'] = os.path.abspath(os.path.join (matlab_home, '../..'))
 
-    print ( "CONFIG", cfg )
+    print(( "CONFIG", cfg ))
     runtime_params = modify_site_cfg(MATLAB_QUESTIONS, runtime_params, section=None, cfg=cfg)
     if runtime_params.get ('runtime.matlab_launcher') == 'config-defaults/templates/matlab_launcher_SYS.tmpl':
         if os.name == 'nt':
@@ -1147,7 +1147,7 @@ def install_matlab(params, runtime_params, cfg = None):
         else:
             runtime_params['runtime.matlab_launcher'] = os.path.abspath(defaults_path ('templates/matlab_launcher.tmpl'))
     else:
-        print( "using matlab_launcher ", runtime_params.get ('runtime.matlab_launcher'))
+        print(( "using matlab_launcher ", runtime_params.get ('runtime.matlab_launcher')))
 
     if  not os.path.exists(runtime_params['runtime.matlab_home']):
         print ( "WARNING: Matlab is required for many modules" )
@@ -1227,8 +1227,8 @@ def install_docker_base_images(params, runtime_params, cfg=None):
         if image:
             retcode = call('docker pull %s' % image, shell=True, stdout=devnull, stderr=devnull)
             if retcode != 0:
-                print( "Could not pull " , image)
-                print("Please check contrib/docker-base-images", image)
+                print(( "Could not pull " , image))
+                print(("Please check contrib/docker-base-images", image))
 
     return params, runtime_params
 
@@ -1262,9 +1262,9 @@ def setup_build_modules (params, runtime_params):
         failed.extend(fl)
 
     if failed:
-        print( "Skipped {}: {}".format (len(skipped),",".join(skipped)))
-        print ( "Built   {}: {}".format (len(built),  ",".join(built)))
-        print ("Failed  {}: {}".format (len(failed), ",".join(failed)))
+        print(( "Skipped {}: {}".format (len(skipped),",".join(skipped))))
+        print(( "Built   {}: {}".format (len(built),  ",".join(built))))
+        print(("Failed  {}: {}".format (len(failed), ",".join(failed))))
         params['error_code']=1
 
     return params, runtime_params
@@ -1287,7 +1287,7 @@ def install_plugins(params, runtime_params):
 
     plugin_dirs = params.get ('bisque.paths.plugins', "")
     plugin_dirs = [ x.strip() for x in plugin_dirs.split(",") ]
-    print ("INSTALL PLGINS ", plugin_dirs)
+    print(("INSTALL PLGINS ", plugin_dirs))
 
     skipped =[]
     built   =[]
@@ -1300,9 +1300,9 @@ def install_plugins(params, runtime_params):
         failed.extend(fl)
 
     if failed:
-        print("Skipped {}: {}".format (len(skipped),",".join(skipped)))
-        print("Built   {}: {}".format (len(built),  ",".join(built)))
-        print("Failed  {}: {}".format (len(failed), ",".join(failed)))
+        print(("Skipped {}: {}".format (len(skipped),",".join(skipped))))
+        print(("Built   {}: {}".format (len(built),  ",".join(built))))
+        print(("Failed  {}: {}".format (len(failed), ",".join(failed))))
         params['error_code']=1
 
     return params, runtime_params
@@ -1389,7 +1389,7 @@ def check_fetchers ():
         if found:
             REPO_FETCH[cmd] = fetch
         else:
-            print( "INFO '%s'not found: cannot fetch source repositories with %s " % (cmd,cmd))
+            print(( "INFO '%s'not found: cannot fetch source repositories with %s " % (cmd,cmd)))
 
 def fetch_repos(params, repotype):
     """Get and install modules from remote and local sources
@@ -1415,7 +1415,7 @@ def fetch_repos(params, repotype):
     # Read list of modules trees from config/MODULES
     module_list = config_path(repolist)
     if module_list is None:
-        print( "Can't find list of %s to install"  % repotype)
+        print(( "Can't find list of %s to install"  % repotype))
         return params
     module_locations = []
     lineno = 0
@@ -1431,15 +1431,15 @@ def fetch_repos(params, repotype):
     for module_line, lineno in module_locations:
         module_type, module_url, name, _ = unpack ( [x.strip() for x in module_line.split ()], 3 )
         if module_type not in REPO_FETCH:
-            print( "Illegal %s type %s at line %s" % (repotype, module_type, lineno))
+            print(( "Illegal %s type %s at line %s" % (repotype, module_type, lineno)))
             continue
         if not name:
             name = os.path.splitext(os.path.basename(module_url))[0]
 
-        print( "Installing %s %s(s) from %s to %s" % (module_type, repotype, module_url, name))
+        print(( "Installing %s %s(s) from %s to %s" % (module_type, repotype, module_url, name)))
         module_dir = os.path.join (DIRS[repotype], name)
         if module_dir in module_dirs:
-            print( "Skipping duplicated", repotype, module_url)
+            print(( "Skipping duplicated", repotype, module_url))
             continue
         try:
             fetcher = REPO_FETCH.get (module_type)
@@ -1524,17 +1524,17 @@ class BisqueModule (object):
     def setup(self, environ):
         "Find and setup a single bisque module:"
         if not os.path.exists(os.path.join(self.module_dir, 'setup.py')):
-            print( "setup.py not found in %s" % self.module_dir)
+            print(( "setup.py not found in %s" % self.module_dir))
             return False
         cwd = os.getcwd()
         os.chdir (self.module_dir)
         print( "################################")
-        print( "Running %s setup.py in %s" % (PYTHON, self.module_dir) )
+        print(( "Running %s setup.py in %s" % (PYTHON, self.module_dir) ))
         try:
             r = call ([PYTHON, '-u', 'setup.py'], env=environ)
             if r == 0:
                 return True
-            print( "setup in %s returned error %s " ,  self.module_dir, r)
+            print(( "setup in %s returned error %s " ,  self.module_dir, r))
         except Exception as e:
             log.exception ("An exception occured during the module setup: %s" , str(e))
         finally:
@@ -1550,7 +1550,7 @@ class BisquePlugin (object):
 
     def setup(self, environ):
         "Find and setup a single bisque module:"
-        print ("PLUGIN SETUP", self.plugin_dir)
+        print(("PLUGIN SETUP", self.plugin_dir))
         copydir = True
         if  os.path.exists(os.path.join(self.plugin_dir, 'setup.py')):
             #print( "setup.py not found in %s" % self.plugin_dir)
@@ -1565,12 +1565,12 @@ class BisquePlugin (object):
             # Copydir is ../path/<plugname>/<plugname>
             src_plugin = os.path.join (self.plugin_dir, os.path.basename(self.plugin_dir))
             if not os.path.exists (src_plugin):
-                print ("bad plugin structure.. missing ", src_plugin)
+                print(("bad plugin structure.. missing ", src_plugin))
                 return False
-            print ("COPY ", src_plugin, " to ", plugin_js_dir)
+            print(("COPY ", src_plugin, " to ", plugin_js_dir))
             shutil.copytree (src_plugin, plugin_js_dir)
         else:
-            print ("Skipped copying of ",  self.plugin_dir)
+            print(("Skipped copying of ",  self.plugin_dir))
             return False
 
         return True
@@ -1580,12 +1580,12 @@ class BisquePlugin (object):
         cwd = os.getcwd()
         os.chdir (self.plugin_dir)
         print( "################################")
-        print( "Running %s setup.py in %s" % (PYTHON, self.plugin_dir) )
+        print(( "Running %s setup.py in %s" % (PYTHON, self.plugin_dir) ))
         try:
             r = call ([PYTHON, '-u', 'setup.py'], env=environ)
             if r == 0:
                 return True
-            print( "setup in %s returned error %s " ,  self.plugin_dir, r)
+            print(( "setup in %s returned error %s " ,  self.plugin_dir, r))
         except Exception as e:
             log.exception ("An exception occured during the module setup: %s" , str(e))
         finally:
@@ -1605,12 +1605,12 @@ def install_tree(module_root, install_class, params, runtime_params):
     failed    = []
     completed = []
     skipped   = []
-    print( "Checking %s for modules" % module_root)
+    print(( "Checking %s for modules" % module_root))
     for root, dirs, files in os.walk(module_root):
         module_directory = root
         dirname = os.path.basename (module_directory)
         if module_names and dirname not in module_names:
-            print( "Skipping {0}. Not in {1}".format (dirname, module_names))
+            print(( "Skipping {0}. Not in {1}".format (dirname, module_names)))
             continue
         installer = install_class (module_directory)
         if installer.check_enabled ():
@@ -1677,7 +1677,7 @@ def install_server_defaults(params, runtime_params):
     for k in sorted(SITE_VARS.keys()):
         if k not in params:
             params[k] = SITE_VARS[k]
-        print( "  %s=%s" % (k,params[k]))
+        print(( "  %s=%s" % (k,params[k])))
 
     if getanswer("Change a site variable", 'Y' if new_install else 'N') == 'Y':
         params = modify_site_cfg(SITE_QUESTIONS, params)
@@ -1758,7 +1758,7 @@ def install_engine_defaults(params, runtime_params):
     for k in sorted(ENGINE_VARS.keys()):
         if k not in params:
             params[k] = ENGINE_VARS[k]
-        print( "  %s=%s" % (k,params[k]))
+        print(( "  %s=%s" % (k,params[k])))
 
     if getanswer("Change a site variable", 'N')=='Y':
         params = modify_site_cfg(ENGINE_QUESTIONS, params)
@@ -1796,11 +1796,11 @@ def update_environment(params, prefix, section = BQ_SECTION, cfg=None):
     for k,v in list(os.environ.items()):
         if k.startswith (prefix):
             k = remove_prefix(k, prefix).replace('__', '.').lower()
-            print("env ",  k,v)
+            print(("env ",  k,v))
             newenv[k] = v
             params [k] = v
     if newenv:
-        print( "ENV REPLACED", newenv)
+        print(( "ENV REPLACED", newenv))
         update_site_cfg(params, section=section, cfg=cfg)
     return params
 
@@ -1859,7 +1859,7 @@ def check_condor (params, runtime_params, cfg  = None):
         for v, d, h in CONDOR_QUESTIONS:
             if runtime_params[v]:
                 runtime_params[v] = os.path.abspath(os.path.expanduser(runtime_params[v]))
-                print( "CONDOR", v, runtime_params[v])
+                print(( "CONDOR", v, runtime_params[v]))
         update_site_cfg(runtime_params, section="condor", cfg=cfg)
 
     return params, runtime_params
@@ -1890,7 +1890,7 @@ def install_runtime(params, runtime_params, cfg = None):
         if not os.path.exists(staging):
             os.makedirs(staging)
     except OSError as e:
-        print( "%s does not exist and cannot create: %s" % (staging, e))
+        print(( "%s does not exist and cannot create: %s" % (staging, e)))
 
     return params, runtime_params
 
@@ -2016,7 +2016,7 @@ def setup_uwsgi(params, server_params):
                               "%s may have special modifications" %cfg) == "N":
                     continue
         install_cfg (cfg, section="*", default_cfg=defaults_path ('uwsgi.cfg.default'))
-        print( "Created uwsgi config: ", cfg)
+        print(( "Created uwsgi config: ", cfg))
 
         uwsgi_vars = sv.pop ('uwsgi', {})
         bisque_vars = sv.pop ('bisque', {})
@@ -2053,7 +2053,7 @@ def setup_paster(params, server_params):
                  "Paster is the default backend server") != 'Y':
         return params
 
-    print("PARAMS",  server_params)
+    print(("PARAMS",  server_params))
 
     from bq.util.dotnested import parse_nested, unparse_nested
     servers = [ x.strip() for x in server_params['servers'].split(',') ]
@@ -2075,7 +2075,7 @@ def setup_paster(params, server_params):
                               "%s may have special modifications" %cfg) == "N":
                     continue
         install_cfg (cfg, section="*", default_cfg=defaults_path('server.ini.default'))
-        print( "Created paster config: ", cfg)
+        print(( "Created paster config: ", cfg))
 
         uwsgi_vars = sv.pop ('uwsgi', {})
         paster_vars = sv.pop ('paster', {})
@@ -2153,10 +2153,10 @@ def setup_stores(params, runtime_params):
             params = modify_site_cfg (questions, params,  append=False)
             scheme = urllib.parse.urlparse(params.get ('bisque.stores.%s.mounturl' %store)).scheme
             if scheme not in DRIVER_QS:
-                print( "Invalide driver must be one of:", list(DRIVER_QS.keys()))
+                print(( "Invalide driver must be one of:", list(DRIVER_QS.keys())))
                 count+=1
                 if count == 2:
-                    print( "Removing ", store, " from store list")
+                    print(( "Removing ", store, " from store list"))
                     stores.remove (store)
                     params['bisque.blob_service.stores'] = ",".join (stores)
                 continue
@@ -2237,11 +2237,11 @@ def install_external_binaries (params, runtime_params):
             with  open(dest, 'rb') as f:
                 shash = _sha1hash (f.read())
             if sha1 == shash:
-                print( "%s found locally" % name)
+                print(( "%s found locally" % name))
                 return
 
         fetch_url = urllib.parse.urljoin(EXT_SERVER,  hash_name)
-        print( "Fetching %s" % fetch_url)
+        print(( "Fetching %s" % fetch_url))
         fileretrieve (fetch_url, dest, sha1)
 
 
@@ -2258,7 +2258,7 @@ def install_external_binaries (params, runtime_params):
     local_platform = platform.platform().replace('-', '-%s-'%platform.architecture()[0], 1) # dima: added 64bit
     for section in conf.section_names():
         if fnmatch.fnmatch(local_platform, section):
-            print( "Matched section %s" % section)
+            print(( "Matched section %s" % section))
             external_files.extend (conf.get (section))
     for  line in [ f.strip().split('=') for f in external_files]:
         lname = None
@@ -2270,7 +2270,7 @@ def install_external_binaries (params, runtime_params):
                 fetch_file (fname, DIRS['depot'], lname)
             except Exception as e:
                 log.exception ("Problem in fetch")
-                print( "Failed to fetch '%s' with %s" % (fname,e))
+                print(( "Failed to fetch '%s' with %s" % (fname,e)))
 
     return params, runtime_params
 
@@ -2282,7 +2282,7 @@ def uncompress_dependencies (archive, filename_dest, filename_check, strip_root=
     if os.path.exists(filename_check) and os.path.getmtime(archive) < os.path.getmtime(filename_check):
         return
 
-    print( "Unpacking %s into %s"  % (archive, filename_dest))
+    print(( "Unpacking %s into %s"  % (archive, filename_dest)))
     if tarfile.is_tarfile(archive):
         return tarfile.open(archive).extractall (filename_dest)
     else:
@@ -2294,7 +2294,7 @@ def uncompress_extjs (extzip, public, extjs):
     if os.path.exists(extjs) and os.path.getmtime(extzip) < os.path.getmtime(extjs):
         return
 
-    print( "Unpacking %s into %s"  % (extzip, public))
+    print(( "Unpacking %s into %s"  % (extzip, public)))
 
     names = unpack_zip(extzip, public)
     if os.path.exists(extjs):
@@ -2303,7 +2303,7 @@ def uncompress_extjs (extzip, public, extjs):
     topdir = names and names[0].split('/',1)[0] or "extjs-4.0.0"
     unpackdir = to_sys_path('%s/%s' % (public, topdir))
     while not os.path.exists(unpackdir):
-        print( "Couldn't find top level dir of %s" % extzip)
+        print(( "Couldn't find top level dir of %s" % extzip))
         unpackdir = getanswer("Dirname in %s " % public,
                               unpackdir,
                               "Will rename whater top level dir to extjs")
@@ -2341,7 +2341,7 @@ def install_imgcnv ():
     if imgcnv :
         r, version = call ([ imgcnv, '-v'], capture = True)
         if r == 0:
-            print( "Found imgcnv version %s" % version)
+            print(( "Found imgcnv version %s" % version))
         if  not os.path.exists(filename_zip):
             print( "Imgcnv is installed and no-precompiled version exists. Using installed version")
             return
@@ -2492,11 +2492,11 @@ def install_libtiff():
     if sys.platform == 'win32':
         if getanswer ("Install libtiff-4.0.3", "Y",
                       "Enables reading OME-bigtiff for feature extraction") == "Y":
-            print( 'Fetching from %s'%src)
+            print(( 'Fetching from %s'%src))
 
             fileretrieve (src, filename_zip)
             uncompress_dependencies ( filename_zip, DIRS['bin'], filename_check, strip_root=True)
-            print('Installed libtiff-4.0.3 in %s'% DIRS['bin'])
+            print(('Installed libtiff-4.0.3 in %s'% DIRS['bin']))
     else:
         print( """To enable the feature service to read OME-bigtiff for feature extraction install
         libtiff4
@@ -2529,7 +2529,7 @@ def install_opencv():
                 with open(os.path.join(destination,os.path.relpath(f, zip_dir)), 'wb') as fout:
                     fout.write(z.read(f))
                     if verbose:
-                        print( 'Extracted %s -> %s'%(f,os.path.join(destination,os.path.relpath(f, zip_dir))))
+                        print(( 'Extracted %s -> %s'%(f,os.path.join(destination,os.path.relpath(f, zip_dir)))))
 
 
     if getanswer ("Install OpenCV-2.4.6", "Y",
@@ -2708,7 +2708,7 @@ def send_installation_report(params):
         msg.plain = "\n-----------\n".join (parts)
         msg.send()
     except Exception as e:
-        print("Mail not sent.. problem sending the email %s" % str(e))
+        print(("Mail not sent.. problem sending the email %s" % str(e)))
         print("----------------------------------------")
         print(text)
         print("----------------------------------------")
@@ -2919,7 +2919,7 @@ def bisque_installer(options, args):
         print(USAGE)
         return
 
-    print("Beginning install of %s with %s " % (system_type, args))
+    print(("Beginning install of %s with %s " % (system_type, args)))
 
     runtime_params =  {}
     #if not os.path.exists (DIRS['config']):
@@ -2937,7 +2937,7 @@ def bisque_installer(options, args):
     #print "STEPS", install_steps
     for step in install_steps:
         # Normal commands that modify site.cfg
-        print("CALLING ", step)
+        print(("CALLING ", step))
         params, runtime_params = step (params, runtime_params)
         #flist  =  SETUP_COMMANDS.get(step, [])
         #for step_f in flist:
@@ -2952,9 +2952,9 @@ def bisque_installer(options, args):
     params = modify_site_cfg([], params,)
 
     if args[0]  in ('server', 'bisque'):
-        print(STemplate(start_msg).substitute(params))
+        print((STemplate(start_msg).substitute(params)))
     if args[0] == 'engine':
-        print(STemplate(engine_msg).substitute(params))
+        print((STemplate(engine_msg).substitute(params)))
     return params.get ('error_code', 0)
 
 
@@ -3071,7 +3071,7 @@ def update_globals (options, args):
     DIRS['public'] = os.path.join(DIRS['run'], 'public')
     DIRS['modules'] = os.path.join(DIRS['share'], 'modules')
     DIRS['plugins'] = os.path.join(DIRS['share'], 'plugins')
-    print("DIRS: ", DIRS)
+    print(("DIRS: ", DIRS))
     # Ensure dirs are available
     for key, folder in list(DIRS.items()):
         if not os.path.exists (folder):
@@ -3101,10 +3101,10 @@ def setup(options, args):
         log.debug ("TESTING")
 
     if options.read:
-        print("Reading answers from %s" % options.read)
+        print(("Reading answers from %s" % options.read))
         answer_file = open (options.read)
     elif options.write:
-        print("Saving answers to %s" % options.write)
+        print(("Saving answers to %s" % options.write))
         answer_file = open (options.write, "wb")
         save_answers = True
     elif options.yes:
@@ -3134,7 +3134,7 @@ def setup(options, args):
         print("Cancelling Installation")
         sys.exit (128)
     except Exception as e :
-        print("An Unknown exception occured %s" % e)
+        print(("An Unknown exception occured %s" % e))
         excType, excVal, excTrace  = sys.exc_info()
         msg = ["During setup:", "Exception:"]
         msg.extend (traceback.format_exception(excType,excVal, excTrace))
