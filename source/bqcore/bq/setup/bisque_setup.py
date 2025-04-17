@@ -96,6 +96,8 @@ from dateutil import tz
 import requests
 import pkg_resources
 
+from subprocess import call
+
 try:
     from pip import main as pipmain
 except:
@@ -164,8 +166,6 @@ class SetupError(Exception):
 class InstallError(Exception):
     pass
 
-
-
 #############################################
 #  Setup some local constants
 DIRS= dict (
@@ -229,10 +229,20 @@ def bin_path(*names):
 def run_path(*names):
     return to_sys_path(os.path.join(DIRS['run'],  *names))
 
+#!!! added this to ensure that we have a string and fix the conflict: TypeError: string argument without an encoding
+def ensure_str(val):
+    print(f"Inside ensure_str, val: {val}, type: {type(val)}")
+    if isinstance(val, uuid.UUID):
+        str_val = re.search(r'UUID\((.*)\)', repr(val)).group(1).replace("'", "")
+        return str_val
+    elif isinstance(val, bytes):
+        print(f"Bytes detected, converting to string: {val}")
+        return val.decode('utf-8')
+    return val
 
 QUOTED_CHARS="#"
 def quoted(value):
-    'quote a value if has special chars'
+    """quote a value if has special chars"""
     return '\"%s\"' % value if any(c in value for c in QUOTED_CHARS ) else value
 
 
@@ -729,7 +739,7 @@ def update_site_cfg (bisque_vars, section = BQ_SECTION, append=True, cfg=None, f
 
     for k,v in list(bisque_vars.items()):
         if filterby is None or filterby(k, v):
-            c.edit_config (section, k, '%s = %s' % (k,quoted(str(v))), {}, append)
+            c.edit_config (section, k, '%s = %s' % (k,quoted(ensure_str(v))), {}, append)
         #print "edit %s %s" % (k,v)
     c.write (open (cfg, 'w'))
     return bisque_vars
@@ -762,7 +772,7 @@ def modify_site_cfg(qs, bisque_vars, section = BQ_SECTION, append=True, cfg=None
     c = ConfigFile()
     c.read(open(cfg))
     for k,v in list(bisque_vars.items()):
-        c.edit_config (section, k, '%s = %s' % (k,quoted(str(v))), {}, append)
+        c.edit_config (section, k, '%s = %s' % (k,quoted(ensure_str(v))), {}, append)
         #print "edit %s %s" % (k,v)
     c.write (open (cfg, 'w'))
     return bisque_vars
@@ -1107,7 +1117,7 @@ def initialize_database(params, DBURL=None):
         The database is freshly created and doesn't seem to have
         any tables yet.  Allow the system to create them..
         """) == "Y":
-        if call ([bin_path('paster'),'setup-app', config_path('site.cfg')]) != 0:
+        if call([bin_path('paster'),'setup-app', config_path('site.cfg')]) != 0:
             raise SetupError("There was a problem initializing the Database")
         params['new_database'] = 'true'
     return params
@@ -1914,6 +1924,12 @@ if MAILER=='turbomail':
     ]
     SMTP_QS = []
 
+if MAILER is None:
+    MAIL_QUESTIONS = [
+    ]
+    SMTP_QS = [
+    ]
+
 def install_mail(params, runtime_params):
     params['mail.smtp.server'] = os.getenv('MAIL_SERVER', params['mail.smtp.server'])
 
@@ -2089,7 +2105,7 @@ def setup_paster(params, server_params):
                 }
 
         for k,v in unparse_nested (bisque_vars):
-            svars["bisque.%s" % k] = str(v)
+            svars["bisque.%s" % k] = ensure_str(v)
 
         # put other vars backinto bisque area
         svars.update ( unparse_nested(sv) )

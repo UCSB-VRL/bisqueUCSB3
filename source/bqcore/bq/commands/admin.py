@@ -22,6 +22,7 @@ logging.basicConfig(level=logging.DEBUG) #!!! Added this for py3
 def load_config(filename):
     from paste.deploy import appconfig
     from bq.config.environment import load_environment
+    print("Loading config file %s" % filename)
     conf = appconfig('config:' + os.path.abspath(filename))
     load_environment(conf.global_conf, conf.local_conf)
 

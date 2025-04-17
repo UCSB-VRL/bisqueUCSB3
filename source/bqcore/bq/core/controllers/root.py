@@ -69,7 +69,7 @@ from paste.httpexceptions import HTTPNotFound
 import simplejson as json
 from lxml import etree
 from tg import expose,  request, redirect, config, response, abort, session
-from tg.controllers import CUSTOM_CONTENT_TYPE
+# from tg.controllers import CUSTOM_CONTENT_TYPE #!!! not accessed and deprecated
 from tg.controllers import WSGIAppController
 #from tgext.admin import AdminController
 

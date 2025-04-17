@@ -68,7 +68,7 @@ setup(
         "lxml",
 #        "virtualenv",
         # "poster", # !!! commented out poster for now
-        # "linesman", # !!! commented out linesman for now due to issue with pygraphviz
+        "linesman", # !!! commented out linesman for now due to issue with pygraphviz
         "shortuuid",
         #"Minimatic",
         ],

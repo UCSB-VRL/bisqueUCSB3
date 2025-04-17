@@ -25,11 +25,12 @@ from pylons.util import call_wsgi_application
 
 from tg.configuration import AppConfig, config
 from tg.util import  Bunch
-from tg.error import ErrorHandler
+# from tg.error import ErrorHandler # !!! This was before upgrading to py3.10+
+from paste.exceptions.errormiddleware import ErrorMiddleware # !!! This was after upgrading to py3.10+ (experimental)
 #import tgscheduler
 #from repoze.who.config import make_middleware_with_config
 from repoze.who.middleware import PluggableAuthenticationMiddleware
-from repoze.who.plugins.testutil import AuthenticationForgerMiddleware
+# from repoze.who.plugins.testutil import AuthenticationForgerMiddleware # !!! This was before upgrading to py3.10+
 from repoze.who.config import WhoConfig
 
 import bq
@@ -80,11 +81,31 @@ class BisqueErrorFilter(object):
             log.info ('ERROR: disabled status_code_redirect')
         start_response(status, headers, exc_info)
         return app_iter
+# Replacement for previous AuthenticationForgerMiddleware # !!! in between upgrading to py3.10+ (Experimental)
+class AuthenticationForgerMiddleware:
+    """
+    WSGI middleware that forges authentication by injecting a fake REMOTE_USER.
+    Useful when skip_authentication=True.
+    """
+    def __init__(self, app, identifiers, authenticators, challengers,
+                 mdproviders, request_classifier, challenge_decider,
+                 log_stream=None, log_level=None, remote_user_key='REMOTE_USER'):
+        self.app = app
+        self.remote_user_key = remote_user_key
+        self.fake_user = 'forged_user'  # You can also load this from config if needed
+
+    def __call__(self, environ, start_response):
+        environ[self.remote_user_key] = self.fake_user
+        environ['REMOTE_USER'] = self.fake_user
+        environ['repoze.who.userid'] = self.fake_user
+        return self.app(environ, start_response)
+
 
 class BisqueAppConfig(AppConfig):
     def add_error_middleware(self, global_conf, app):
         """Add middleware which handles errors and exceptions."""
-        app = ErrorHandler(app, global_conf, **config['pylons.errorware'])
+        # app = ErrorHandler(app, global_conf, **config['pylons.errorware']) #!!! this was before upgrading to py3.10+
+        app = ErrorMiddleware(app, global_conf, **config['pylons.errorware']) #!!! this was after upgrading to py3.10+
 
         # Display error documents for self.handle_status_codes status codes (and
         # 500 when debug is disabled)
@@ -263,7 +284,7 @@ base_config.renderers.append('json')
 #Set the default renderer
 base_config.default_renderer = 'genshi'
 base_config.renderers.append('genshi')
-base_config.render_functions.etree = render_etree
+base_config.render_functions["etree"]= render_etree #!!! In between upgrading to py3.10+
 base_config.disable_request_extensions=True
 
 # if you want raw speed and have installed chameleon.genshi

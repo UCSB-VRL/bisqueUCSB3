@@ -17,7 +17,8 @@ from datetime import datetime
 import sys
 
 try:
-    from hashlib import sha1
+    # from hashlib import sha1
+    import hashlib # !!! In between upgrading to py3.10+ (Experimental) before was sha1
 except ImportError:
     sys.exit('ImportError: No module named hashlib\n'
              'If you are on python2.4 this library is not part of python. '
@@ -26,7 +27,8 @@ except ImportError:
 import sqlalchemy as sa
 from sqlalchemy import Table, ForeignKey, Column, select
 from sqlalchemy.types import Unicode, Integer, DateTime
-from sqlalchemy.orm import relation, synonym#, validates
+# from sqlalchemy.orm import relation, synonym#, validates # !!! before upgrading to py3.10+
+from sqlalchemy.orm import relationship, synonym # !!! In between upgrading to py3.10+ (Experimental)
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -141,20 +143,31 @@ class HashPassword():
         else:
             password_8bit = password
 
-        salt = sha1()
-        salt.update(os.urandom(60))
-        hash = sha1()
-        hash.update(password_8bit + salt.hexdigest())
-        hashed_password = salt.hexdigest() + hash.hexdigest()
-        return hashed_password
+        # salt = sha1()
+        # salt.update(os.urandom(60))
+        # hash = sha1()
+        # hash.update(password_8bit + salt.hexdigest())
+        # hashed_password = salt.hexdigest() + hash.hexdigest()
 
+        # !!! In between upgrading to py3.10+ (Experimental) previously was sha1
+        salt = hashlib.sha256(os.urandom(60)).hexdigest()
+        hash = hashlib.sha256(password_8bit + salt.encode('utf-8')).hexdigest() 
+        hashed_password = salt.hex() + ':' + hash
+        
+        return hashed_password
     @staticmethod
     def check_password(passval, password):
-        hash = sha1()
-        if isinstance(password, str):
-            password = password.encode('utf-8')
-        hash.update(password + str(passval[:40]))
-        return passval[40:] == hash.hexdigest()
+        # hash = sha1()
+        # if isinstance(password, str):
+        #     password = password.encode('utf-8')
+        # hash.update(password + str(passval[:40]))
+        # return passval[40:] == hash.hexdigest()
+
+        # !!! In between upgrading to py3.10+ (Experimental) previously was sha1
+        salt_hex, stored_hash = passval.split(':')
+        salt = bytes.fromhex(salt_hex)
+        hashed_input = hashlib.sha256(password.encode('utf-8') + salt).hexdigest()
+        return stored_hash == hashed_input
 
 class FreeTextPassword ():
     @staticmethod
@@ -194,15 +207,17 @@ class Group(DeclarativeBase):
 
     #{ Relations
 
-    users = relation('User', secondary=user_group_table, backref='groups')
+    users = relationship('User', secondary=user_group_table, backref='groups') # !!! In between upgrading to py3.10+ (Experimental) previously was relation
 
     #{ Special methods
 
     def __repr__(self):
         return ('<Group: name=%s>' % self.group_name).encode('utf-8')
 
-    def __unicode__(self):
-        return self.group_name
+    # def __unicode__(self):
+    #     return self.group_name 
+    def __str__(self):
+        return self.group_name #!!! In between upgrading to py3.10+ (Experimental) previously was __unicode__
 
     #}
 
@@ -244,8 +259,10 @@ class User(DeclarativeBase):
         return ('<User: name=%r, email=%r, display=%r>' % (
                 self.user_name, self.email_address, self.display_name)).encode('utf-8')
 
-    def __unicode__(self):
-        return self.display_name or self.user_name
+    # def __unicode__(self):
+    #     return self.display_name or self.user_name
+    def __str__(self):
+        return self.display_name or self.user_name #!!! In between upgrading to py3.10+ (Experimental) previously was __unicode__
 
     #{ Getters and setters
 
@@ -370,16 +387,18 @@ class Permission(DeclarativeBase):
 
     #{ Relations
 
-    groups = relation(Group, secondary=group_permission_table,
-                      backref='permissions')
+    groups = relationship(Group, secondary=group_permission_table,
+                      backref='permissions') # !!! In between upgrading to py3.10+ (Experimental) previously was relation
 
     #{ Special methods
 
     def __repr__(self):
         return ('<Permission: name=%r>' % self.permission_name).encode('utf-8')
 
-    def __unicode__(self):
-        return self.permission_name
+    # def __unicode__(self):
+    #     return self.permission_name
+    def __str__(self):
+        return self.permission_name #!!! In between upgrading to py3.10+ (Experimental) previously was __unicode__
 
     #}
 

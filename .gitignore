@@ -217,3 +217,7 @@ Thumbs.db
 .npy
 .pt
 
+# Dir created during development
+/source/config/
+/source/data/
+
