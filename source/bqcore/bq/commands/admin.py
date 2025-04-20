@@ -2,6 +2,7 @@ import sys
 import os
 import subprocess
 import re
+from bq.core.model import DBSession
 import pkg_resources
 import optparse
 import errno
@@ -403,7 +404,8 @@ class sql(object):
         from configparser import ConfigParser
         load_config(self.options.config)
 
-        engine = config['pylons.app_globals'].sa_engine
+        # engine = config['pylons.app_globals'].sa_engine
+        engine = DBSession.bind
 
         print(engine)
 

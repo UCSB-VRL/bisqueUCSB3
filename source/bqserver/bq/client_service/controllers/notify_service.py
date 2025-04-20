@@ -56,12 +56,14 @@ Services for the notifying users.
 import logging
 import smtplib
 import socket
-import turbomail
+
+
 
 
 from lxml import etree
 from tg import request,  expose, require , config
-from repoze.what import predicates
+# from repoze.what import predicates # !!! deprecated following is the alternative
+from tg import predicates
 
 
 from bq.core.service import ServiceController
@@ -70,10 +72,21 @@ from bq.core import identity
 log = logging.getLogger('bq.notify')
 #admin_email = tg.config.get('bisque.admin_email')
 
+# !!! Temporary fix as turbomail is deprecated
+try:
+    import turbomail
+except ImportError:
+    log.warning("Turbomail not installed, email notifications will not work")
+    turbomail = None
+
 
 def send_mail(sender_email, recipients_email, subject, body ):
     """Send an email with  info to the user.
     """
+
+    if turbomail is None:
+        log.warning("Turbomail not installed, email notifications will not work")
+        return False
 
     #if not sender_email or not  admin_email:
     #    log.exception('Configuration error: could not send error'

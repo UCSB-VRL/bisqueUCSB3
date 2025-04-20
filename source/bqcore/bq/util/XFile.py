@@ -21,6 +21,8 @@
 ##############################################################################
 import errno
 from os import name
+import io
+
 
 # Define what will be imported when a 'from XFile import *' statement
 # is executed.
@@ -82,7 +84,8 @@ class LockError(IOError):
     # IOError so it will be caught by 'except IOError'.
     pass
 
-class XFile(file):
+# !!! Resolved issues of XFile(file)
+class XFile(io.IOBase):
 
     def __init__(self, str_Filename, str_Mode="r", num_BufferSize=-1):
         # Set our locker/unlocker members to their OS-specific functions.
@@ -96,8 +99,8 @@ class XFile(file):
         # Set the internal lock flag.
         self.__bool_Locked = False
 
-        # Initialize the rest of ourself.
-        file.__init__(self, str_Filename, str_Mode, num_BufferSize)
+        # Use open() to open the file.
+        self.file = open(str_Filename, str_Mode, num_BufferSize)
 
     def __LockNT(self, num_LockFlags, num_Start, num_End):
         # Lock the file on the NT platform.  Locking files

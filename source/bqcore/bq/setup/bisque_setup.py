@@ -53,6 +53,7 @@ DESCRIPTION
 
 """
 
+from unittest import result
 from past.builtins import execfile
 from future import standard_library
 standard_library.install_aliases()
@@ -231,12 +232,12 @@ def run_path(*names):
 
 #!!! added this to ensure that we have a string and fix the conflict: TypeError: string argument without an encoding
 def ensure_str(val):
-    print(f"Inside ensure_str, val: {val}, type: {type(val)}")
+    # print(f"Inside ensure_str, val: {val}, type: {type(val)}")
     if isinstance(val, uuid.UUID):
         str_val = re.search(r'UUID\((.*)\)', repr(val)).group(1).replace("'", "")
         return str_val
     elif isinstance(val, bytes):
-        print(f"Bytes detected, converting to string: {val}")
+        # print(f"Bytes detected, converting to string: {val}")
         return val.decode('utf-8')
     return val
 
@@ -1117,8 +1118,15 @@ def initialize_database(params, DBURL=None):
         The database is freshly created and doesn't seem to have
         any tables yet.  Allow the system to create them..
         """) == "Y":
-        if call([bin_path('paster'),'setup-app', config_path('site.cfg')]) != 0:
+        # !!! modified apporach for python 3
+        result = subprocess.run([bin_path('paster'),'setup-app', config_path('site.cfg')], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        print("STDOUT:\n", result.stdout)
+        print("STDERR:\n", result.stderr)
+        if result.returncode != 0:
             raise SetupError("There was a problem initializing the Database")
+        # !!! old approach
+        # if call([bin_path('paster'),'setup-app', config_path('site.cfg')]) != 0:
+        #     raise SetupError("There was a problem initializing the Database")
         params['new_database'] = 'true'
     return params
 

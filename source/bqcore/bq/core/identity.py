@@ -5,7 +5,9 @@
 from contextlib import contextmanager
 
 from tg import request, session
-from repoze.what.predicates import in_group
+# from repoze.what.predicates import in_group #!!! was before python 3.10
+from tg.predicates import in_group
+from tg import request
 
 import logging
 from bq.exceptions import BQException
@@ -128,13 +130,25 @@ def get_admin_id():
     user_admin = get_admin()
     return user_admin and user_admin.id
 
-def is_admin (bquser=None):
-    'return whether current user has admin priveledges'
-    if bquser:
-        groups  = bquser.get_groups()
-        return any ( (g.group_name == 'admin' or g.group_name == 'admins') for g in groups )
+# def is_admin (bquser=None):
+#     'return whether current user has admin priveledges'
+#     if bquser:
+#         groups  = bquser.get_groups()
+#         return any ( (g.group_name == 'admin' or g.group_name == 'admins') for g in groups )
 
-    return in_group('admins').is_met(request.environ) or in_group('admin').is_met(request.environ)
+#     return in_group('admins').is_met(request.environ) or in_group('admin').is_met(request.environ)
+
+# !!! replacement for previous is_admin
+def is_admin(bquser=None):
+    """Return whether current user has admin privileges."""
+    if bquser:
+        groups = bquser.get_groups()
+        return any(g.group_name in ('admin', 'admins') for g in groups)
+
+    try:
+        return in_group('admins').is_met(request.environ) or in_group('admin').is_met(request.environ)
+    except Exception:
+        return False
 
 
 #     if request_available():

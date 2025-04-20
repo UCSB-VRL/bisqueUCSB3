@@ -62,8 +62,9 @@ from tg import expose, redirect, response
 from tg import config
 from lxml import etree
 from urllib.parse import urlencode
-from repoze.what import predicates
-from repoze.what.predicates import not_anonymous
+# from repoze.what import predicates
+# from repoze.what.predicates import not_anonymous # !!! repoze.what is deprecated following are the alternatives
+from tg.predicates import not_anonymous
 #from paste.debug.profile import profile_decorator
 
 

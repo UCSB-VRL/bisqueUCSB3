@@ -68,7 +68,8 @@ from bq.util.fileapp import BQFileApp
 from pylons.controllers.util import forward
 from paste.deploy.converters import asbool
 #from paste.deploy.converters import asbool
-from repoze.what import predicates
+# from repoze.what import predicates # !!! deprecated following is the alternative
+from tg import predicates
 
 #from sqlalchemy.exc import IntegrityError
 

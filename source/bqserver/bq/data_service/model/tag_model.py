@@ -66,7 +66,8 @@ from datetime import datetime
 from sqlalchemy import Table, Column, ForeignKey, Index
 from sqlalchemy import Integer, String, DateTime, Unicode, Float, Boolean
 from sqlalchemy import Text, UnicodeText
-from sqlalchemy.orm import relation, class_mapper, object_mapper, validates, backref, synonym
+# from sqlalchemy.orm import relation, class_mapper, object_mapper, validates, backref, synonym
+from sqlalchemy.orm import relationship, class_mapper, object_mapper, validates, backref, synonym # !!! In between conversion to python3
 from sqlalchemy.orm import foreign, remote
 from sqlalchemy import exc
 from sqlalchemy.sql import and_, case
@@ -800,10 +801,14 @@ mapper( Value, values,
         #'resource_parent_id' : values.c.parent_id,
         #'parent' : relation (Taggable,
         #                 primaryjoin =(taggable.c.id == values.c.parent_id)),
-        'objref' : relation(Taggable, uselist=False,
-                            primaryjoin=(values.c.valobj==taggable.c.id),
-                            enable_typechecks=False
-                            ),
+        # 'objref' : relation(Taggable, uselist=False,
+        #                     primaryjoin=(values.c.valobj==taggable.c.id),
+        #                     enable_typechecks=False
+        #                     ),
+        'objref' : relationship(Taggable, uselist=False,
+                             primaryjoin=(values.c.valobj==taggable.c.id),
+                             enable_typechecks=False
+                             ), # !!! In between conversion to python3
         #'document' : relation(Taggable, uselist=False,lazy=True,
         #                      primaryjoin=(values.c.document_id==taggable.c.id),
         #                      enable_typechecks=False,
@@ -824,12 +829,21 @@ mapper(TaggableAcl, taggable_acl,)
 ############################
 # Taggable mappers
 
-taggable_discr = case (
-    [(taggable.c.resource_type=='image', "image"),
-     (taggable.c.resource_type=='tag', "tag"),
-     (taggable.c.resource_type=='gobject', "gobject")],
-     else_ = "taggable"
-    )
+# taggable_discr = case(
+#     [(taggable.c.resource_type=='image', "image"),
+#      (taggable.c.resource_type=='tag', "tag"),
+#      (taggable.c.resource_type=='gobject', "gobject")],
+#      else_ = "taggable"
+#     )
+
+# !!! In between conversion to python3
+taggable_discr = case(
+    (taggable.c.resource_type == 'image', "image"),
+    (taggable.c.resource_type == 'tag', "tag"),
+    (taggable.c.resource_type == 'gobject', "gobject"),
+    else_="taggable"
+)
+
 
 
 mapper( Taggable, taggable,
@@ -845,13 +859,13 @@ mapper( Taggable, taggable,
     #                       #remote_side=[taggable.c.resource_parent_id, taggable.c.resource_type],
     #                       primaryjoin= and_(remote(taggable.c.resource_parent_id)==taggable.c.id,
     #                                         remote(taggable.c.resource_type) == 'gobject')),
-
-    'acl'  : relation(TaggableAcl, lazy=True, cascade="all, delete-orphan", passive_deletes=True,
+    # !!! In between conversion to python3 before was relation
+    'acl'  : relationship(TaggableAcl, lazy=True, cascade="all, delete-orphan", passive_deletes=True,
                       primaryjoin = (TaggableAcl.taggable_id == taggable.c.document_id),
                       foreign_keys=[TaggableAcl.taggable_id],
-                      backref = backref('resource', enable_typechecks=False, remote_side=[taggable.c.document_id])),
+                      backref = backref('resource', enable_typechecks=False, remote_side=[taggable.c.document_id])), 
 
-    'children' : relation(Taggable, lazy=True, cascade="all, delete-orphan", passive_deletes=True,
+    'children' : relationship(Taggable, lazy=True, cascade="all, delete-orphan", passive_deletes=True,
                           enable_typechecks = False,
                           primaryjoin = (taggable.c.id == taggable.c.resource_parent_id),
                           order_by = taggable.c.resource_index,
@@ -859,8 +873,8 @@ mapper( Taggable, taggable,
                           backref = backref('parent', enable_typechecks=False, remote_side = [taggable.c.id]),
                           ),
 
-    'childrenq' : relation(Taggable, lazy='dynamic', viewonly=True,
-                           enable_typechecks = False,
+    'childrenq' : relationship(Taggable, lazy='dynamic', viewonly=True,
+                        #    enable_typechecks = False,
                            primaryjoin = (taggable.c.id == taggable.c.resource_parent_id),
                            #remote_side = [taggable.c.resource_parent_id],
 
@@ -868,14 +882,14 @@ mapper( Taggable, taggable,
     #                       #collection_class = ordering_list ('resource_index')
                           ),
 
-    'values' : relation(Value,  lazy=True, cascade="all, delete-orphan", passive_deletes=True,
+    'values' : relationship(Value,  lazy=True, cascade="all, delete-orphan", passive_deletes=True,
                         order_by=[values.c.indx],
                         collection_class = ordering_list ('indx'),
                         primaryjoin =(taggable.c.id == values.c.resource_parent_id),
                         backref = backref('parent', enable_typechecks = False, remote_side=[taggable.c.id])
                         #foreign_keys=[values.c.parent_id]
                         ),
-    'vertices':relation(Vertex, lazy=True, cascade="all, delete-orphan", passive_deletes=True,
+    'vertices':relationship(Vertex, lazy=True, cascade="all, delete-orphan", passive_deletes=True,
                         order_by=[vertices.c.indx],
                         collection_class = ordering_list ('indx'),
                         primaryjoin =(taggable.c.id == vertices.c.resource_parent_id),
@@ -890,7 +904,7 @@ mapper( Taggable, taggable,
 
     # The following primarily create a valid .document for Taggable, vertex, and value
 
-    'docnodes': relation(Taggable, lazy=True,
+    'docnodes': relationship(Taggable, lazy=True,
                          cascade = "all, delete-orphan", passive_deletes=True,
                          enable_typechecks = False,
                          primaryjoin = (taggable.c.id == taggable.c.document_id),
@@ -899,14 +913,14 @@ mapper( Taggable, taggable,
                          post_update = True,
                          ),
 
-     'docvalues' : relation (Value, lazy=True,
+     'docvalues' : relationship(Value, lazy=True,
                              cascade = "all, delete-orphan", passive_deletes=True,
                           enable_typechecks = False,
                           primaryjoin = (taggable.c.id == values.c.document_id),
                           backref = backref('document', #post_update=True,
                                             enable_typechecks=False, remote_side=[taggable.c.id]),
                           ),
-     'docvertices' : relation (Vertex, lazy=True,
+     'docvertices' : relationship(Vertex, lazy=True,
                                cascade = "all, delete-orphan", passive_deletes=True,
                           enable_typechecks = False,
                           primaryjoin = (taggable.c.id == vertices.c.document_id),
@@ -930,11 +944,11 @@ mapper(BQUser,  inherits=Taggable,
        polymorphic_on = taggable.c.resource_type,
        polymorphic_identity = 'user',
        properties = {
-        'tguser' : relation(User, uselist=False,
+        'tguser' : relationship(User, uselist=False,
             primaryjoin=(User.user_name == taggable.c.resource_name),
             foreign_keys=[User.user_name]),
 
-        'owns' : relation(Taggable, lazy=True,
+        'owns' : relationship(Taggable, lazy=True,
                           cascade = "all, delete-orphan", passive_deletes=True,
                           post_update = True,
                           enable_typechecks=False,
@@ -942,7 +956,7 @@ mapper(BQUser,  inherits=Taggable,
                           backref = backref('owner', post_update=True, remote_side=[taggable.c.id]),
                           ),
 
-        'user_acls': relation(TaggableAcl,  lazy=True, cascade="all, delete-orphan",
+        'user_acls': relationship(TaggableAcl,  lazy=True, cascade="all, delete-orphan",
                               passive_deletes = True,
                               primaryjoin= (taggable.c.id == taggable_acl.c.user_id),
                               backref = backref('user', enable_typechecks=False),
@@ -961,7 +975,7 @@ mapper(ModuleExecution,  inherits=Taggable,
        polymorphic_identity = 'mex',
        properties = {
         #"status":synonym("resource_value"), # map_column=True) ,
-        'owns' : relation(Taggable,
+        'owns' : relationship(Taggable,
                           lazy = True,
                           cascade = "all, delete-orphan", passive_deletes=True,
                           #cascade = None,

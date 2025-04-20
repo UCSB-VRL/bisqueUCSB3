@@ -25,7 +25,7 @@ except ImportError:
              'Please install it. Example: easy_install hashlib')
 
 import sqlalchemy as sa
-from sqlalchemy import Table, ForeignKey, Column, select
+from sqlalchemy import Table, ForeignKey, Column, select, text
 from sqlalchemy.types import Unicode, Integer, DateTime
 # from sqlalchemy.orm import relation, synonym#, validates # !!! before upgrading to py3.10+
 from sqlalchemy.orm import relationship, synonym # !!! In between upgrading to py3.10+ (Experimental)
@@ -52,14 +52,21 @@ def do_connect(dbapi_connection, connection_record):
         dbapi_connection.isolation_level = None
         log.debug ("SQLITE: Disable automatic transactions")
 
+# @event.listens_for(Engine, "begin")
+# def do_begin(conn):
+#     # emit our own BEGIN
+#     if config.get('sqlalchemy.url', '').startswith ("sqlite://"):
+#         #http://docs.sqlalchemy.org/en/rel_1_0/dialects/sqlite.html#transaction-isolation-level
+#         #conn.execute("BEGIN EXCLUSIVE")
+#         conn.execute("BEGIN ")
+#         log.debug ("SQLITE: Begin Transaction")
+
+# !!! new code to support python 3.10+ (Experimental)
 @event.listens_for(Engine, "begin")
 def do_begin(conn):
-    # emit our own BEGIN
-    if config.get('sqlalchemy.url', '').startswith ("sqlite://"):
-        #http://docs.sqlalchemy.org/en/rel_1_0/dialects/sqlite.html#transaction-isolation-level
-        #conn.execute("BEGIN EXCLUSIVE")
-        conn.execute("BEGIN ")
-        log.debug ("SQLITE: Begin Transaction")
+    if config.get('sqlalchemy.url', '').startswith("sqlite://"):
+        conn.execute(text("BEGIN"))
+        log.debug("SQLITE: Begin Transaction")
 
 # http://docs.sqlalchemy.org/en/latest/core/pooling.html#pool-disconnects-pessimistic
 # http://docs.sqlalchemy.org/en/latest/core/pooling.html#disconnect-handling-pessimistic

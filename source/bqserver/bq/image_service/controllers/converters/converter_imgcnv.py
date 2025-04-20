@@ -49,11 +49,16 @@ if os.name == 'nt':
 	imgcnv_lib_name = 'libimgcnv.dll'
 elif sys.platform == 'darwin':
 	imgcnv_lib_name = 'libimgcnv.dylib'
-
-imgcnvlib = ctypes.cdll.LoadLibrary(imgcnv_lib_name)
+try:
+	imgcnvlib = ctypes.cdll.LoadLibrary(imgcnv_lib_name)
+except OSError as e:
+	log.exception('Failed to load %s: %s', imgcnv_lib_name, e)
+	imgcnvlib = None
 
 if os.name == 'nt':
 	def call_imgcnvlib(command):
+		if imgcnvlib is None:
+			raise ImageServiceException(404, 'imgcnvlib not found')
 		arr = (ctypes.c_wchar_p * len(command))()
 		arr[:] = [misc.tounicode(i) for i in command]
 		res = ctypes.pointer(ctypes.c_char_p())
@@ -72,6 +77,8 @@ if os.name == 'nt':
 else:
 	def call_imgcnvlib(command):
 		#log.info ('CALLING IMGCNVLIB %s', command)
+		if imgcnvlib is None:
+			raise ImageServiceException(404,'imgcnvlib not found')
 		arr = (ctypes.c_char_p * len(command))()
 		#arr[:] = [i.encode('utf-8') for i in command]
 		arr[:] =  command

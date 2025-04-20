@@ -64,7 +64,7 @@ import tg
 from pylons.i18n import ugettext as _, lazy_ugettext as l_
 from lxml import etree
 from tg import expose, flash, config
-from repoze.what import predicates
+# from repoze.what import predicates # !!! repoze.what is deprecated and currently not used
 import transaction
 
 from bq.core.service import ServiceController

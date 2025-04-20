@@ -32,8 +32,10 @@ from http.client import NotConnected
 __all__ = ['StreamingHTTPConnection', 'StreamingHTTPRedirectHandler',
         'StreamingHTTPHandler', 'register_openers']
 
-if hasattr(httplib, 'HTTPS'):
-    __all__.extend(['StreamingHTTPSHandler', 'StreamingHTTPSConnection'])
+# if hasattr(httplib, 'HTTPS'):
+#     __all__.extend(['StreamingHTTPSHandler', 'StreamingHTTPSConnection'])
+if hasattr(http.client, 'HTTPS'):
+    __all__.extend(['StreamingHTTPSHandler', 'StreamingHTTPSConnection']) # !!! In between python3 conversion
 
 class _StreamingHTTPMixin:
     """Mixin class for HTTP and HTTPS connections that implements a streaming
@@ -80,7 +82,9 @@ class _StreamingHTTPMixin:
             else:
                 self.sock.sendall(value)
         except socket.error as v:
-            if v[0] == 32:      # Broken pipe
+            # if v[0] == 32:      # Broken pipe
+            #     self.close()
+            if v.errno == 32: # !!! In between python3 conversion
                 self.close()
             raise
 
@@ -154,7 +158,8 @@ class StreamingHTTPHandler(urllib.request.HTTPHandler):
                             "No Content-Length specified for iterable body")
         return urllib.request.HTTPHandler.do_request_(self, req)
 
-if hasattr(httplib, 'HTTPS'):
+# if hasattr(httplib, 'HTTPS'):
+if hasattr(http.client, 'HTTPS'): # !!! In between python3 conversion
     class StreamingHTTPSConnection(_StreamingHTTPMixin,
             http.client.HTTPSConnection):
         """Subclass of `httplib.HTTSConnection` that overrides the `send()`
@@ -183,7 +188,8 @@ if hasattr(httplib, 'HTTPS'):
 
 def get_handlers():
     handlers = [StreamingHTTPHandler, StreamingHTTPRedirectHandler]
-    if hasattr(httplib, "HTTPS"):
+    # if hasattr(httplib, "HTTPS"):
+    if hasattr(http.client, "HTTPS"): # !!! In between python3 conversion
         handlers.append(StreamingHTTPSHandler)
     return handlers
 

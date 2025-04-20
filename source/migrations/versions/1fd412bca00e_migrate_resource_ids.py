@@ -24,7 +24,7 @@ from sqlalchemy import Table, MetaData
 import sys
 import importlib
 importlib.reload(sys)
-sys.setdefaultencoding ('utf8')
+# sys.setdefaultencoding ('utf8') # !!! this is not needed in python3
 
 from bq.util.paths import find_config_path
 

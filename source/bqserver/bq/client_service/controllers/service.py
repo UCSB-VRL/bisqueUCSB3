@@ -10,7 +10,7 @@ import pkg_resources
 import tg
 from tg import expose, flash
 from pylons.i18n import ugettext as _, lazy_ugettext as l_
-from repoze.what import predicates
+# from repoze.what import predicates # !!! deprecated and not used currently
 
 from bq.core.service import ServiceController, service_registry
 from bq.client_service import model

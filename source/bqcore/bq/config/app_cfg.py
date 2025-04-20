@@ -143,10 +143,15 @@ class BisqueAppConfig(AppConfig):
         self.package.model.init_model(engine)
         self.register_hook('controller_wrapper', transaction_retry_wrapper)
 
-    def after_init_config(self):
+    def after_init_config(self, conf):
         "after config"
-        config['pylons.response_options']['headers'].pop('Cache-Control', None)
-        config['pylons.response_options']['headers'].pop('Pragma', None)
+        # config['pylons.response_options']['headers'].pop('Cache-Control', None)
+        # config['pylons.response_options']['headers'].pop('Pragma', None)
+        # !!! getting response_options giving key error so following is the new way
+        response_opts = conf.get('pylons.response_options', {})
+        headers = response_opts.get('headers', {})
+        headers.pop('Cache-Control', None)
+        headers.pop('Pragma', None)
         ##print "DATA", config.get('use_sqlalchemy'), config.get('bisque.use_database')
 
     def add_static_file_middleware(self, app):

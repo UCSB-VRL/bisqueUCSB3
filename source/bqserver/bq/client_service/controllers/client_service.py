@@ -71,7 +71,7 @@ from webob import Request
 import tg
 from tg import expose, flash, redirect, require, request
 from tg import config, tmpl_context as c, session
-from repoze.what import predicates
+# from repoze.what import predicates # !!! deprecated and currently unused
 
 
 import bq

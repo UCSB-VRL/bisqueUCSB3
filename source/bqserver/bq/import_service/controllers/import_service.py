@@ -73,7 +73,8 @@ import pkg_resources
 #from pylons.i18n import ugettext as _, lazy_ugettext as l_
 from pylons.controllers.util import abort
 import  tg
-from repoze.what import predicates
+# from repoze.what import predicates # !!! deprecated following is the alternative
+from tg import predicates
 from bq.core.service import ServiceController
 
 # additional includes

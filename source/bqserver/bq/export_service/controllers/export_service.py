@@ -71,7 +71,8 @@ import logging
 import pkg_resources
 from pylons.i18n import ugettext as _, lazy_ugettext as l_
 from tg import expose, flash
-from repoze.what import predicates
+# from repoze.what import predicates # deprecated following is the alternative
+from tg import predicates
 
 
 
@@ -99,7 +100,7 @@ from lxml import etree
 
 import tg
 from tg import request, response, session, flash, require, abort
-from repoze.what import predicates
+# from repoze.what import predicates
 
 from bq.core.service import ServiceController
 from bq import data_service

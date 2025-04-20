@@ -15,7 +15,7 @@ import random
 from pylons.controllers.util import etag_cache
 from pylons.i18n import ugettext as _, lazy_ugettext as l_
 from tg import expose, flash, config, abort
-from repoze.what import predicates
+# from repoze.what import predicates # !!! deprecated and unused
 from bq.core.service import ServiceController
 from paste.fileapp import FileApp
 from pylons.controllers.util import forward

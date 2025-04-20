@@ -91,7 +91,7 @@ import logging
 import pkg_resources
 from pylons.i18n import ugettext as _, lazy_ugettext as l_
 from tg import expose, flash, response
-from repoze.what import predicates 
+# from repoze.what import predicates  # !!! deprecated and currently not used
 from bq.core.service import ServiceController
 #from bq.stats import model
 

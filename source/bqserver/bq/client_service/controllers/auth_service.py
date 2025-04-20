@@ -66,7 +66,8 @@ from tg import request, session, flash, require, response
 from tg import  expose, redirect, url
 from tg import config
 from pylons.i18n import ugettext as  _
-from repoze.what import predicates
+# from repoze.what import predicates # !!! deprecated following is the replacement
+from tg.predicates import not_anonymous, has_permission
 
 from bq.core.service import ServiceController
 from bq.core import identity
@@ -91,10 +92,6 @@ except ImportError:
         from collections import OrderedDict
     except ImportError:
         log.error("can't import OrderedDict")
-
-
-
-
 
 
 
@@ -296,7 +293,8 @@ class AuthenticationServer(ServiceController):
 
 
     @expose(content_type="text/xml")
-    @require(predicates.not_anonymous())
+    # @require(predicates.not_anonymous()) # !!! deprecated following is the replacement
+    @require(not_anonymous())
     def newmex (self, module_url=None):
         mexurl  = self._begin_mex_session()
         return mexurl
@@ -331,7 +329,8 @@ class AuthenticationServer(ServiceController):
 
 
     @expose(content_type="text/xml")
-    @require(predicates.not_anonymous())
+    # @require(predicates.not_anonymous()) # !!! deprecated following is the replacement
+    @require(not_anonymous())
     def setbasicauth(self,  username, passwd, **kw):
         log.debug ("Set basic auth %s", kw)
         if not identity.is_admin() and username != identity.get_username() :

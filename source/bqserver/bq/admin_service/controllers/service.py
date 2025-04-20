@@ -66,7 +66,8 @@ from urllib.parse import  unquote
 import transaction
 from lxml import etree
 from pylons.controllers.util import abort, redirect
-from repoze.what.predicates import Any, in_group
+# from repoze.what.predicates import Any, in_group #!!! deprecated following are the replacements
+from tg.predicates import Any, in_group
 #from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from tg import (config,  expose,   request, response)

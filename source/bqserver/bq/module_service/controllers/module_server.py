@@ -94,7 +94,8 @@ from pylons.controllers.util import abort
 from tg import controllers, expose, config, request, override_template
 from tg import require
 # pylint: disable=E0611,F0401
-from repoze.what.predicates import not_anonymous
+# from repoze.what.predicates import not_anonymous # !!! deprecated following is the alternative
+from tg.predicates import not_anonymous
 #from tgext.asyncjob import asyncjob_perform, asyncjob_timed_query
 
 
