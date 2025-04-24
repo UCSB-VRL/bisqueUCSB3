@@ -16,6 +16,9 @@ import os
 from datetime import datetime
 import sys
 
+import base64
+import hmac
+
 try:
     # from hashlib import sha1
     import hashlib # !!! In between upgrading to py3.10+ (Experimental) before was sha1
@@ -145,10 +148,10 @@ user_group_table = Table('user_group', metadata,
 class HashPassword():
     @staticmethod
     def create_password(password):
-        if isinstance(password, str):
-            password_8bit = password.encode('UTF-8')
-        else:
-            password_8bit = password
+        # if isinstance(password, str):
+        #     password_8bit = password.encode('UTF-8')
+        # else:
+        #     password_8bit = password
 
         # salt = sha1()
         # salt.update(os.urandom(60))
@@ -157,10 +160,20 @@ class HashPassword():
         # hashed_password = salt.hexdigest() + hash.hexdigest()
 
         # !!! In between upgrading to py3.10+ (Experimental) previously was sha1
-        salt = hashlib.sha256(os.urandom(60)).hexdigest()
-        hash = hashlib.sha256(password_8bit + salt.encode('utf-8')).hexdigest() 
-        hashed_password = salt.hex() + ':' + hash
-        
+        if isinstance(password, str):
+            password = password.encode('utf-8')
+
+        salt = os.urandom(16)  # 128-bit salt
+        hash_bytes = hashlib.pbkdf2_hmac(
+            'sha256',              # Secure hash function
+            password,              # The password
+            salt,                  # The salt
+            100_000,               # Iteration count
+            dklen=32               # Hash length in bytes
+        )
+
+        # Encode salt and hash to base64 and return in the format: salt$hash
+        hashed_password = base64.b64encode(salt).decode() + '$' + base64.b64encode(hash_bytes).decode()
         return hashed_password
     @staticmethod
     def check_password(passval, password):
@@ -171,10 +184,25 @@ class HashPassword():
         # return passval[40:] == hash.hexdigest()
 
         # !!! In between upgrading to py3.10+ (Experimental) previously was sha1
-        salt_hex, stored_hash = passval.split(':')
-        salt = bytes.fromhex(salt_hex)
-        hashed_input = hashlib.sha256(password.encode('utf-8') + salt).hexdigest()
-        return stored_hash == hashed_input
+        if isinstance(password, str):
+            password = password.encode('utf-8')
+
+        try:
+            salt_b64, hash_b64 = passval.split('$')
+            salt = base64.b64decode(salt_b64)
+            stored_hash = base64.b64decode(hash_b64)
+
+            test_hash = hashlib.pbkdf2_hmac(
+                'sha256',
+                password,
+                salt,
+                100_000,
+                dklen=32
+            )
+
+            return hmac.compare_digest(test_hash, stored_hash)
+        except Exception:
+            return False
 
 class FreeTextPassword ():
     @staticmethod

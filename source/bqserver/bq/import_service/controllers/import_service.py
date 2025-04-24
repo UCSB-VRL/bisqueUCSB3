@@ -97,7 +97,7 @@ from datetime import datetime
 #from itertools import groupby
 
 from tg import require, expose
-from repoze.what import predicates
+# from repoze.what import predicates
 
 import bq
 from bq.core import identity

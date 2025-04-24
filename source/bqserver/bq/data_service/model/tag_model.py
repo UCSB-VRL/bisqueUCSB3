@@ -1130,15 +1130,31 @@ def dbtype_from_name(table):
                 return (table, mapper_.class_)
     return (table, Taggable)
 
+# !!! Deprecated
+# @memoized
+# def dbtype_from_tag(tag):
+#     ''' Given a tag,
+#     Return a tuple of table name and the most specific database type
+#     '''
+#     for mapper_ in  list(sqlalchemy.orm._mapper_registry):
+#         #logger.debug ("map"+str(mapper_.local_table))
+#         if hasattr(mapper_.class_, 'xmltag') and mapper_.class_.xmltag == tag:
+#             return (tag, mapper_.class_)
+#     return (tag, Taggable)
+# !!! new approach
 @memoized
 def dbtype_from_tag(tag):
     ''' Given a tag,
     Return a tuple of table name and the most specific database type
     '''
-    for mapper_ in  list(sqlalchemy.orm._mapper_registry):
+    from sqlalchemy.orm import declarative_base
+    base = declarative_base()
+    registry = base.registry
+    for mapper_ in registry.mappers:
         #logger.debug ("map"+str(mapper_.local_table))
-        if hasattr(mapper_.class_, 'xmltag') and mapper_.class_.xmltag == tag:
-            return (tag, mapper_.class_)
+        cls = mapper_.class_
+        if hasattr(cls, 'xmltag') and cls.xmltag == tag:
+            return (tag, cls)
     return (tag, Taggable)
 
 

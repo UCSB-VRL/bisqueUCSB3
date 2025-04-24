@@ -58,7 +58,8 @@ from collections import OrderedDict
 from datetime import datetime
 from lxml import etree
 from tg import expose, controllers, flash, url, response, request
-from repoze.what.predicates import is_user, in_group, Any, not_anonymous
+# from repoze.what.predicates import is_user, in_group, Any, not_anonymous # !!! was in python2
+from tg.predicates import is_user, in_group, Any, not_anonymous # !!! Modern alternative
 from bq.data_service.controllers.resource_query import RESOURCE_READ, RESOURCE_EDIT
 from pylons.controllers.util import abort
 

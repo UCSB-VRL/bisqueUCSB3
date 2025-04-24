@@ -404,8 +404,8 @@ class sql(object):
         from configparser import ConfigParser
         load_config(self.options.config)
 
-        # engine = config['pylons.app_globals'].sa_engine
-        engine = DBSession.bind
+        engine = config['pylons.app_globals'].sa_engine
+        # engine = DBSession.bind
 
         print(engine)
 

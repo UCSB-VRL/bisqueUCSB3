@@ -9,7 +9,7 @@ from collections import namedtuple
 
 from pylons.i18n import ugettext as _, lazy_ugettext as l_
 from tg import expose, flash, request
-from repoze.what import predicates
+# from repoze.what import predicates #!!! not used
 from bq.core.service import ServiceController
 
 from bq import data_service

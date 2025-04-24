@@ -49,40 +49,29 @@ The bisque server
       include_package_data=True,
       zip_safe=False,
       install_requires=install_requires,
-    #   entry_points="""
-    #   # -*- Entry points: -*-
-    # [bisque.services]
-    # client_service   = bq.client_service.controllers.service
-    # auth_service     = bq.client_service.controllers.auth_service
-    # admin            = bq.admin_service.controllers.service
-    # notebook_service = bq.client_service.controllers.dn_service
-    # data_service     = bq.data_service.controllers.data_service
-    # blob_service     = bq.blob_service.controllers.blobsrv
-    # image_service    = bq.image_service.controllers.service
-    # stats            = bq.stats.controllers.stats_server
-    # module_service   = bq.module_service.controllers.module_server
-    # export           = bq.export_service.controllers.export_service
-    # import           = bq.import_service.controllers.import_service
-    # registration     = bq.registration.controllers.registration_service
-    # ingest_service   = bq.ingest.controllers.ingest_server
-    # dataset_service  = bq.dataset_service.controllers.dataset_service
-    # usage            = bq.usage.controllers.usage
-    # graph            = bq.graph.controllers.graph
-    # preference       = bq.preference.controllers.service
-    # table            = bq.table.controllers.service
-    # pipeline         = bq.pipeline.controllers.service
-    # notify           = bq.client_service.controllers.notify_service
-    # [bq.commands]
-    # module = bq.module_service.commands.module_admin:module_admin
-    #   """,
-    # !!! modified entrypoints to run bqcore initially
-          entry_points="""
+      entry_points="""
       # -*- Entry points: -*-
     [bisque.services]
     client_service   = bq.client_service.controllers.service
     auth_service     = bq.client_service.controllers.auth_service
     admin            = bq.admin_service.controllers.service
+    notebook_service = bq.client_service.controllers.dn_service
     data_service     = bq.data_service.controllers.data_service
+    blob_service     = bq.blob_service.controllers.blobsrv
+    image_service    = bq.image_service.controllers.service
+    stats            = bq.stats.controllers.stats_server
+    module_service   = bq.module_service.controllers.module_server
+    export           = bq.export_service.controllers.export_service
+    import           = bq.import_service.controllers.import_service
+    registration     = bq.registration.controllers.registration_service
+    ingest_service   = bq.ingest.controllers.ingest_server
+    dataset_service  = bq.dataset_service.controllers.dataset_service
+    usage            = bq.usage.controllers.usage
+    graph            = bq.graph.controllers.graph
+    preference       = bq.preference.controllers.service
+    table            = bq.table.controllers.service
+    pipeline         = bq.pipeline.controllers.service
+    notify           = bq.client_service.controllers.notify_service
     [bq.commands]
     module = bq.module_service.commands.module_admin:module_admin
       """,

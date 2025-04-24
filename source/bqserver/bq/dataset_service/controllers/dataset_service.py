@@ -4,10 +4,10 @@ import pkg_resources
 from lxml import etree
 from pylons.i18n import ugettext as _, lazy_ugettext as l_
 from tg import expose, flash, require, request
-from repoze.what import predicates
+# from repoze.what import predicates # !!! was in the py2 version
+from tg import predicates # !!! modern alternative
 from bq.core.service import ServiceController
 from bq.dataset_service import model
-
 
 from bq import data_service
 from bq import module_service

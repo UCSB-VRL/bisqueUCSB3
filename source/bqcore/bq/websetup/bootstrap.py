@@ -10,6 +10,9 @@ from bq.release import __VERSION__
 from bq.core import model
 from bq.util.paths import config_path, defaults_path
 from bq.util.bisquik2db import bisquik2db
+from pylons.util import ContextObj 
+from tg.request_local import context
+from webob import Request as WebObRequest
 
 import transaction
 import logging
@@ -23,11 +26,32 @@ def bootstrap(command, conf, vars):
     from sqlalchemy.exc import IntegrityError
     from  bq.data_service.model import Taggable, Tag, BQUser, ModuleExecution
 
+    # !!! old deprecated method
+    # registry = Registry()
+    # registry.prepare()
+    # registry.register(session, SessionObject({}))
+    # registry.register(request, Request.blank('/bootstrap'))
+    # request.identity = {}
+
+    # !!! new method
     registry = Registry()
     registry.prepare()
-    registry.register(session, SessionObject({}))
-    registry.register(request, Request.blank('/bootstrap'))
-    request.identity = {}
+
+    fake_request = Request.blank('/bootstrap')
+    fake_session = SessionObject({})
+
+    # Register them into the registry
+
+    ctx = ContextObj()
+    ctx.request = fake_request
+    ctx.session = fake_session
+    ctx.registry = registry
+
+    # Push it into the TG context stack
+    registry.register(context, ctx)
+    # registry.register(request, fake_request)
+    # registry.register(session, fake_session)
+    request.identity = {'repoze.who.userid': 'admin'}
 
     log.info('BEGIN boostrap')
     try:

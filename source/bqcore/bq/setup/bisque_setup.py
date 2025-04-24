@@ -239,7 +239,7 @@ def ensure_str(val):
     elif isinstance(val, bytes):
         # print(f"Bytes detected, converting to string: {val}")
         return val.decode('utf-8')
-    return val
+    return f"{val}"
 
 QUOTED_CHARS="#"
 def quoted(value):
@@ -1120,8 +1120,8 @@ def initialize_database(params, DBURL=None):
         """) == "Y":
         # !!! modified apporach for python 3
         result = subprocess.run([bin_path('paster'),'setup-app', config_path('site.cfg')], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        print("STDOUT:\n", result.stdout)
-        print("STDERR:\n", result.stderr)
+        # print("STDOUT:\n", result.stdout)
+        # print("STDERR:\n", result.stderr)
         if result.returncode != 0:
             raise SetupError("There was a problem initializing the Database")
         # !!! old approach
@@ -2125,9 +2125,11 @@ def setup_paster(params, server_params):
 
         fullurl = urllib.parse.urlparse (url)
         if 'host' not in paster_vars:
-            paster_vars['host'] = fullurl[1].split(':')[0]
+            # paster_vars['host'] = fullurl[1].split(':')[0]
+            paster_vars['host'] = fullurl.hostname
         if 'port' not in paster_vars:
-            paster_vars['port'] = str(fullurl.port)
+            # paster_vars['port'] = str(fullurl.port)
+            paster_vars['port'] = f"{fullurl.port}"
 
         update_site_cfg(cfg=cfg, bisque_vars=svars)
         update_site_cfg(cfg=cfg, section='server:main',bisque_vars = paster_vars )
@@ -2962,7 +2964,7 @@ def bisque_installer(options, args):
     for step in install_steps:
         # Normal commands that modify site.cfg
         print(("CALLING ", step))
-        params, runtime_params = step (params, runtime_params)
+        params, runtime_params = step(params, runtime_params)
         #flist  =  SETUP_COMMANDS.get(step, [])
         #for step_f in flist:
         #    params = step_f(params)

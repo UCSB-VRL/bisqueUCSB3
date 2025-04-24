@@ -23,7 +23,8 @@ from paste.deploy.converters import asbool
 from pylons.middleware import StatusCodeRedirect
 from pylons.util import call_wsgi_application
 
-from tg.configuration import AppConfig, config
+# from tg.configuration import AppConfig
+from tg import config, AppConfig
 from tg.util import  Bunch
 # from tg.error import ErrorHandler # !!! This was before upgrading to py3.10+
 from paste.exceptions.errormiddleware import ErrorMiddleware # !!! This was after upgrading to py3.10+ (experimental)
@@ -145,6 +146,10 @@ class BisqueAppConfig(AppConfig):
 
     def after_init_config(self, conf):
         "after config"
+        # !!! monkey patching the pylons related configs which is deprecated now 
+        from werkzeug.local import LocalProxy
+        config['pylons.paths'] = config['paths']
+        config['pylons.app_globals'] = LocalProxy(lambda: config['tg.app_globals']) # lazy monkey patching
         # config['pylons.response_options']['headers'].pop('Cache-Control', None)
         # config['pylons.response_options']['headers'].pop('Pragma', None)
         # !!! getting response_options giving key error so following is the new way
