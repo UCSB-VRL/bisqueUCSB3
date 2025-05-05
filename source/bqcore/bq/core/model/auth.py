@@ -357,7 +357,6 @@ class User(DeclarativeBase):
         :rtype: bool
 
         """
-
         password_type = config.get ('bisque.login.password', 'freetext')
         password_cls  = password_map.get(password_type, FreeTextPassword)
 

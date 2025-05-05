@@ -9,7 +9,7 @@ import pkg_resources
 #from paste.cascade import Cascade
 from paste.registry import RegistryManager
 
-from bq.config.app_cfg import base_config
+from bq.config.app_cfg import BisqueAppConfig, base_config
 from bq.config.environment import load_environment
 from bq.core.controllers import root
 from bq.util.paths import site_cfg_path
@@ -121,6 +121,9 @@ def make_app(global_conf, full_stack=True, **app_conf):
     app = ProxyApp(app)
     bisque_app = app
     app = LogWSGIErrors(app, logging.getLogger('bq.middleware'), logging.ERROR)
+
+    app = BisqueAppConfig().setup_sqlalchemy(app) # !!! added this to manually add sqlalchemy middleware
+    app = BisqueAppConfig().add_static_file_middleware(app) # !!! added this to manually add static file middleware
 
     # Call the loader in the root controller
     log.info ("wsgi - Application : complete")

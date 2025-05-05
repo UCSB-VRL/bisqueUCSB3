@@ -135,39 +135,78 @@ re_url_scheme    = re.compile(r'^\w+://')
 re_slash         = re.compile(r'[/\:|]+')
 re_reserved      = re.compile(r'[<>"*]+')
 
+# def safename(filename, user):
+#     """Return a filename suitable for the cache.
+
+#     Strips dangerous and common characters to create a filename we
+#     can use to store the cache in.
+#     """
+
+#     try:
+#         if re_url_scheme.match(filename):
+#             if isinstance(filename,str):
+#                 filename = filename.decode('utf-8')
+#                 filename = filename.encode('ascii', 'xmlcharrefreplace')
+#             else:
+#                 filename = filename.encode('ascii', 'xmlcharrefreplace')
+#     except UnicodeError:
+#         pass
+#     if isinstance(filename,str):
+#         filename=filename.encode('utf-8')
+#     #filemd5 = md5.new(filename).hexdigest()
+#     filename = re_url_scheme.sub("", filename)
+#     filename = re_slash.sub(",", filename)
+#     filename = re_reserved.sub('-', filename)
+#     # This one is special to create cachenames that args can be seperate from requested path
+#     filename = filename.replace('?', '#')
+
+#     # limit length of filename
+#     if len(filename)>200:
+#         filename=filename[:200]
+#     if user is None: user = 0
+#     #return ",".join((str(user), filename, filemd5))
+#     return ",".join((str(user), filename))
+# !!! Alternatives, need further checking
 def safename(filename, user):
     """Return a filename suitable for the cache.
-
+    
     Strips dangerous and common characters to create a filename we
     can use to store the cache in.
     """
-
     try:
-        if re_url_scheme.match(filename):
-            if isinstance(filename,str):
-                filename = filename.decode('utf-8')
-                filename = filename.encode('ascii', 'xmlcharrefreplace')
-            else:
-                filename = filename.encode('ascii', 'xmlcharrefreplace')
+        # Check if filename is bytes and decode if necessary
+        if isinstance(filename, bytes):
+            filename = filename.decode('utf-8', 'ignore')  # Decode bytes to string, ignoring decoding errors
+            filename = filename.encode('ascii', 'xmlcharrefreplace').decode('ascii')  # Encode to ascii and decode back to string
     except UnicodeError:
         pass
-    if isinstance(filename,str):
-        filename=filename.encode('utf-8')
-    #filemd5 = md5.new(filename).hexdigest()
+
+    # Ensure filename is a string (convert from bytes if necessary)
+    if isinstance(filename, bytes):
+        filename = filename.decode('utf-8', 'ignore')
+
+    # Strip URL scheme (e.g., http:// or https://)
     filename = re_url_scheme.sub("", filename)
+    
+    # Replace slashes with commas
     filename = re_slash.sub(",", filename)
+    
+    # Replace reserved characters with '-'
     filename = re_reserved.sub('-', filename)
-    # This one is special to create cachenames that args can be seperate from requested path
+
+    # Replace '?' with '#' for path separation
     filename = filename.replace('?', '#')
 
-    # limit length of filename
-    if len(filename)>200:
-        filename=filename[:200]
-    if user is None: user = 0
-    #return ",".join((str(user), filename, filemd5))
+    # Limit filename length to 200 characters
+    if len(filename) > 200:
+        filename = filename[:200]
+
+    # Default to user 0 if user is None
+    if user is None:
+        user = 0
+
+    # Return the sanitized filename
     return ",".join((str(user), filename))
-
-
 
 def force_load(resource):
     "Force the loading the of resource from the database"
@@ -206,7 +245,8 @@ def etag_resource(resource):
     log.debug ('etag_resource %s', mtime)
     if mtime:
         # pylint: disable=E1103
-        return hashlib.md5 (str(mtime)).hexdigest()
+        # return hashlib.md5 (str(mtime)).hexdigest()
+        return hashlib.md5(str(mtime).encode('utf-8')).hexdigest() # !!! modern alternative
         # pylint: enable=E1103
     return None
 
@@ -267,23 +307,45 @@ class ResponseCache(BaseCache):
         clen = headers.get ('Content-Length', None)
         if not clen or clen=='0':
             headers['Content-Length'] = str (len (value))
+        # try:
+        #     with tempfile.NamedTemporaryFile (dir=os.path.dirname(cachename), delete=False) as f:
+        #         f.write (str (headers))
+        #         f.write ('\n\n')
+        #         f.write (value)
+        #         #copy_link (f.name, cachename)
+        #         if os.name == 'nt':
+        #             os.remove (cachename)
+        #         os.rename (f.name, cachename)
+        #         #dolink (f.name, cachename)
+
+        # except (OSError, IOError) as e:
+        #     if os.name == 'nt':
+        #         log.debug ("problem in cache save of %s", cachename)
+        #     else:
+        #         log.exception ("problem in cache save of %s", cachename)
+
+        # !!! This is a workaround for the above code (Need further checking)
         try:
-            with tempfile.NamedTemporaryFile (dir=os.path.dirname(cachename), delete=False) as f:
-                f.write (str (headers))
-                f.write ('\n\n')
-                f.write (value)
-                #copy_link (f.name, cachename)
+            with tempfile.NamedTemporaryFile(dir=os.path.dirname(cachename), delete=False) as f:
+                # Ensure headers are written as bytes
+                f.write(str(headers).encode('utf-8'))  # Convert headers string to bytes
+                f.write(b'\n\n')  # Write the newline as bytes (use b'' for byte string)
+                
+                # Check if 'value' is a bytes object; if not, encode it
+                if isinstance(value, str):
+                    f.write(value.encode('utf-8'))  # If it's a string, encode it to bytes
+                else:
+                    f.write(value)  # If it's already bytes, write directly
+
                 if os.name == 'nt':
-                    os.remove (cachename)
-                os.rename (f.name, cachename)
-                #dolink (f.name, cachename)
+                    os.remove(cachename)
+                os.rename(f.name, cachename)
 
         except (OSError, IOError) as e:
             if os.name == 'nt':
-                log.debug ("problem in cache save of %s", cachename)
+                log.debug("problem in cache save of %s", cachename)
             else:
-                log.exception ("problem in cache save of %s", cachename)
-
+                log.exception("problem in cache save of %s", cachename)
     def fetch(self, url,user):
         #log.debug ('cache fetch %s' % url)
         try:
@@ -767,7 +829,6 @@ class Resource(ServiceController):
 #            if getattr(self, 'children', None) is not None:
 #                if request.path[-1:] != '/':
 #                    redirect(request.path + "/")
-
 
 
         #resource = self.server_cache.force_load(resource)

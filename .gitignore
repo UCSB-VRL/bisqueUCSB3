@@ -220,4 +220,10 @@ Thumbs.db
 # Dir created during development
 /source/config/
 /source/data/
+/source/bqcore/bq/core/public/core
+
+# files created during development
+*.pid
+*.log.save
+/source/bqserver/bq/data_service/controllers/parsetab.py
 

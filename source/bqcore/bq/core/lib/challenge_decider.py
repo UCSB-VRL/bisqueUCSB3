@@ -9,7 +9,7 @@ from paste.httpheaders import CONTENT_TYPE   #pylint: disable=no-name-in-module
 from paste.httpheaders import USER_AGENT     #pylint: disable=no-name-in-module
 from paste.httpheaders import WWW_AUTHENTICATE #pylint: disable=no-name-in-module
 
-from zope.interface import implements
+# from zope.interface import implements # !!! not in use
 from repoze.who.interfaces import IChallenger, IIdentifier, IAuthenticator
 from repoze.who.interfaces import IRequestClassifier, IChallengeDecider
 from repoze.who.classifiers import default_request_classifier

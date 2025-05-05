@@ -121,7 +121,8 @@ class ServiceRegistryController (ServiceController):
     """Access to the nodes services"""
     service_type = "services"
 
-    @expose("etree:resource", content_type="text/xml")
+    # @expose("etree:resource", content_type="text/xml") # !!! deprecated approach
+    @expose(content_type="text/xml")
     def index(self):
         #response.content_type = "application/xml"
         resource = etree.Element ('resource')
@@ -131,7 +132,9 @@ class ServiceRegistryController (ServiceController):
                                             name='service',
                                             type=ty,
                                             value=i.url)
-        return dict (resource = resource)
+        # return dict (resource = resource) #!!! deprecated approach
+        return etree.tostring(resource, pretty_print=True, xml_declaration=True,
+                              encoding="UTF-8")
 
 
     @expose ()
@@ -253,7 +256,7 @@ class RootController(BaseController):
 
     @expose()
     def check(self, **kw):
-        return "OK"
+        return "not ok"
 
 #def register_proxy_services (proxy):
 #    '''Registers all local services with the requested

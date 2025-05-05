@@ -225,14 +225,12 @@ class ResourceFactory(object):
         else:
             if xmlname=="resource":
                 xmlname = xmlnode.get ('resource_type')
-
             tag, type_ = dbtype_from_tag(xmlname)
             node = type_(xmlname, parent=parent)
             if tag == 'mex':
                 node.mex = node
             if tag == 'user':
                 node.user = node
-
         # pylint: disable=no-member
         log.debug  ('factory.new %s -> %s document(%s)' , xmlname, node, node.document_id)
         return node
@@ -493,7 +491,8 @@ def resource2nodes(dbo, parent=None, view=[], baseuri=None,  qfilter=None, **kw)
         nodes[node.id]   = xmlnode(node, None, baseuri, view)
         parents[node.id] = (node.resource_parent_id, node.resource_index)
     # pull out items sorted by resource_index (k, (parent, index) )
-    for node_id, (parent_id, _) in sorted (list(parents.items()), key=lambda x : x[1][1]):
+    # for node_id, (parent_id, _) in sorted (list(parents.items()), key=lambda x : x[1][1]):
+    for node_id, (parent_id, _) in sorted(list(parents.items()), key=lambda x: (x[1][1] is not None, x[1][1])): # !!! added a null check
         try:
             # attached xml nodes in position
             if parent_id is not None:

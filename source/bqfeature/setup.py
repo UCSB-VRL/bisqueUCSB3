@@ -25,7 +25,7 @@ setup(
                       "tables",
                       "numexpr",
 #                      "cython",
-                      "libtiff==0.4.0"
+                      "pylibtiff" #!!! libtiff==0.4.0 before was this
                       ],
     packages=find_packages(),
     namespace_packages = ['bq'],

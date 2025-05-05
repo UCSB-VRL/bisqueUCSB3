@@ -177,7 +177,9 @@ class ClientServer(ServiceController):
                                             offset = im, limit = 1)[0]
                 #imageurl = self.viewlink(image.attrib['uri'])
                 thumbnail = '/image_service/image/%s?thumbnail=%s'%(image.get('resource_uniq'), thumb_size)
-
+        if thumbnail is None:
+            # No image found, use the default
+            thumbnail = 'bg.webp'
         redirect (base_url=thumbnail)
 
     @expose(template='bq.client_service.templates.browser')

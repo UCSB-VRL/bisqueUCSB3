@@ -4,7 +4,7 @@
 
 import tg
 import os
-from minimatic import *
+from minimatic import javascript_link, stylesheet_link
 
 import bq
 from bq.util.paths import bisque_path

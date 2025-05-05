@@ -65,7 +65,8 @@ import tg
 from tg import request, session, flash, require, response
 from tg import  expose, redirect, url
 from tg import config
-from pylons.i18n import ugettext as  _
+# from pylons.i18n import ugettext as  _
+from tg.i18n import ugettext as _ # !!! modern replacement for pylons.i18n
 # from repoze.what import predicates # !!! deprecated following is the replacement
 from tg.predicates import not_anonymous, has_permission
 
@@ -148,6 +149,9 @@ class AuthenticationServer(ServiceController):
     @expose('bq.client_service.templates.login')
     def login(self, came_from='/', username = '', **kw):
         """Start the user login."""
+        if 'failure' in kw:
+            log.info("------ login failure %s" % kw['failure'])
+            flash(_(kw['failure']), 'warning')
         login_counter = int (request.environ.get ('repoze.who.logins', 0))
         if login_counter > 0:
             flash(_('Wrong credentials'), 'warning')
@@ -161,8 +165,9 @@ class AuthenticationServer(ServiceController):
 
         return dict(page='login', login_counter=str(login_counter), came_from=came_from, username=username,
                     providers_json = json.dumps (login_urls), providers = login_urls )
-
-    #@expose ()
+    
+    
+    # #@expose ()
     #def login_handler(self, **kw):
     #    log.debug ("login_handler %s" % kw)
     #    return self.login(**kw)
@@ -183,7 +188,6 @@ class AuthenticationServer(ServiceController):
         authentication or redirect her back to the login page if login failed.
 
         """
-        log.debug ('POST_LOGIN')
         if not request.identity:
             login_counter = int (request.environ.get('repoze.who.logins',0)) + 1
             redirect(url('/auth_service/login',params=dict(came_from=came_from, __logins=login_counter)))
@@ -199,7 +203,6 @@ class AuthenticationServer(ServiceController):
             session['length'] = length
 
         session.save()
-        log.debug ("Current session %s" , str( session))
         transaction.commit()
         redirect(came_from)
 

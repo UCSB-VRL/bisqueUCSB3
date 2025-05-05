@@ -131,7 +131,7 @@ RUN locale
 WORKDIR /var/opt
 
 # Image Convert
-RUN wget https://biodev.ece.ucsb.edu/binaries/depot/imgcnv_ubuntu16_2.4.3.tar.gz
+RUN wget https://vat.ece.ucsb.edu/binaries/depot/imgcnv_ubuntu16_2.4.3.tar.gz
 RUN tar -xvzf imgcnv_ubuntu16_2.4.3.tar.gz
 RUN cp imgcnv_ubuntu16_2.4.3/imgcnv /usr/local/bin/
 RUN cp imgcnv_ubuntu16_2.4.3/libimgcnv.so.2.4.3 /usr/local/lib/
@@ -158,10 +158,10 @@ COPY boot/ /builder/boot-scripts.d/
 ########################################################################################
 
 RUN /builder/virtualenv.sh
-# ENV PY_INDEX=https://biodev.ece.ucsb.edu/py/bisque/xenial/+simple
+# ENV PY_INDEX=https://vat.ece.ucsb.edu/py/bisque/xenial/+simple
 
 # Set custom Python package index and configure pip
-ENV PY_INDEX=https://biodev.ece.ucsb.edu/py/bisque/xenial/+simple
+ENV PY_INDEX=https://vat.ece.ucsb.edu/py/bisque/xenial/+simple
 RUN mkdir -p /root/.pip && echo "\
 [global]\n\
 index-url = $PY_INDEX\n\

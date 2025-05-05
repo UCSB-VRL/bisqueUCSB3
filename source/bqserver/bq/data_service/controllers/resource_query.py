@@ -276,7 +276,8 @@ def p_term_tagvaltype(p):
     else:
         tagfilter = (tag.c.document_id == taggable.c.id)
 
-    p[0] = exists([tag.c.id]).where(tagfilter)
+    # p[0] = exists([tag.c.id]).where(tagfilter)
+    p[0] = exists(select(tag.c.id).where(tagfilter)) # !!! modern way to handle above line of code
 
     #log.debug ("SQL %s" % p[0])
 
