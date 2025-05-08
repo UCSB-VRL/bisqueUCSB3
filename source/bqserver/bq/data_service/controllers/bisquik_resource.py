@@ -242,7 +242,7 @@ class BisquikResource(resource.Resource):
             limit = kw.pop ('limit', None) or maxlimit
             limit = min(int(limit), maxlimit)
             kw['limit'] = str(limit)
-            log.debug ("limiting top level to %s", limit)
+            log.info ("limiting top level to %s", limit)
         else:
             limit = None
 
@@ -279,12 +279,14 @@ class BisquikResource(resource.Resource):
                                         #limit = limit,
                                         **kw)
             response = etree.Element('resource', uri=request_uri)
+            # log.info(f"---- response: {etree.tostring(response)}")
             db2tree (resources,
                      parent=response,
                      view=view,
                      baseuri = self.uri,
                      progressive=progressive,
                      **kw)
+            # log.info(f"---- response after dbtree: {etree.tostring(response)} resources: {resources}")
 
 
         accept_header = tg.request.headers.get ('accept')

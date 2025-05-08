@@ -87,19 +87,41 @@ def toascii(s):
         s = '%s'%s
     return s.encode('ascii', 'replace')
 
-def tounicode(s):
-    if isinstance(s, str) is True:
-        return s
-    if isinstance(s, str) is not True:
-        return '%s'%s
-    try:
-        return s.decode('utf8')
+# def tounicode(s):
+#     if isinstance(s, str) is True:
+#         return s
+#     if isinstance(s, str) is not True:
+#         return '%s'%s
+#     try:
+#         return s.decode('utf8')
 
-    except (UnicodeEncodeError, UnicodeDecodeError):
+#     except (UnicodeEncodeError, UnicodeDecodeError):
+#         try:
+#             return s.decode('latin1')
+#         except (UnicodeDecodeError, UnicodeEncodeError):
+#             return str(s.encode('ascii', 'replace'))
+# !!! modified tounicode to handle bytes and str types
+# !!! in python 3, since str is unicode and bytes is bytes
+def tounicode(s):
+    # log.info(f"----- tounicode before: {s} type: {type(s)}")
+    out_str = ''
+    if isinstance(s, str):
+        out_str = s
+    if isinstance(s, bytes):
         try:
-            return s.decode('latin1')
-        except (UnicodeDecodeError, UnicodeEncodeError):
-            return str(s.encode('ascii', 'replace'))
+            out_str = s.decode('utf-8')
+        except UnicodeDecodeError:
+            try:
+                out_str = s.decode('latin1')
+            except UnicodeDecodeError:
+                out_str = s.decode('ascii', errors='replace')
+    out_str = f"{out_str}"
+    # if string is still like "b'...' then decode it
+    regex = re.compile(r"(^b'(.+)'$)|(^b\"(.+)\"$)")
+    if regex.match(out_str):
+        out_str = out_str[2:-1]
+    # log.info(f"----- tounicode after: {out_str} type: {type(out_str)}")
+    return out_str
 
 def run_command(command, cwd=None, shell=False):
     '''returns a string of a successfully executed command, otherwise None'''

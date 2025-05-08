@@ -563,10 +563,11 @@ class MountServer(TGController):
           3.  a fixed store location i.e. /irods_home/dir1/dir2/file.ext which must match a store name
 
         """
+        store = None
         stores = self._get_stores()
-        log.debug ("Available stores: %s", list(stores.keys()))
         # Strip off an subpaths from storepath (at this point.. not suported by drivers)
         storepath, _ = split_subpath (resource.get ('name'))
+        log.info(f"---- available stores = {stores} storepath = {storepath} resource = {resource}")
         if storepath[0]=='/':
             # This is a fixed store name i.e. /local or /irods and must be stored on the specific mount
             _, store_name, storepath = storepath.split ('/', 2)
@@ -581,7 +582,7 @@ class MountServer(TGController):
                     stores = { store.get ('name') :  store}
 
         storeurl = lpath = None
-        log.debug ("Trying mounts %s", list(stores.keys()))
+        log.info ("Trying mounts %s", list(stores.keys()))
         for store_name, store in list(stores.items()):
             try:
                 storeurl, storepath, lpath = self._save_store (store, storepath, resource, fileobj, rooturl)
@@ -857,7 +858,7 @@ class MountServer(TGController):
         else:
             store_order = store_order[0].get ('value')
 
-        log.debug ("using store order %s", store_order)
+        log.info ("using store order %s with root %s", store_order, etree.tostring(root))
         stores = OrderedDict()
         for store_name in (x.strip() for x in store_order.split(',')):
             store_el = root.xpath('./store[@name="%s"]' % store_name)

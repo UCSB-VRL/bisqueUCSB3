@@ -419,10 +419,10 @@ def prepare_tag_expr (query, tag_query=None):
             return query
         lexer = lex.lex()
         parser = yacc.yacc(outputdir = data_path(), debug = 0)
-        log.debug ("parsing '%s'  " , tag_query)
+        log.info ("parsing '%s'  " , tag_query)
         #expr = parser.parse (tag_query, lexer=lexer, debug=log)
         expr = parser.parse (tag_query, lexer=lexer, debug = 0)
-        log.debug ("parsed '%s' -> %s " , tag_query, str(expr))
+        log.info ("parsed '%s' -> %s " , tag_query, str(expr))
         query = query.filter(expr)
     return query
 
@@ -836,7 +836,10 @@ def prepare_attributes (query, dbtype, attribs):
                 v = sv.id
             query = query.filter (getattr (dbtype, k) == v)
             continue
-
+        # !!! this is a special case for resource_unid, temporary fix, without it system is causing issues
+        if k == 'resource_unid':
+            query = query.filter (getattr (dbtype, k) == v)
+            continue
         if k and hasattr(dbtype, k):
             # for un-repeated attributes i.e. ts<= & ts >=
             if not hasattr(v, '__iter__'):
@@ -845,6 +848,7 @@ def prepare_attributes (query, dbtype, attribs):
             for val  in v:
                 val  = val.strip('"\'')
                 op, val = ATTR_EXPR.match(val).groups()
+
                 if k in ('ts', 'created'):
                     try:
                         if '.' not in val:
@@ -856,7 +860,7 @@ def prepare_attributes (query, dbtype, attribs):
                     except ValueError:
                         log.error('bad time: %s' , val)
                         continue
-                log.debug ("adding attribute search %s %s op=%s %s" ,  str(dbtype), k, op,  val)
+                log.info ("adding attribute search %s %s op=%s %s" ,  str(dbtype), k, op,  val)
                 if op == '>=':
                     query =query.filter( getattr(dbtype, k) >= val)
                 elif op == '>':
@@ -904,13 +908,13 @@ def resource_query(resource_type,
     name, dbtype, query = prepare_type(resource_type)
     #log.debug ("type (%s,%s) query =  %s", name, dbtype, str(query))
 
-    log.debug ("query type:%s tag_query:%s order:%s parent:%s attributes:%s" , str(dbtype), tag_query, tag_order, str(parent), str(kw))
+    # log.info("query type:%s tag_query:%s order:%s parent:%s attributes:%s" , str(dbtype), tag_query, tag_order, str(parent), str(kw))
     query = prepare_parent( (name, dbtype), query, parent)
 
     # This converts an request for values to the actual
     # objects represented by those values;  :o
     if dbtype == Value:
-        log.debug ("VALUE QUERY %s" , str( query))
+        log.info("VALUE QUERY %s" , str( query))
         sq1 = query.with_labels().subquery()
         query = DBSession.query (Taggable).filter (Taggable.id == sq1.c.values_valobj)
         wpublic = 1
@@ -919,7 +923,7 @@ def resource_query(resource_type,
         query = prepare_permissions(query, user_id, with_public = wpublic, action=action)
         #query = prepare_readable_docs(query, user_id, with_public = wpublic)
     else:
-        log.debug ("skipping permissions")
+        log.info ("skipping permissions")
 
     ## Extra attributes
     if 'hidden' in kw:

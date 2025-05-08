@@ -131,7 +131,7 @@ class DataServerController(ServiceController):
         #log.debug ("path = %s %s " , path, kw)
         token = path.pop(0)
         if is_uniq_code(token):
-            log.debug('using uniq token')
+            log.info('using uniq token')
             resource_controller = self.get_child_resource('resource')
             path.insert(0,token)
         else:
@@ -376,11 +376,6 @@ class DataServerController(ServiceController):
 
         uri = "%s/%s" % (parent_uri or self.url, resource_tag or '')
 
-        if cache:
-            response = self.cache_check (uri, **kw)
-            if response:
-                xml =  etree.XML (response)
-                return xml
 
         params = kw.copy()
         view = params.pop('view', None)

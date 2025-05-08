@@ -31,7 +31,8 @@ from bq.image_service.controllers.defaults import block_reads, block_tile_reads
 log = logging.getLogger('bq.image_service.converter_imgcnv')
 
 try:
-	import dicom
+	# import dicom
+	import pydicom as dicom # !!! dicom is deprecated modern name is pydicom
 except (ImportError, OSError):
 	log.warn('pydicom is needed for DICOM support, skipping support...')
 	pass
@@ -1050,12 +1051,12 @@ class ConverterImgcnv(ConverterBase):
 	@classmethod
 	def meta_dicom(cls, ifnm, series=0, xml=None, **kw):
 		'''appends nodes to XML'''
-
 		if os.path.basename(ifnm) == 'DICOMDIR': # skip reading metadata for teh index file
 			return
 
 		try:
-			import dicom
+			# import dicom
+			import pydicom as dicom # !!! latest is pydicom
 		except (ImportError, OSError):
 			log.warn('pydicom is needed for DICOM support, skipping DICOM metadata...')
 			return
@@ -1100,7 +1101,8 @@ class ConverterImgcnv(ConverterBase):
 		'''appends nodes to XML'''
 
 		try:
-			import dicom
+			# import dicom
+			import pydicom as dicom # !!! latest is pydicom
 		except (ImportError, OSError):
 			log.warn('pydicom is needed for DICOM support, skipping DICOM metadata...')
 			return

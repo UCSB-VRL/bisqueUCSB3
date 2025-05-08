@@ -350,7 +350,7 @@ class ResponseCache(BaseCache):
         #log.debug ('cache fetch %s' % url)
         try:
             cachename = os.path.join(self.cachepath, self._cache_name(url, user))
-            log.debug ('cache check %s', cachename)
+            log.info ('cache check %s', cachename)
             if os.path.exists (cachename):
                 with open(cachename) as f:
                     headers, cached = f.read().split ('\n\n', 1)
@@ -740,7 +740,7 @@ class Resource(ServiceController):
         user_id  = identity.get_user_id()
         usecache = asbool(kw.pop('cache', True))
         http_method = request.method.lower()
-        log.debug ('Request "%s" with %s?%s' , http_method, request.path,str(kw))
+        log.info ('Request "%s" with %s?%s' , http_method, request.path,str(kw))
         #log.debug ('Request "%s" ', path)
 
         #check the http method is supported.
@@ -762,6 +762,7 @@ class Resource(ServiceController):
             elif http_method == 'get':
 
                 resource = getattr(request.bisque,'parent', None)
+                log.info(f'---- get resource {resource}')
                 method_name = 'dir'
                 # if parent:
                 #     self.check_cache_header (http_method, parent)
@@ -815,11 +816,11 @@ class Resource(ServiceController):
         #classes children.
         if path:
             token = path.pop(0)
-            log.debug('Token: ' + str(token))
+            log.info('Token: ' + str(token))
             child = self.get_child_resource(token)
             if child is not None:
                 bisque.parent = resource
-                log.debug ("parent = %s" , str(resource))
+                log.info ("parent = %s" , str(resource))
                 #call down into the child resource.
                 return child._default(*path, **kw)
 
@@ -835,7 +836,7 @@ class Resource(ServiceController):
         self.check_cache_header(http_method, resource)
         method = getattr(self, method_name)
         #pylons.response.headers['Content-Type'] = 'text/xml'
-        log.debug ("Dispatch for %s", method_name)
+        log.info ("Dispatch for %s", method_name)
         try:
             if http_method in ('post', 'put'):
                 clen = int(request.headers.get('Content-Length', 0))
@@ -843,7 +844,7 @@ class Resource(ServiceController):
 
                 inputer = find_inputer (content_type)
                 if not inputer:
-                    log.debug ("Bad media type in post/put:%s" ,  content_type)
+                    log.info ("Bad media type in post/put:%s" ,  content_type)
                     abort(415, "Bad media type in post/put:%s" % content_type )
 
                 # xml arg is for backward compat

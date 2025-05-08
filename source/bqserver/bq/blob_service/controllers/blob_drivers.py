@@ -218,7 +218,7 @@ class StorageDriver(object):
 #     def walk(self, ident):
 #         'walk a specific directory in the store'
 
-
+import re
 
 class LocalDriver (StorageDriver):
     """Local filesystem driver"""
@@ -230,22 +230,24 @@ class LocalDriver (StorageDriver):
         :param  top: allow old style (relatave path file paths)
         :param readonly: set repo readonly
         """
+        # !!! All paths are wrapped in tounicode, as they were causing issues when paths were being joined
+        # !!! Ex: b'/dir' + '' resulting b'/dir'/ 
         # posixpath.join '' force ending with /
-        self.mount_url = posixpath.join(mount_url,'')
-        self.mount_path = posixpath.join (url2localpath (self.mount_url),'')
+        self.mount_url = tounicode(os.path.join(mount_url,''))
+        self.mount_path = tounicode(os.path.join (tounicode(url2localpath (self.mount_url)),''))
         datadir = data_url_path()
         for key, value in list(kw.items()):
             setattr(self, key, string.Template(value).safe_substitute(datadir=datadir))
         #self.top = posixpath.join(top or self.mount_url, '')
         self.readonly = asbool(readonly)
         if top:
-            self.top = posixpath.join(string.Template(top).safe_substitute(datadir=datadir), '')
-            self.top_path = posixpath.join(url2localpath(self.top), '')
+            self.top = tounicode(os.path.join(string.Template(top).safe_substitute(datadir=datadir), ''))
+            self.top_path = tounicode(os.path.join(tounicode(url2localpath(self.top)), ''))
         else:
             self.top = None
             self.top_path = ''
 
-
+        # log.info(f"--------> mount url {self.mount_url}  mount path: {self.mount_path} top {self.top} top_path {self.top_path}")
         self.options = kw
 
 
@@ -289,14 +291,15 @@ class LocalDriver (StorageDriver):
         "Push a local file (file pointer)  to the store"
 
         log.debug('local.push: url=%s', storeurl)
-        origpath = localpath = url2localpath(storeurl)
+        # !!! wrapped in tounicode to avoid issues with paths
+        origpath = localpath = tounicode(url2localpath(storeurl))
         fpath,ext = os.path.splitext(origpath)
         _mkdir (os.path.dirname(localpath))
         uniq = uniq or make_uniq_code()
         for x in range(len(uniq)-7):
         #for x in range(100):
             if not os.path.exists (localpath):
-                log.debug('local.write: %s -> %s' , tounicode(storeurl), tounicode(localpath))
+                log.info('local.write: %s -> %s' , tounicode(storeurl), tounicode(localpath))
                 #patch for no copy file uploads - check for regular file or file like object
                 try:
                     move_file (fp, localpath)
@@ -310,12 +313,12 @@ class LocalDriver (StorageDriver):
                 ident = localpath[len(self.top_path):]
                 #if ident[0] == '/':
                 #    ident = ident[1:]
-                ident = localpath2url(ident)
+                ident = tounicode(localpath2url(ident))
                 log.info('local push  blob_id: %s -> %s',  tounicode(ident), tounicode(localpath))
                 return ident, localpath
             localpath = "%s-%s%s" % (fpath , uniq[3:7+x] , ext)
             #localpath = "%s-%04d%s" % (fpath , x , ext)
-            log.warn ("local.write: File exists... trying %s", tounicode(localpath))
+            log.warning ("local.write: File exists... trying %s", tounicode(localpath))
         raise DuplicateFile(localpath)
 
     def pull (self, storeurl, localpath=None, blocking=True):

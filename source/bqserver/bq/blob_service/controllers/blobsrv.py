@@ -281,6 +281,7 @@ class BlobServer(RestController, ServiceMixin):
         #self.__class__.store = store_resource.StoreServer(self.drive_man.drivers)
         paths = self.__class__.paths  = PathService(self)
         mounts = self.__class__.mounts = mount_service.MountServer(url)
+        log.info(f"--------- BlobServer {url} mounts={mounts} paths={paths}")
         self.__class__.store = mounts
         paths.mounts = mounts
 

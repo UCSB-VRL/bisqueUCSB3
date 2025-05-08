@@ -288,7 +288,7 @@ bisque.profiler.path = __profiler__
 # WARNING: *THE LINE BELOW MUST BE UNCOMMENTED ON A PRODUCTION ENVIRONMENT*
 # Debug mode will enable the interactive debugging tool, allowing ANYONE to
 # execute malicious code after an exception is raised.
-set debug = false
+set debug = true
 
 # if you are using Mako and want to be able to reload
 # the mako template from disk during the development phase

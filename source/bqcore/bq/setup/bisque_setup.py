@@ -1960,6 +1960,7 @@ def install_mail(params, runtime_params):
 #######################################################
 
 def install_preferences(params, runtime_params):
+    # print(f"Preferences config with param: {params} runtime_params: {runtime_params}")
     if asbool(params.get('new_database')): #already initialized
         return params, runtime_params
 

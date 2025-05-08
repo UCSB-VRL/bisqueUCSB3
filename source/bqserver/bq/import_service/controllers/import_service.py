@@ -232,7 +232,10 @@ class UploadedResource(object):
 
         filename = getattr(self.fileobj, 'name', None)
         # if filename and filename[0] == '<' and filename[-1] == '>': #pylint: disable=unsubscriptable-object
-        if isinstance(filename, str) and filename.startswith('<') and filename.endswith('>'): # !!! safe checking
+        # !!! if the filename is other than string or PathLike, it would cause an error later
+        if not isinstance(filename, (str, os.PathLike)):
+            filename = None
+        elif filename.startswith('<') and filename.endswith('>'):
             # special case: file was not created using open();
             # in this case 'name' attribute is some string that indicates the source of the file object, of the form '<...>'.
             # (see https://docs.python.org/2.7/library/stdtypes.html#file-objects)
@@ -1008,7 +1011,7 @@ class import_serviceController(ServiceController):
             # determine if resource is already on a blob_service store
             log.debug('Inserting %s', uf)
             resource = blob_service.store_blob(resource=uf.resource, fileobj=uf.fileobj)
-            log.debug('Inserted resource :::::\n %s', etree.tostring(resource) )
+            # log.debug('Inserted resource :::::\n %s', etree.tostring(resource) )
         except Exception as e:
             log.exception("Error during store %s" ,  etree.tostring(uf.resource))
             return None
@@ -1111,13 +1114,13 @@ class import_serviceController(ServiceController):
             # remove the ingest tags from the tag document
             uf.resource.remove(xl[0])
 
-        log.debug('Resource type: %s', uf.get_type())
+        # log.info('Resource type: %s', uf.get_type())
         needs_guessing = (uf.get_type() == 'resource' or uf.get_type() == 'image')
 
         # append processing tags based on file type and extension
         mime = None
         if needs_guessing is True:
-            log.debug('Guessing the mime type for: %s', sanitize_filename(uf.filename))
+            log.info('Guessing the mime type for: %s', sanitize_filename(uf.filename))
             mime = mimetypes.guess_type(sanitize_filename(uf.filename))[0]
         if mime in self.filters:
             intags['type'] = mime
@@ -1130,21 +1133,21 @@ class import_serviceController(ServiceController):
         if ext.replace('.', '') in self.non_image_exts:
             needs_guessing = False
         if needs_guessing is True and mime is None and noext:
-            log.debug('process: setting mime to "image/series"' )
+            log.info('process: setting mime to "image/series"' )
             mime = 'image/series'
 
         # check if an image can be a series
-        log.debug('mime: %s', mime)
-        log.debug('process uf: %s', uf)
+        log.info('mime: %s', mime)
+        log.info('process uf: %s', uf)
         if mime == 'image/series':
             filename = uf.localpath()
             if filename is None and uf.fileobj is not None:
-                log.debug('process, file object has no local path: [%s], move local', uf.fileobj)
+                log.info('process, file object has no local path: [%s], move local', uf.fileobj)
                 filename = uf.ensurelocal( os.path.join(UPLOAD_DIR, bq.core.identity.get_user().name, shortuuid.uuid(), os.path.basename(uf.resource.get('name'))))
 
-            log.debug('process filename: %s', filename)
+            log.info('process filename: %s', filename)
             info = image_service.get_info(filename)
-            log.debug('process info: %s', info)
+            log.info('process info: %s', info)
             if info is not None:
                 if info.get('image_num_x', 0)>1 and noext:
                     intags['type'] = 'image/proprietary'
@@ -1158,7 +1161,7 @@ class import_serviceController(ServiceController):
             ConverterImgcnv.meta_dicom(filename, xml=uf.resource)
 
         # no processing required
-        log.debug('process intags: %s', intags)
+        log.info('process intags: %s', intags)
         if intags.get('type') not in self.filters:
             return self.insert_resource(uf)
         # Processing is required
@@ -1236,7 +1239,6 @@ class import_serviceController(ServiceController):
     @expose(content_type="text/xml")
     @require(predicates.not_anonymous())
     def _default(self, *args, **kw):
-        log.debug ("import_default %s %s", args, kw)
         if len(args) and args[0].startswith('transfer'):
             return self.transfer (**kw)
 
@@ -1385,17 +1387,17 @@ class import_serviceController(ServiceController):
             '''
 
         def find_upload_resource(transfers, pname):
-            log.debug ("transfers %s " , str(transfers))
+            log.info ("transfers %s " , str(transfers))
 
             resource = transfers.pop(pname+'_resource', None) #or transfers.pop(pname+'_tags', None)
-            log.debug ("found %s _resource/_tags %s ", pname, tounicode(resource))
+            log.info ("found %s _resource/_tags %s ", pname, tounicode(resource))
             if resource is not None:
                 try:
                     if hasattr(resource, 'file'):
-                        log.warn("XML Resource has file tag")
+                        log.warning("XML Resource has file tag")
                         resource = resource.file.read()
                     if isinstance(resource, str):
-                        log.debug ("reading XML %s" ,  resource)
+                        log.info ("reading XML %s" ,  resource)
                         try:
                             resource = etree.fromstring(resource)
                         except etree.XMLSyntaxError:
@@ -1410,11 +1412,13 @@ class import_serviceController(ServiceController):
         for pname, f in list(dict(transfers).items()):
             # We skip specially named fields (we will pull them out when processing the actual file)
             if pname.endswith ('_resource') or pname.endswith('_tags'): continue
+            
             # This is a form field with an attached file (<input type='file'>)
             if hasattr(f, 'file'):
                 # Uploaded File from multipart-form
                 transfers.pop(pname)
                 resource = find_upload_resource(transfers, pname)
+                log.info(f"--- pname {pname} f {f} type {type(f)} resource {etree.tostring(resource)}")
                 if resource is None:
                     resource = etree.Element('resource', name=sanitize_filename (getattr(f, 'filename', '')))
                 files.append(UploadedResource(fileobj=f.file, resource=resource))

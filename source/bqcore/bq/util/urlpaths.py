@@ -55,7 +55,8 @@ import shutil
 import posixpath
 
 from bq.util.paths import data_path
-
+# import logging
+# log = logging.getLogger(__name__)
 if os.name == 'nt':
     def move_file (fp, newpath):
         with open(newpath, 'wb') as trg:
@@ -105,8 +106,8 @@ if os.name == 'nt':
             return s
 else:
     def move_file (fp, newpath):
-        if hasattr(fp, 'name') and os.path.exists(fp.name):
-            oldpath = os.path.abspath(fp.name)
+        if hasattr(fp, 'name') and os.path.exists(f"{fp.name}"):
+            oldpath = os.path.abspath(f"{fp.name}")
             shutil.move (oldpath, newpath)
         else:
             with open(newpath, 'wb') as trg:
@@ -116,12 +117,20 @@ else:
 
     def localpath2url(path):
         "convert a filespec to a utf8 %-encoded url"
-        try:
-            path = path.encode('utf-8')
-        except UnicodeDecodeError:
-            pass # was already encoded
+        # try:
+        #     path = path.encode('utf-8')
+        # except UnicodeDecodeError:
+        #     pass # was already encoded
+        if isinstance(path, bytes):
+            # path is a bytestring (either ascii or utf8 encoded)
+            try:
+                path = path.decode('utf-8')
+            except Exception as e:
+                # log.exception("Error decoding path %s: %s", path, e)
+                path = f"{path}"
         url = urllib.parse.quote(path)
-        url = 'file://%s'%url
+        # url = 'file://%s'%url
+        url = f"file://{url}"
         return url
 
     def force_filesys(s):
@@ -143,12 +152,13 @@ else:
 
     def url2localpath(url):
         "url should be utf8 encoded (but may actually be unicode from db)"
+        url = f"{url}"
         if url.startswith('file://'):
             url = url[7:]
-        path = posixpath.normpath(urllib.parse.urlparse(url).path)
+        path = os.path.normpath(urllib.parse.urlparse(url).path)
         path = urllib.parse.unquote(path)
         path = force_filesys(path)
-        return path
+        return f"{path}"
 
 def config2url(conf):
     "Make entries read from config with corrent encoding.. check for things that look like path urls"
@@ -162,11 +172,25 @@ def config2url(conf):
         return conf
 
 
+# def url2unicode(url):
+#     "Unquote and try to decode"
+#     url = urllib.parse.unquote (url)
+#     try:
+#         return url.decode('utf-8')
+#     except UnicodeEncodeError:
+#         pass
+#     return url
+
+# !!! alternative approach
 def url2unicode(url):
     "Unquote and try to decode"
     url = urllib.parse.unquote (url)
-    try:
-        return url.decode('utf-8')
-    except UnicodeEncodeError:
-        pass
-    return url
+    if isinstance(url, bytes):
+        try:
+            return url.decode('utf-8')
+        except UnicodeDecodeError:
+            pass
+        except Exception as e:
+            # log.exception("Error decoding url %s: %s", url, e)
+            pass
+    return f"{url}"
