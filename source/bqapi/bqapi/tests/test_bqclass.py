@@ -31,4 +31,5 @@ def test_conversion():
 
     print("XML")
     print(r)
-    assert x == X.translate(None, '\r\n')
+    # assert x == X.translate(None, '\r\n')
+    assert x.decode("utf-8") == X.translate(str.maketrans('', '', '\r\n')) #!!! modern alternative
