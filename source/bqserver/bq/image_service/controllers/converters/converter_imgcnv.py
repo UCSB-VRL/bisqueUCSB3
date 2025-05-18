@@ -76,13 +76,39 @@ if os.name == 'nt':
 		_ = imgcnvlib.imgcnv_clear(res)
 		return r, out
 else:
+	# !!! Not working properly
+	# def call_imgcnvlib(command):
+	# 	#log.info ('CALLING IMGCNVLIB %s', command)
+	# 	if imgcnvlib is None:
+	# 		raise ImageServiceException(404,'imgcnvlib not found')
+	# 	arr = (ctypes.c_char_p * len(command))()
+	# 	#arr[:] = [i.encode('utf-8') for i in command]
+	# 	arr[:] =  command
+	# 	res = ctypes.pointer(ctypes.c_char_p())
+
+	# 	try:
+	# 		rw.acquire_write('libimgcnv')
+	# 		r = imgcnvlib.imgcnv(len(command), arr, res)
+	# 		rw.release_write('libimgcnv')
+	# 	except Exception:
+	# 		log.exception('Exception calling libbioimage')
+	# 		return 100, None
+	# 	out = res.contents.value
+	# 	_ = imgcnvlib.imgcnv_clear(res)
+	# 	return r, out
+
+	# !!! Modern approach
 	def call_imgcnvlib(command):
-		#log.info ('CALLING IMGCNVLIB %s', command)
 		if imgcnvlib is None:
-			raise ImageServiceException(404,'imgcnvlib not found')
+			raise ImageServiceException(404, 'imgcnvlib not found')
+
+		if not isinstance(command, (list, tuple)):
+			raise ValueError("Command must be a list or tuple of strings")
+
+		# Convert command list to array of UTF-8 encoded bytes
 		arr = (ctypes.c_char_p * len(command))()
-		#arr[:] = [i.encode('utf-8') for i in command]
-		arr[:] =  command
+		arr[:] = [str(i).encode('utf-8') for i in command]
+
 		res = ctypes.pointer(ctypes.c_char_p())
 
 		try:
@@ -92,7 +118,8 @@ else:
 		except Exception:
 			log.exception('Exception calling libbioimage')
 			return 100, None
-		out = res.contents.value
+
+		out = res.contents.value.decode('utf-8') if res.contents.value else ''
 		_ = imgcnvlib.imgcnv_clear(res)
 		return r, out
 
@@ -1167,5 +1194,5 @@ class ConverterImgcnv(ConverterBase):
 
 try:
 	ConverterImgcnv.init()
-except Exception:
-	log.warn("Imgcnv not available")
+except Exception as e:
+	log.warning(f"Imgcnv not available, issue: {e}")
