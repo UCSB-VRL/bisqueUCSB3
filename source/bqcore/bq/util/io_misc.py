@@ -115,6 +115,8 @@ def tounicode(s):
                 out_str = s.decode('latin1')
             except UnicodeDecodeError:
                 out_str = s.decode('ascii', errors='replace')
+    if isinstance(s, list):
+        out_str = ' '.join([tounicode(x) for x in s])
     out_str = f"{out_str}"
     # if string is still like "b'...' then decode it
     regex = re.compile(r"(^b'(.+)'$)|(^b\"(.+)\"$)")

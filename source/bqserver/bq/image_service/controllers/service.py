@@ -193,6 +193,7 @@ class ImageServiceController(ServiceController):
     @expose()
     def _default(self, *path, **kw):
         id = path[0]
+        # log.info(f"----- request image id:{id} -----")
         return self.images(id, **kw)
 
     @expose(content_type='text/xml')
@@ -335,7 +336,7 @@ class ImageServiceController(ServiceController):
             #abort(503, message) # 503, "Service Unavailable" - does not work
             #return
         except ImageServiceException as e:
-            log.info ("FINISHED with ERROR (%s): %s", datetime.now().isoformat(), url)
+            log.info ("FINISHED with ERROR (%s): %s- error: %s", datetime.now().isoformat(), url, e)
             abort(e.code, e.message)
 
         tg.response.headers['Content-Type']  = token.contentType
@@ -385,11 +386,18 @@ class ImageServiceController(ServiceController):
             # by streaming the contents of the files as opposite to sendall the whole thing
             log.info ("FINISHED (%s): %s", datetime.now().isoformat(), url)
             #log.info ("%s: returning %s with mime %s"%(ident, token.data, token.contentType ))
-            return forward(FileApp(token.data,
-                                   content_type=token.contentType,
-                                   content_disposition=disposition,
-                                   ).cache_control (max_age=60*60*24*7*6)) # 6 weeks
+            # Create FileApp
+            from webob.static import FileApp
+            from tg import use_wsgi_app
+            fileapp = FileApp(token.data,
+                            content_type=token.contentType,
+                            content_disposition=disposition)
 
+            # Inject Cache-Control manually via response headers
+            tg.response.headers['Cache-Control'] = 'public, max-age=%d' % (60*60*24*7*6)  # 6 weeks
+            return use_wsgi_app(fileapp)
+
+        # log.info(f"------- request image id:{ident} token = {token}-----")
         log.info ("FINISHED with ERROR (%s): %s", datetime.now().isoformat(), url)
         tg.response.status_int = 404
         return "File not found"

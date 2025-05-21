@@ -4,7 +4,6 @@
 __Contributors__    = "Dmitry Fedorov, Griffin Danninger"
 __version__   = "1.3"
 __copyright__ = "Center for BioImage Informatics, University California, Santa Barbara"
-
 import logging
 import os.path
 import math
@@ -27,6 +26,8 @@ from bq.image_service.controllers.exceptions import ImageServiceException, Image
 from bq.image_service.controllers.process_token import ProcessToken
 from bq.image_service.controllers.converter_base import ConverterBase, Format
 from bq.image_service.controllers.defaults import block_reads, block_tile_reads
+
+import subprocess
 
 log = logging.getLogger('bq.image_service.converter_imgcnv')
 
@@ -97,32 +98,64 @@ else:
 	# 	_ = imgcnvlib.imgcnv_clear(res)
 	# 	return r, out
 
-	# !!! Modern approach
+	# !!! Modified approach
+	# def call_imgcnvlib(command):
+	# 	log.info(f"--- call_imgcnvlib command: {command}")
+	# 	if imgcnvlib is None:
+	# 		raise ImageServiceException(404, 'imgcnvlib not found')
+
+	# 	if not isinstance(command, (list, tuple)):
+	# 		raise ValueError("Command must be a list or tuple of strings")
+
+
+	# 	# Convert command list to array of UTF-8 encoded bytes
+	# 	arr = (ctypes.c_char_p * len(command))()
+	# 	arr[:] = [str(i).encode('utf-8') for i in command]
+
+	# 	res = ctypes.pointer(ctypes.c_char_p())
+
+	# 	log.info(f"--- call_imgcnvlib arr: {arr} res: {res}")
+
+	# 	try:
+	# 		# rw.acquire_write('libimgcnv')
+	# 		r = imgcnvlib.imgcnv(len(command), arr, res)
+	# 		log.info(f"--- call_imgcnvlib r: {r}")
+	# 		# rw.release_write('libimgcnv')
+	# 	except Exception:
+	# 		log.exception('Exception calling libbioimage')
+	# 		return 100, None
+
+	# 	out = res.contents.value.decode('utf-8') if res.contents.value else ''
+	# 	_ = imgcnvlib.imgcnv_clear(res)
+	# 	log.info(f"--- call_imgcnvlib out: {out} r: {r}")
+	# 	return r, out
+
+	# !!! Subprocess approach, as using ctypes is really hard to debug
 	def call_imgcnvlib(command):
-		if imgcnvlib is None:
-			raise ImageServiceException(404, 'imgcnvlib not found')
+		# log.info(f"--- call_imgcnv command: {' '.join(command)}")
 
 		if not isinstance(command, (list, tuple)):
 			raise ValueError("Command must be a list or tuple of strings")
 
-		# Convert command list to array of UTF-8 encoded bytes
-		arr = (ctypes.c_char_p * len(command))()
-		arr[:] = [str(i).encode('utf-8') for i in command]
-
-		res = ctypes.pointer(ctypes.c_char_p())
-
 		try:
-			rw.acquire_write('libimgcnv')
-			r = imgcnvlib.imgcnv(len(command), arr, res)
-			rw.release_write('libimgcnv')
-		except Exception:
-			log.exception('Exception calling libbioimage')
+			result = subprocess.run(
+				command,
+				stdout=subprocess.PIPE,
+				stderr=subprocess.PIPE,
+				text=True,
+				check=False  # You can switch to True if you want it to raise on error
+			)
+			r = result.returncode
+			out = result.stdout.strip()
+			if result.stderr:
+				log.warning(f"--- call_imgcnv stderr: {result.stderr.strip()}")
+		except Exception as e:
+			log.exception("Exception calling imgcnv subprocess")
 			return 100, None
 
-		out = res.contents.value.decode('utf-8') if res.contents.value else ''
-		_ = imgcnvlib.imgcnv_clear(res)
-		return r, out
+		# log.info(f"--- call_imgcnv returncode: {r}, output: {out}")
 
+		return r, out
 ################################################################################
 # misc
 ################################################################################
@@ -347,10 +380,12 @@ class ConverterImgcnv(ConverterBase):
 			if l.locked is False: # dima: never wait, respond immediately
 				raise ImageServiceFuture((1,15))
 			#command, tmp = misc.start_nounicode_win(ifnm, command)
-			log.debug('run_read dylib command: %s', misc.tounicode(command))
+			# log.info(f"----run_read dylib command: {command} with ifnm: {ifnm} tounicode({misc.tounicode(command)})")
+			log.info('run_read dylib command: %s', misc.tounicode(command))
 			#out = cls.run_command( command )
 			#misc.end_nounicode_win(tmp)
 			retcode, out = call_imgcnvlib( command )
+			# log.info('----run_read dylib retcode: %s', retcode)
 			if retcode == 100 or retcode == 101: # some error in libbioimage, retry once
 				log.error ('Libioimage retcode %s: retry once: %s', retcode, command)
 				retcode, out = call_imgcnvlib (command)
@@ -504,7 +539,7 @@ class ConverterImgcnv(ConverterBase):
 	def info(cls, token, **kw):
 		'''returns a dict with file info'''
 		ifnm = token.first_input_file()
-		log.debug('Info for: %s', ifnm)
+		log.info('Info for: %s', ifnm)
 		if not cls.installed:
 			return {}
 		if not os.path.exists(ifnm):
@@ -516,7 +551,10 @@ class ConverterImgcnv(ConverterBase):
 		if 'speed' in kw:
 			command.extend(['-speed', kw.get('speed')])
 
+		# log.info(f"---- Info command: {command}")
+
 		info = cls.run_read(ifnm, command)
+		# log.info(f"---- Info result: {info}")
 		if info is None:
 			return {}
 		rd = {}

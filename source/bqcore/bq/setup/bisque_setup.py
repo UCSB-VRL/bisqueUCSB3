@@ -185,7 +185,7 @@ RUNTIME_CFG = None
 
 
 PYTHON=sys.executable
-EXT_SERVER = "http://biodev.ece.ucsb.edu/binaries/depot/" # EXTERNAL host server DIRS['depot']
+EXT_SERVER = "https://vat.ece.ucsb.edu//binaries/depot/" # EXTERNAL host server DIRS['depot']
 
 
 #HOSTNAME = socket.getfqdn()
@@ -2362,7 +2362,6 @@ def install_dependencies (params, runtime_params):
 
 def install_imgcnv ():
     """Install dependencies that aren't handled by setup.py"""
-
     filename_zip = os.path.join(DIRS['depot'], 'imgcnv.zip')
     imgcnv = which('imgcnv')
     if imgcnv :

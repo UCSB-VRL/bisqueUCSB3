@@ -277,12 +277,13 @@ class LocalDriver (StorageDriver):
             storeurl = urllib.parse.urljoin(self.top, storeurl[7:])
         else:
             return None
-        localpath = url2localpath (storeurl)
+        localpath = tounicode(url2localpath (storeurl))
         log.debug ("checking %s", tounicode(localpath))
-        return os.path.exists(localpath) and localpath2url(localpath)
+        log.info(f'--- came before return {localpath}  {os.path.exists(localpath)} {localpath2url(localpath)}')
+        return os.path.exists(localpath) and tounicode(localpath2url(localpath))
 
     def relative(self, storeurl):
-        path = url2localpath (self.valid (storeurl))
+        path = tounicode(url2localpath (self.valid (storeurl)))
         log.debug ("MOUNT %s PATH %s",self.mount_path,  path)
         return  path.replace (self.mount_path, '')
 
@@ -330,8 +331,8 @@ class LocalDriver (StorageDriver):
                 path = os.path.join(self.top, path.replace('file://', ''))
             else:
                 path = os.path.join(self.top, path)
-
-        path = url2localpath(path.replace('\\', '/'))
+        # !!! Added tounicode to avoid issues with paths, i.e: b'dir...
+        path = tounicode(url2localpath(path.replace('\\', '/')))
 
         #log.debug('local_store localpath path: %s', path)
 
@@ -363,8 +364,8 @@ class LocalDriver (StorageDriver):
                 path = os.path.join(self.top, path.replace('file://', ''))
             else:
                 path = os.path.join(self.top, path)
-
-        path = url2localpath(path.replace('\\', '/'))
+        # !!! Added tounicode to avoid issues with paths i.e: b'dir...
+        path = tounicode(url2localpath(path.replace('\\', '/')))
         log.info("local deleting %s", path)
         if os.path.isfile (path):
             try:
@@ -381,8 +382,8 @@ class LocalDriver (StorageDriver):
                 path = os.path.join(self.top, path.replace('file://', ''))
             else:
                 path = os.path.join(self.top, path)
-
-        path = url2localpath(path.replace('\\', '/'))
+        # !!! Added tounicode to avoid issues with paths i.e: b'dir...
+        path = tounicode(url2localpath(path.replace('\\', '/')))
         return path, sub
 
     def __str__(self):

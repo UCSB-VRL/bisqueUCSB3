@@ -160,7 +160,7 @@ class ImageServer(object):
         missing = []
         for n,c in cls.converters.items():
             if not c.get_installed():
-                log.debug('%s is not installed, skipping support...', n)
+                log.info('%s is not installed, skipping support...', n)
                 missing.append(n)
             # elif not c.ensure_version(needed_versions[n]):
             #     log.warning('%s needs update! Has: %s Needs: %s', n, c.version['full'], needed_versions[n])
@@ -239,7 +239,7 @@ class ImageServer(object):
         if infofile is None:
             infofile = '%s.info'%filename
         info = {}
-
+        # log.info(f"--- getImageInfo: {filename} {infofile} {series} info exists? {os.path.exists(infofile)} file exists? {os.path.exists(filename)}")
         # read image info using converters
         if not os.path.exists(infofile):
             # sanity check
@@ -250,7 +250,9 @@ class ImageServer(object):
                     # parse image info from original file
                     file_speed = infofile.replace('.info', '.speed')
                     for n,c in self.converters.items():
+                        # log.info(f"-----Trying to read image info using {n} with command {c} function {c.info}")
                         info = c.info(ProcessToken(ifnm=filename, series=series), speed=file_speed)
+                        # log.info(f"-----Image info got from c info: {info}")
                         if info is not None and len(info)>0:
                             info['converter'] = n
                             break
@@ -270,8 +272,10 @@ class ImageServer(object):
                     image = etree.Element ('image')
                     for k,v in info.items():
                         image.set(k, '%s'%v)
+
                     with open(infofile, 'w') as f:
-                        f.write(etree.tostring(image))
+                        # log.info(f"-----Image info etree: {etree.tostring(image, encoding='unicode')} writing into infofile: {infofile}")
+                        f.write(etree.tostring(image, encoding='utf-8', xml_declaration=True, pretty_print=True).decode('utf-8'))
                     return info
                 elif l.locked is False: # dima: never wait, respond immediately
                     raise ImageServiceFuture((1,10))
@@ -421,9 +425,9 @@ class ImageServer(object):
         #     return token
     def process(self, url, ident, resource=None, **kw):
         resource_id, subpath, query = getOperations(url, self.base_url)
-        log.debug ('STARTING %s: %s', ident, query)
+        log.info('STARTING %s: %s', ident, query)
         #os.chdir(self.workdir)
-        log.debug('Current path %s: %s', ident, self.workdir)
+        log.info('Current path %s: %s', ident, self.workdir)
 
         if resource is None:
             resource = {}
@@ -437,9 +441,11 @@ class ImageServer(object):
                 series = subpath or 0
                 workpath = self.initialWorkPath(ident, user_name=kw.get('user_name', None), series=series)
                 token.setFile(workpath, series=series)
+                # log.info(f"---token is {token} workpath is {workpath}")
                 token.dims = self.getImageInfo(filename=token.data, series=token.series, infofile='%s.info'%token.data, meta=kw.get('imagemeta', None) )
+                # log.info(f"---token.dims is {token.dims}")
                 if token.dims is None:
-                    log.debug('SKIPPING dryrun processing due to empty image info')
+                    log.info('SKIPPING dryrun processing due to empty image info')
                 else:
                     token.init(resource_id=ident, ifnm=token.data, imagemeta=kw.get('imagemeta', None), timeout=kw.get('timeout', None), resource_name=resource.get('name'), dryrun=True)
                     for action, args in query:

@@ -98,7 +98,7 @@ class MetaOperation(BaseOperation):
                 ConverterImgcnv.meta_dicom(ifile, series=token.series, token=token, xml=node)
 
             log.debug('Meta %s: storing metadata into %s', token.resource_id, metacache)
-            xmlstr = etree.tostring(image)
+            xmlstr = etree.tostring(image, encoding='unicode', pretty_print=True)
             with open(metacache, 'w') as f:
                 f.write(xmlstr)
             return token.setXml(xmlstr)

@@ -527,7 +527,7 @@ class MountServer(TGController):
         if len(storeurls) < 1:
             log.warn ("No value in resource trying name")
             return None,None
-
+        # log.info(f"---- available stores = {stores} storeurls = {storeurls} resource = {resource}")
         for store_name, store in list(stores.items()):
             prefix = store.get ('value')
             log.debug ("checking %s and %s" ,  prefix, storeurls[0])
@@ -539,6 +539,7 @@ class MountServer(TGController):
             except IllegalOperation:
                 log.warn ("Skipping store %s", store_name)
                 continue
+            # log.info(f"---- driver = {driver} storeurl = {storeurls[0]} prefix = {prefix} driver valid = {driver.valid(storeurls[0])} function = {driver.__class__.__name__}")
             if  driver.valid (storeurls[0]):
                 # All *must* be valid for the same store
                 for storeurl in storeurls[1:]:
@@ -736,6 +737,7 @@ class MountServer(TGController):
         log.debug ("fetch_blob %s", resource.get ('resource_uniq'))
 
         store,driver = self._find_store (resource)
+        # log.info(f"-------fetch_blob: store = {store} driver = {driver}")
         if  store is None:
             log.error ('Not a valid store ref in  %s' , etree.tostring (resource))
             return None
@@ -841,6 +843,8 @@ class MountServer(TGController):
         # i.e. <image uniq="00-AAA" owner="00-CCC" ../>
         owner_uri = resource.get('owner')
         owner = load_uri (owner_uri)
+
+        # log.info(f"---_find_store: owner_uri = {owner_uri} resource = {etree.tostring(resource)} owner = {owner}")
 
         # Is this enough context? Should the whole operation be carried out as the user or just the store lookup?
         with identity.as_user(owner):
