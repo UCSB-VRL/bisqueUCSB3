@@ -55,8 +55,8 @@ import shutil
 import posixpath
 
 from bq.util.paths import data_path
-# import logging
-# log = logging.getLogger(__name__)
+import logging
+log = logging.getLogger(__name__)
 if os.name == 'nt':
     def move_file (fp, newpath):
         with open(newpath, 'wb') as trg:
@@ -105,13 +105,26 @@ if os.name == 'nt':
             # dima: safeguard measure for old non-encoded unicode paths
             return s
 else:
+    # def move_file (fp, newpath):
+    #     if hasattr(fp, 'name') and os.path.exists(f"{fp.name}"):
+    #         oldpath = os.path.abspath(f"{fp.name}")
+    #         shutil.move (oldpath, newpath)
+    #     else:
+    #         with open(newpath, 'wb') as trg:
+    #             shutil.copyfileobj(fp, trg)
+    
+    # !!! modern move_file
     def move_file (fp, newpath):
-        if hasattr(fp, 'name') and os.path.exists(f"{fp.name}"):
-            oldpath = os.path.abspath(f"{fp.name}")
-            shutil.move (oldpath, newpath)
+        if hasattr(fp, 'name') and isinstance(fp.name, str) and os.path.exists(fp.name):
+            oldpath = os.path.abspath(fp.name)
+            shutil.move(oldpath, newpath)
         else:
+            # log.info(f"------ Moving file to {newpath} from {fp}")
+            newdir = os.path.dirname(newpath)
+            if not os.path.exists(newdir):
+                os.makedirs(newdir, exist_ok=True)
             with open(newpath, 'wb') as trg:
-                shutil.copyfileobj(fp, trg)
+                shutil.copyfileobj(fp, trg)   
 
     data_url_path = data_path
 

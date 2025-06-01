@@ -240,14 +240,17 @@ class UploadedResource(object):
             # in this case 'name' attribute is some string that indicates the source of the file object, of the form '<...>'.
             # (see https://docs.python.org/2.7/library/stdtypes.html#file-objects)
             filename = None
+        # log.info(f"---- localpath filename: {filename} fileobj.filename: {getattr(self.fileobj, 'filename', None)} self.path: {self.path}  self.filename: {self.filename}----")
         return filename or getattr(self.fileobj, 'filename', None) or self.path
 
     def ensurelocal(self, localpath):
         '''retrieve a local path for this uploaded resource'''
+        # log.info(f"---- ensurelocal: {localpath} ----")
         if self.path is not None:
             return self.path
-        if os.name != 'nt':
-            self.path = self.path or getattr(self.fileobj, 'name', None) or getattr(self.fileobj, 'filename', None)
+        # !!! not valid in python 3.10+
+        # if os.name != 'nt':
+        #     self.path = self.path or getattr(self.fileobj, 'name', None) or getattr(self.fileobj, 'filename', None)
         if self.path is None:
             if os.name == 'nt':
                 _mkdir (os.path.dirname(localpath))
@@ -329,6 +332,7 @@ class import_serviceController(ServiceController):
 
     # unpacking that preserves structure
     def unZip(self, filename, foldername):
+        # log.info(f"---- unZip: {filename} to {foldername} --")
         z = zipfile.ZipFile(filename, 'r')
 
         # first test if archive is valid
@@ -450,7 +454,7 @@ class import_serviceController(ServiceController):
             resource = etree.Element ('resource', name=name, value=filename, ts=uf.ts)
             # append all other input annotations
             resource.extend (copy.deepcopy (list (uf.resource)))
-
+            # log.info(f"---- process_packaged_separate: {filename} -> {name} ----")
             myf = UploadedResource(fileobj=open(filename, 'rb'), resource=resource)
             resources.append(self.process(myf))
 
@@ -656,7 +660,7 @@ class import_serviceController(ServiceController):
 
     def process_packaged_dicom(self, uf, intags):
         ''' Unpack and insert a set of DICOM files '''
-        log.debug('process_packaged_dicom: %s %s', uf, intags )
+        log.info('process_packaged_dicom: %s %s', uf, intags )
 
         unpack_dir, members = self.unpackPackagedFile(uf)
         members = [ m for m in members if is_filesystem_file(m) is not True ] # remove file system internal files
@@ -666,18 +670,18 @@ class import_serviceController(ServiceController):
         log.debug('process_packaged_dicom members: %s', members)
 
         # first group dicom files based on their metadata
-        images, blobs, geometry = ConverterImgcnv.group_files_dicom(members)
+        images, blobs, geometry = ConverterImgcnv.group_files_dicom(members)            
 
-        log.debug('process_packaged_dicom blobs: %s', blobs)
-        log.debug('process_packaged_dicom images: %s', images)
-        log.debug('process_packaged_dicom geometry: %s', geometry)
+        log.info('process_packaged_dicom blobs: %s', blobs)
+        log.info('process_packaged_dicom images: %s', images)
+        log.info('process_packaged_dicom geometry: %s', geometry)
 
         resources = []
         base_name = uf.resource.get('name')
         base_path = '%s/'%unpack_dir
 
-        log.debug('base_name: %s', base_name)
-        log.debug('base_path: %s', base_path)
+        log.info('base_name: %s', base_name)
+        log.info('base_path: %s', base_path)
 
         # first insert blobs
         for b in blobs:
@@ -694,10 +698,12 @@ class import_serviceController(ServiceController):
             g = geometry[i]
             updated_name = None
             rooturl = blob_service.local2url('%s/'%unpack_dir)
+            # log.info(f"---- process_packaged_dicom image: {im} g: {g} rooturl: {rooturl}----")
 
             if len(im) == 1:
                 name = posixpath.join(base_name, im[0].replace(base_path, '') )
                 value = blob_service.local2url(im[0])
+                # log.info(f"---- process_packaged_dicom single image: {name} value: {value} ---- im[0] exists: {os.path.exists(im[0])} ----")
                 resource = etree.Element ('image', name=name, resource_type='image', ts=uf.ts, value=value )
             else:
                 name = posixpath.join(base_name, im[0].replace(base_path, '') )
@@ -720,8 +726,8 @@ class import_serviceController(ServiceController):
             resource.extend (copy.deepcopy (list (uf.resource)))
             ConverterImgcnv.meta_dicom_parsed(im[0], resource)
 
-            log.debug('Resource to insert: %s', etree.tostring(resource))
-
+            log.info('Resource to insert: %s', etree.tostring(resource))
+            # log.info(f"---- im[0] exists: {os.path.exists(im[0])} after meta_diacom_parsed----")
             # store resource
             resource = blob_service.store_blob(resource=resource, rooturl=rooturl)
 
@@ -984,6 +990,7 @@ class import_serviceController(ServiceController):
         return resources
 
     def filter_zip_dicom(self, f, intags):
+        log.info(f"----filter_zip_dicom: {f}, intags: {intags}")
         unpack_dir, resources = self.process_packaged_dicom(f, intags)
         self.cleanup_packaging(unpack_dir)
         return resources

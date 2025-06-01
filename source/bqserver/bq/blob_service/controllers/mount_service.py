@@ -602,6 +602,8 @@ class MountServer(TGController):
 
     def _save_store(self, store, storepath, resource, fileobj=None, rooturl=None):
         'store the file to the named store'
+        
+        # log.info(f"---- _save_store: store = {store} storepath = {storepath} resource = {etree.tostring(resource)} fileobj = {fileobj} rooturl = {rooturl}")
 
         resource_name, sub  = split_subpath (resource.get ('name'))
         # Force a move into the store
@@ -624,6 +626,7 @@ class MountServer(TGController):
         else:
             # Try to reference the data in place (if on safe store)
             storeurl, localpath = self._save_storerefs (store, storepath, resource, rooturl)
+            log.info(f"---- _save_store if not fileobj: storeurl = {storeurl} localpath = {localpath}")
             #Store  url may have changed due to conflict
             if resource.get ('value') is None: # This is multifile
                 name = os.path.basename(resource_name)
@@ -646,7 +649,7 @@ class MountServer(TGController):
         @param resource: a resource with storeurls
         @param rooturl: the root of the storeurls
         """
-        log.debug("_save_storerefs: %s, %s,  %s" , store, storepath,  rooturl)
+        log.info("_save_storerefs: %s, %s,  %s" , store, storepath,  rooturl)
 
         def setval(n, v):
             n.set('value', v)
@@ -662,7 +665,7 @@ class MountServer(TGController):
             else:  # Multi-entity
                 refs = [ (x, settext, split_subpath(x.text), None) for x in resource.xpath ('value') ]
                 rootpath = storepath # dima: fix for stripping multi-file paths
-            log.debug ("_save_storerefs refs: %s", list_summary(refs))
+            log.info ("_save_storerefs refs: %s", list_summary(refs))
 
             #rootpath = os.path.dirname(storepath) # dima: fix for stripping multi-file paths
 
@@ -681,6 +684,7 @@ class MountServer(TGController):
                     continue
                 # we deal with unpacked files below
                 localpath = self._force_storeurl_local(storeurl)
+                log.info(f"--_save_storerefs: localpath = {localpath} storeurl = {storeurl} subpath = {subpath} storepath = {storepath}")
                 if os.path.isdir(localpath):
                     # Add a directory:
                     # dima: we should probably list and store all files but there might be overlaps with individual refs
@@ -694,8 +698,8 @@ class MountServer(TGController):
                 else:
                     log.error ("_save_storerefs: Cannot access %s as %s of %s ", storeurl, localpath, etree.tostring(node))
 
-            log.debug ("_save_storerefs movingrefs: %s", list_summary(movingrefs))
-            log.debug ("_save_storerefs fixedrefs: %s", list_summary(fixedrefs))
+            log.info ("_save_storerefs movingrefs: %s", list_summary(movingrefs))
+            log.info ("_save_storerefs fixedrefs: %s", list_summary(fixedrefs))
 
             # I don't a single resource will have in places references and references that need to move
             if len(fixedrefs) and len(movingrefs):
@@ -704,7 +708,7 @@ class MountServer(TGController):
             if len(fixedrefs):
                 # retrieve storeurl, and  storepath yet
                 first = (fixedrefs[0][2][0], fixedrefs[0][3])
-                log.debug ("_save_storerefs fixed : %s", list_summary(fixedrefs))
+                log.info ("_save_storerefs fixed : %s", list_summary(fixedrefs))
 
             # References to a readonly store may be registered if no actual data movement takes place.
             if movingrefs and driver.readonly:
@@ -713,7 +717,7 @@ class MountServer(TGController):
             for node, setter, (localpath, subpath), storepath in movingrefs:
                 with open (localpath, 'rb') as fobj:
                     storeurl = posixpath.join (driver.mount_url, storepath)
-                    log.debug ("_save_store_refs: push %s", storeurl)
+                    log.info ("_save_store_refs: push %s", storeurl)
                     storeurl, localpath = driver.push (fobj, storeurl, resource.get ('resource_uniq'))
                     if first[0] is None:
                         first = (storeurl, localpath)
@@ -729,7 +733,8 @@ class MountServer(TGController):
         """
         # KGK: temporary simplification
         if storeurl.startswith ('file://'):
-            return url2localpath(storeurl)
+            # !!! Added tounicode to resolve byte path issue 
+            return tounicode(url2localpath(storeurl))
         return None
 
     def fetch_blob(self, resource, blocking):
