@@ -1,82 +1,82 @@
-from __future__ import annotations
-
-from io import StringIO
+from io import BytesIO
 from lxml import etree
 import os
-from typing import Dict, Type, Any, BinaryIO, TextIO, Union
-from abc import ABC, abstractmethod
+import logging
+log = logging.getLogger(__name__)
 
+class AbstractArchiver():
 
-class AbstractArchiver(ABC):
-    """Abstract base class for file archivers."""
-    
-    def __init__(self) -> None:
-        self.reader: Union[BinaryIO, TextIO, None] = None
-        self.fileSize: int = 0
+    def getContentType(self):
+        return 'application/octet-stream'
 
-    def getContentType(self) -> str:
-        return 'text/plain'
-
-    def getFileExtension(self) -> str:
+    def getFileExtension(self):
         return '.xml'
     
-    def beginFile(self, file: Dict[str, Any]) -> None:
+    def beginFile(self, file):
         if 'content' in file and file.get('content') is not None:
-            self.reader = StringIO(file.get('content'))
+            content = file.get('content')
+            if isinstance(content, str):
+                content = content.encode('utf-8')
+            self.reader = BytesIO(content)
             self.reader.seek(0, 2)
             self.fileSize = self.reader.tell()
             self.reader.seek(0)
+        
+        #elif 'xml' in file and file.get('path') is None:
+        #    xml_content = etree.tostring(file.get('xml'), encoding='utf-8')
+        #    self.reader = BytesIO(xml_content)
+        #    self.reader.seek(0, 2)
+        #    self.fileSize = self.reader.tell()
+        #    self.reader.seek(0)
+
         else:
             self.reader = open(file.get('path'), 'rb')
-            # For binary files, get size from file stats
-            if hasattr(self.reader, 'name'):
-                self.fileSize = os.path.getsize(self.reader.name)
+            self.reader.seek(0, 2)
+            self.fileSize = self.reader.tell()
+            self.reader.seek(0)
+
+        return
     
-    def readBlock(self, block_size: int) -> Union[str, bytes]:
+    def readBlock(self, block_size):
         return self.reader.read(block_size)
     
-    def EOF(self) -> bool:
+    def EOF(self):
         return self.reader.tell() == self.fileSize
     
-    def endFile(self) -> None:
-        if self.reader:
-            self.reader.close()
+    def endFile(self):
+        self.reader.close()
+        return
     
-    def readEnding(self) -> str:
-        return ''
+    def readEnding(self):
+        return b''
     
-    def close(self) -> None:
-        pass
+    def close(self):
+        return
     
-    def destinationPath(self, file: Dict[str, Any]) -> str:
+    def destinationPath(self, file):
+        log.info(f"--- destination path is {file.get('outpath')}")
         return file.get('outpath')
 
+class ArchiverFactory():
+    
+    from bq.export_service.controllers.archiver.tar_archiver import TarArchiver
+    from bq.export_service.controllers.archiver.zip_archiver import ZipArchiver
+    from bq.export_service.controllers.archiver.gzip_archiver import GZipArchiver
+    from bq.export_service.controllers.archiver.bz2_archiver import BZip2Archiver
 
-class ArchiverFactory:
-    """Factory class for creating archiver instances."""
+    supportedArchivers = {
+        'tar'  :   TarArchiver,
+        'zip'  :   ZipArchiver,
+        'gzip' :   GZipArchiver,
+        'bz2'  :   BZip2Archiver,
+    }  
     
     @staticmethod
-    def _get_supported_archivers() -> Dict[str, Type[AbstractArchiver]]:
-        """Lazy import of archiver classes to avoid circular imports."""
-        from bq.export_service.controllers.archiver.tar_archiver import TarArchiver
-        from bq.export_service.controllers.archiver.zip_archiver import ZipArchiver
-        from bq.export_service.controllers.archiver.gzip_archiver import GZipArchiver
-        from bq.export_service.controllers.archiver.bz2_archiver import BZip2Archiver
-        
-        return {
-            'tar': TarArchiver,
-            'zip': ZipArchiver,
-            'gzip': GZipArchiver,
-            'bz2': BZip2Archiver,
-        }
-    
-    @staticmethod
-    def getClass(compressionType: str) -> AbstractArchiver:
-        """Get an instance of the specified archiver type."""
-        supported_archivers = ArchiverFactory._get_supported_archivers()
-        archiver_class = supported_archivers.get(compressionType, AbstractArchiver)
-        return archiver_class()
+    def getClass(compressionType):
+        archiver = ArchiverFactory.supportedArchivers.get(compressionType)
+        archiver = AbstractArchiver if archiver is None else archiver  
 
+        return archiver()
 # !!! Old codes, kept for reference, not used in the current implementation !!!
 # from io import StringIO
 # from lxml import etree

@@ -728,7 +728,7 @@ class BQFactory (object):
     def to_string (self, node):
         if isinstance (node, BQNode):
             node = self.to_etree(node)
-        return etree.tostring(node)
+        return etree.tostring(node, encoding='unicode')
 
     @classmethod
     def string2etree(self, xmlstring):

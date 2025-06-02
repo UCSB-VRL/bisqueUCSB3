@@ -32,8 +32,12 @@ log = logging.getLogger('bq.util.io_misc')
 # Misc
 ################################################################################
 
+# def blocked_alpha_num_sort(s):
+#     return [int(''.join(g)) if k else ''.join(g) for k, g in groupby(str(s), str.isdigit)]
+# !!! To handle cases where elements of sorted array may have integers and some doesn't have digit at all
 def blocked_alpha_num_sort(s):
-    return [int(''.join(g)) if k else ''.join(g) for k, g in groupby(str(s), str.isdigit)]
+    s = str(s)
+    return [str(int(''.join(g))) if k else ''.join(g) for k, g in groupby(s, str.isdigit)]
 
 def between(left,right,s):
     _,_,a = s.partition(left)

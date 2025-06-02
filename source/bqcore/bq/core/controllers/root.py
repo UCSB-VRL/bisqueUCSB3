@@ -153,7 +153,7 @@ class ServiceRegistryController (ServiceController):
         by this instance.  Include only services locally mounted.
         """
         resource = etree.Element ('resource')
-        return etree.tostring(resource)
+        return etree.tostring(resource, encoding='unicode')
 
 
 class ProxyCache(object):

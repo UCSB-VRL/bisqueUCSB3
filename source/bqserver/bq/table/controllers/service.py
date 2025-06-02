@@ -242,7 +242,7 @@ class TableController(ServiceController):
         """Add your service description here """
         response = etree.Element ('resource', uri=self.baseuri)
         etree.SubElement(response, 'method', name='%s/ID[/PATH1/PATH2/...][/RANGE][/COMMAND:PARS]'%self.baseuri, value='Executes operations for a given table ID.')
-        return etree.tostring(response)
+        return etree.tostring(response, encoding='unicode')
 
     @expose()
     def _default(self, *args, **kw):

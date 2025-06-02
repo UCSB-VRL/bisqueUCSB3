@@ -108,7 +108,7 @@ class BQNode (etree.ElementBase):
         return '(%s#%s)' % (self.TAG, len(self))
 
     def __str__(self):
-        return etree.tostring(self)
+        return etree.tostring(self, encoding='unicode', pretty_print=True)
     #    return '(%s:%s:%s)'%(self.TAG,','.join (['%s=%s' % (f, getattr(self,f,'')) for f in self.attrib]), [ str (q) for q in self ] )
 
     def toTuple (self):
@@ -637,7 +637,7 @@ class BQFactory (etree.PythonElementClassLookup):
     # Generation
     @classmethod
     def to_string (self, nodes):
-        return etree.tostring (nodes)
+        return etree.tostring (nodes, encoding='unicode')
 
     @classmethod
     def to_etree(self, bqnode):

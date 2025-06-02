@@ -34,7 +34,7 @@ class TestDSController():
         environ = {'REMOTE_USER': 'admin'}
         req = etree.Element ('image', name='new', value = "image.jpg" )
         response = self.app.post ('/data_service/image',
-                                  params = etree.tostring(req),
+                                  params = etree.tostring(req, encoding='unicode'),
                                   content_type='application/xml',
                                   status = 401,
 #                                  extra_environ=environ,
@@ -43,7 +43,7 @@ class TestDSController():
         req = etree.Element ('image', name='new', value="image.jpg" )
         environ = {'REMOTE_USER': 'admin'}
         response = self.app.post ('/data_service/image',
-                                  params = etree.tostring(req),
+                                  params = etree.tostring(req, encoding='unicode'),
                                   headers=[('content-type', 'application/xml')],
                                   extra_environ=environ,
                                   )

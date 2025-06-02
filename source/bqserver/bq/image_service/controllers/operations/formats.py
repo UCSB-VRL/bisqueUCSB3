@@ -42,4 +42,4 @@ class FormatsOperation(BaseOperation):
                 etree.SubElement(codec, 'tag', name='support', value=f.supportToString() )
                 etree.SubElement(codec, 'tag', name='samples_per_pixel_minmax', value='%s,%s'%f.samples_per_pixel_min_max )
                 etree.SubElement(codec, 'tag', name='bits_per_sample_minmax',   value='%s,%s'%f.bits_per_sample_min_max )
-        return token.setXml(etree.tostring(xml))
+        return token.setXml(etree.tostring(xml, encoding='unicode'))

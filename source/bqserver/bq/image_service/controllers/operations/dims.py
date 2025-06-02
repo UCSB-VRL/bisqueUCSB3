@@ -40,4 +40,4 @@ class DimsOperation(BaseOperation):
             for k, v in info.items():
                 #log.debug('%s: %s', k, v)
                 tag = etree.SubElement(image, 'tag', name=safeunicode(k), value=safeunicode(v))
-        return token.setXml(etree.tostring(response))
+        return token.setXml(etree.tostring(response, encoding='unicode'))

@@ -189,7 +189,7 @@ class statsController(ServiceController):
             tag      = etree.SubElement (stream, 'tag')
             tag.attrib['name']  = n           
             tag.attrib['value'] = '%s [ver %s]'%(self.operators[n].__doc__, self.operators[n].version)
-        return etree.tostring(stream)   
+        return etree.tostring(stream, encoding='unicode')   
 
 
     @expose(content_type='text/xml')
@@ -200,7 +200,7 @@ class statsController(ServiceController):
             tag      = etree.SubElement (stream, 'tag')
             tag.attrib['name']  = n            
             tag.attrib['value'] = '%s [ver %s]'%(self.summarizers[n].__doc__, self.summarizers[n].version)
-        return etree.tostring(stream)           
+        return etree.tostring(stream, encoding='unicode')           
 
 
     @expose('bq.stats.templates.index')
@@ -264,7 +264,7 @@ class statsController(ServiceController):
             disposition = 'filename="%s"; filename*="%s"'%(filename.encode('utf8'), filename.encode('utf8'))        
         response.headers['Content-Type'] = 'text/xml'
         response.headers['Content-Disposition'] = disposition       
-        return etree.tostring(stream)
+        return etree.tostring(stream, encoding='unicode')
     
     #-------------------------------------------------------------
     # Formatters - JSON

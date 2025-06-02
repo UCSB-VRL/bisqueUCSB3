@@ -380,7 +380,7 @@ def setup_polygon_upload(ns):
     polygon = etree.Element('polygon', name='test')
     for i, (y, x) in enumerate(vertices):
         etree.SubElement(polygon,'vertex',index=str(i), y=str(y),x=str(x))
-    xml = ns.session.postxml(ns.resource_uri, xml=etree.tostring(polygon))
+    xml = ns.session.postxml(ns.resource_uri, xml=etree.tostring(polygon, encoding='unicode'))
     gobject_uri = xml.attrib['uri']
 
     ns.gobject_uri = gobject_uri
@@ -412,7 +412,7 @@ def setup_rectangle_upload(ns):
     polygon = etree.Element('rectangle', name='test')
     for i, (y, x) in enumerate(vertices):
         etree.SubElement(polygon, 'vertex', index=str(i), y=str(y), x=str(x))
-    xml = ns.session.postxml(ns.resource_uri, xml=etree.tostring(polygon))
+    xml = ns.session.postxml(ns.resource_uri, xml=etree.tostring(polygon, encoding='unicode'))
     gobject_uri = xml.attrib['uri']
 
     ns.gobject_uri = gobject_uri
@@ -437,7 +437,7 @@ def setup_circle_upload(ns):
     polygon = etree.Element('circle', name='test')
     for i,(y,x) in enumerate(vertices):
         etree.SubElement(polygon,'vertex', index=str(i), y=str(y), x=str(x))
-    xml = ns.session.postxml(ns.resource_uri, xml=etree.tostring(polygon))
+    xml = ns.session.postxml(ns.resource_uri, xml=etree.tostring(polygon, encoding='unicode'))
     gobject_uri = xml.attrib['uri']
 
     ns.gobject_uri = gobject_uri
@@ -461,7 +461,7 @@ def setup_point_upload(ns):
     polygon = etree.Element('point', name='test')
     for i,(y,x) in enumerate(vertices):
         etree.SubElement(polygon,'vertex',index=str(i), y=str(y),x=str(x))
-    xml = ns.session.postxml(ns.resource_uri, xml=etree.tostring(polygon))
+    xml = ns.session.postxml(ns.resource_uri, xml=etree.tostring(polygon, encoding='unicode'))
     gobject_uri = xml.attrib['uri']
 
     ns.gobject_uri = gobject_uri

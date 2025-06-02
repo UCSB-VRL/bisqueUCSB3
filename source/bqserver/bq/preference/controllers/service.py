@@ -444,11 +444,11 @@ class PreferenceController(ServiceController):
             if xpath:
                 system_preference = system_preference.xpath('/preference/%s'%xpath)
                 if len(system_preference)>0:
-                    return etree.tostring(system_preference[0])
+                    return etree.tostring(system_preference[0], encoding='unicode')
                 else:
                     abort(404)
             else:
-                return etree.tostring(system_preference)
+                return etree.tostring(system_preference, encoding='unicode')
 
         #check user preference
         user = self.get_current_user(view='full')
@@ -471,11 +471,11 @@ class PreferenceController(ServiceController):
             if xpath:
                 user_preference = user_preference.xpath('/preference/%s'%xpath)
                 if len(user_preference)>0:
-                    return etree.tostring(user_preference[0])
+                    return etree.tostring(user_preference[0], encoding='unicode')
                 else:
                     abort(404)
             else:
-                return etree.tostring(user_preference)
+                return etree.tostring(user_preference, encoding='unicode')
 
         #check resource preference
         resource = data_service.get_resource('/data_service/%s'%resource_uniq, view='full')
@@ -518,11 +518,11 @@ class PreferenceController(ServiceController):
             if xpath:
                 annotation_preference = annotation_preference.xpath('/preference/%s'%xpath)
                 if len(annotation_preference)>0:
-                    return etree.tostring(annotation_preference[0])
+                    return etree.tostring(annotation_preference[0], encoding='unicode')
                 else:
                     abort(404)
             else:
-                return etree.tostring(annotation_preference)
+                return etree.tostring(annotation_preference, encoding='unicode')
         #raise exception level not known
 
 
@@ -638,7 +638,7 @@ class PreferenceController(ServiceController):
             else: #not correct format and no xpath
                 abort(400)
 
-        return etree.tostring(resource)
+        return etree.tostring(resource, encoding='unicode')
 
 
     def system_put(self, body, xpath=None, **kw):
@@ -697,7 +697,7 @@ class PreferenceController(ServiceController):
             else: #not correct format and no xpath
                 abort(400)
 
-        return etree.tostring(resource)
+        return etree.tostring(resource, encoding='unicode')
 
     def system_reset(self, xpath=None, **kw):
         """

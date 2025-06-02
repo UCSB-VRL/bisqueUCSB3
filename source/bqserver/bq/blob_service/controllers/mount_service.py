@@ -201,7 +201,7 @@ class MountServer(TGController):
             return "<resource/>"
 
         root = self._create_root_mount()
-        return etree.tostring(root)
+        return etree.tostring(root, encoding='unicode')
 
 
     def _get(self, path, **kw):
@@ -253,7 +253,7 @@ class MountServer(TGController):
         fullpath.extend (path)
         self.mapuris (q, top="/".join (fullpath))
 
-        return etree.tostring(q)
+        return etree.tostring(q, encoding='unicode')
 
     def _post(self, path, **kw):
         log.info ("POST/PUT %s with %s" ,  path, kw)
@@ -264,9 +264,9 @@ class MountServer(TGController):
             store = self._validate_store_update (store_name, tg.request.body)
             if store is None:
                 abort("Unable to update store")
-            return etree.tostring(store)
+            return etree.tostring(store, encoding='unicode')
         q = self.add_mount_path (store_name, path, **kw)
-        return etree.tostring(q)
+        return etree.tostring(q, encoding='unicode')
 
     def _delete(self, path, **kw):
         log.info ("DELETE %s with %s" ,  path, kw)

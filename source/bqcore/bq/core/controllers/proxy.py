@@ -111,7 +111,7 @@ def decode_etrees (a):
     """Return a list with all etree decoded"""
     def decode_etree (arg):
         if isinstance (arg, etree._Element):
-            return etree.tostring (arg)
+            return etree.tostring (arg, encoding='unicode')
         else:
             return arg
 
@@ -156,7 +156,7 @@ def exposexml(func):
         result =  func (*args, **kw)
         if isinstance (result, etree._Element):
             response.content_type = "text/xml"
-            result = etree.tostring (result)
+            result = etree.tostring (result, encoding='unicode')
         return result
     return wrapper
 

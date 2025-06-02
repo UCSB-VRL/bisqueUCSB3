@@ -63,7 +63,7 @@ for i in range(10):
     etree.SubElement (polygon, 'tag', name='color', type='color', value='%s'%color)
     etree.SubElement (polygon, 'tag', name='hi res image', type='image', value='/data_service/00-a8TBcf7ChJ7sEkLoeGBUW9')
 
-    polygons.append(etree.tostring(polygon))
+    polygons.append(etree.tostring(polygon, encoding='unicode'))
 
 request = '<request>%s</request>'%''.join(polygons)
 

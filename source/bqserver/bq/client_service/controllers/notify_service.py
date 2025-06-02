@@ -129,7 +129,7 @@ class NotifyServerController(ServiceController):
         etree.SubElement (entry, 'arguments', value = 'recipient,subject')
         etree.SubElement (entry, 'verb', value = 'POST')
         etree.SubElement (entry, 'body', value = 'required')
-        return etree.tostring (descr)
+        return etree.tostring (descr, encoding='unicode')
 
 
     @expose(content_type='text/xml')

@@ -442,7 +442,7 @@ class ExporterKML (ExporterGeo):
         doc = etree.SubElement (kml, 'Document')
 
         self.convert_node(resource, doc)
-        return etree.tostring(kml)
+        return etree.tostring(kml, encoding='unicode')
 
     def convert_node(self, node, kml, cnvf=None):
         if node is None:

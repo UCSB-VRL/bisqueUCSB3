@@ -121,7 +121,7 @@ class AuthenticationServer(ServiceController):
     @expose(content_type="text/xml")
     def login_providers (self):
         log.debug ("providers")
-        return etree.tostring (d2xml ({ 'providers' : self.login_map()} ))
+        return etree.tostring (d2xml ({ 'providers' : self.login_map()} ), encoding='unicode')
 
     @expose()
     def login_check(self, came_from='/', login='', **kw):
@@ -260,7 +260,7 @@ class AuthenticationServer(ServiceController):
             #                     name="basic-authorization",
             #                     value=base64.encodestring("%s:%s" % cred))
         #tg.response.content_type = "text/xml"
-        return etree.tostring(response)
+        return etree.tostring(response, encoding='unicode')
 
 
 
@@ -292,7 +292,7 @@ class AuthenticationServer(ServiceController):
             etree.SubElement (sess, 'tag', name='expires', value= expires.isoformat()+'Z' )
             etree.SubElement (sess, 'tag', name='timeout', value= str(timeout) )
             etree.SubElement (sess, 'tag', name='length', value= str(length) )
-        return etree.tostring(sess)
+        return etree.tostring(sess, encoding='unicode')
 
 
     @expose(content_type="text/xml")

@@ -105,6 +105,6 @@ if __name__=="__main__":
     print (X)
     Y = xml2d(etree.XML(X))
     print (Y)
-    Z = etree.tostring (d2xml(Y) )
+    Z = etree.tostring (d2xml(Y), encoding='unicode')
     print (Z)
     assert X == Z

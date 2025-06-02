@@ -561,15 +561,15 @@ class Xml(Format):
             node_two = next(node_gen)
             #there is more than one node
             yield '<resource uri = "%s">'%str(request.url.replace('&','&amp;'))
-            yield etree.tostring(node_one)
-            yield etree.tostring(node_two)
+            yield etree.tostring(node_one, encoding='unicode')
+            yield etree.tostring(node_two, encoding='unicode')
         except StopIteration: #no elements
             #only one node
-            yield etree.tostring(node_one)
+            yield etree.tostring(node_one, encoding='unicode')
         else:
             #yield the rest of the nodes
             for n in node_gen:
-                yield etree.tostring(n)
+                yield etree.tostring(n, encoding='unicode')
             yield '</resource>'
 
     def return_from_workdir(self, table, resource_list):
@@ -595,15 +595,15 @@ class Xml(Format):
             node_two = next(node_gen)
             #there is more than one node
             yield '<resource uri = "%s">'%str(request.url.replace('&','&amp;'))
-            yield etree.tostring(node_one)
-            yield etree.tostring(node_two)
+            yield etree.tostring(node_one, encoding='unicode')
+            yield etree.tostring(node_two, encoding='unicode')
         except StopIteration: #no elements
             #only one node
-            yield etree.tostring(node_one)
+            yield etree.tostring(node_one, encoding='unicode')
         else:
             #yield the rest of the nodes
             for n in node_gen:
-                yield etree.tostring(n)
+                yield etree.tostring(n, encoding='unicode')
             yield '</resource>'
 
 #-------------------------------------------------------------
@@ -899,7 +899,7 @@ class FeatureDoc():
         command  = etree.SubElement(resource, 'command', name='format/FORMAT_NAME', value='Documentation of specific format')
         command  = etree.SubElement(resource, 'command', name='/FEATURE_NAME/FORMAT_NAME?image|mask|gobject=URL[&image|mask|gobject=URL]', value='Returns feature in format specified')
         command  = etree.SubElement(resource, 'attribute', name='resource', value='The name of the resource depends on the requested feature')
-        return etree.tostring(resource)
+        return etree.tostring(resource, encoding='unicode')
 
 
     def feature_list(self):
@@ -923,7 +923,7 @@ class FeatureDoc():
                                   uri='/features/%s' % featuretype
             )
 
-        return etree.tostring(resource)
+        return etree.tostring(resource, encoding='unicode')
 
 
     def feature(self, feature_name):
@@ -956,10 +956,10 @@ class FeatureDoc():
 
         for key, value in xml_attributes.items():
             info = etree.SubElement(feature, 'tag', name=key, value=value)
-        return etree.tostring(resource)
+        return etree.tostring(resource, encoding='unicode')
 
 
-        return etree.tostring(resource)
+        # return etree.tostring(resource, encoding='unicode')
 
     def format_list(self):
         """
@@ -975,7 +975,7 @@ class FeatureDoc():
                                       permission="Published",
                                       uri='format/%s' % format_name)
         response.headers['Content-Type'] = 'text/xml'
-        return etree.tostring(resource)
+        return etree.tostring(resource, encoding='unicode')
 
     def format(self, format_name):
         """
@@ -998,7 +998,7 @@ class FeatureDoc():
 
         for key, value in xml_attributes.items():
             info = etree.SubElement(feature, 'tag', name=key, value=value)
-        return etree.tostring(resource)
+        return etree.tostring(resource, encoding='unicode')
 
 ###################################################################
 # ## Feature Service Controller

@@ -122,7 +122,7 @@ class ExporterXML (TableExporter):
             for n,v in table.meta.items():
                 etree.SubElement (xml, 'tag', name='%s'%n, value='%s'%v)
 
-        return etree.tostring(xml)
+        return etree.tostring(xml, encoding='unicode')
 
     def format(self, table):
         """ converts table to XML """
@@ -142,5 +142,5 @@ class ExporterXML (TableExporter):
         el = etree.SubElement (doc, 'tag', name='types', value=','.join([str(t) for t in table.types]))
         if table.sizes is not None:
             el = etree.SubElement (doc, 'tag', name='sizes', value=','.join([str(i) for i in table.sizes]))
-        return etree.tostring(xml)
+        return etree.tostring(xml, encoding='unicode')
 

@@ -129,7 +129,7 @@ class ClientServer(ServiceController):
         server = etree.SubElement (response, 'tag', name='server')
 
         #etree.SubElement (server, 'tag', name='environment', value=config.get('server.environment'))
-        return etree.tostring(response)
+        return etree.tostring(response, encoding='unicode')
 
     @expose(template='bq.client_service.templates.welcome')
     def index(self, **kw):
@@ -417,7 +417,7 @@ class ClientServer(ServiceController):
 
         # bisque metadata for the new image file. Different from the OME_TIFF metadata
         metadata = etree.Element('resource', name=new_fname)
-        metadata = str(etree.tostring(metadata))
+        metadata = str(etree.tostring(metadata, encoding='unicode'))
 
         log.info('CKPT202-ckck-416-550pm')
         # store the array in bisque

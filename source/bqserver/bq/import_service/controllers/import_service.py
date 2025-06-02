@@ -370,10 +370,15 @@ class import_serviceController(ServiceController):
         for n in z.getnames():
             basename = os.path.basename(n)
             i = z.getmember(n)
-            if basename and i.isfile() is True:
+            # if basename and i.isfile() is True:
+            #     filename = os.path.join(folderName, basename)
+            #     with file(filename, 'wb') as f:
+            #         f.write(z.extractfile(i).read())
+            #     names.append(basename)
+            if basename and i.compress_type is not zipfile.ZIP_STORED and i.file_size > 0:
                 filename = os.path.join(folderName, basename)
-                with file(filename, 'wb') as f:
-                    f.write(z.extractfile(i).read())
+                with open(filename, 'wb') as f:  # !!! Changed from file() to open()
+                    f.write(z.read(n))
                 names.append(basename)
         z.close()
         return names
@@ -442,6 +447,7 @@ class import_serviceController(ServiceController):
     def process_packaged_separate(self, uf, **kw):
         unpack_dir, members = self.unpackPackagedFile(uf)
         members = list(set(members)) # remove duplicates
+        log.info(f"--- process_packaged_separate members: {members}")
         members = [ m for m in members if is_filesystem_file(m) is not True ] # remove file system internal files
         members = sorted(members, key=blocked_alpha_num_sort) # use alpha-numeric sort
         members = [ '%s/%s'%(unpack_dir, m) for m in members ] # full paths
@@ -663,6 +669,7 @@ class import_serviceController(ServiceController):
         log.info('process_packaged_dicom: %s %s', uf, intags )
 
         unpack_dir, members = self.unpackPackagedFile(uf)
+        log.info(f"---- process_packaged_dicom members: {members} ----")
         members = [ m for m in members if is_filesystem_file(m) is not True ] # remove file system internal files
         members = sorted(members, key=blocked_alpha_num_sort) # use alpha-numeric sort
         members = [ '%s/%s'%(unpack_dir, m) for m in members ] # full paths
@@ -1360,7 +1367,7 @@ class import_serviceController(ServiceController):
                 abort (400, "illegal xml")
 
             response =  self.ingest ([UploadedResource (fileobj = g.fileobj, resource=g.resource)])
-            return etree.tostring (response)
+            return etree.tostring (response, encoding='unicode')
         except Exception as e:
             log.exception ("During upload")
             abort (400, "Unable to complete upload")
@@ -1425,7 +1432,7 @@ class import_serviceController(ServiceController):
                 # Uploaded File from multipart-form
                 transfers.pop(pname)
                 resource = find_upload_resource(transfers, pname)
-                log.info(f"--- pname {pname} f {f} type {type(f)} resource {etree.tostring(resource)}")
+                # log.info(f"--- pname {pname} f {f} type {type(f)} resource {etree.tostring(resource)}")
                 if resource is None:
                     resource = etree.Element('resource', name=sanitize_filename (getattr(f, 'filename', '')))
                 files.append(UploadedResource(fileobj=f.file, resource=resource))
@@ -1472,7 +1479,7 @@ class import_serviceController(ServiceController):
         log.debug ('ingesting files %s' % [tounicode (o.filename) for o in files])
         response = self.ingest(files)
         # respopnd with an XML containing links to created resources
-        return etree.tostring(response)
+        return etree.tostring(response, encoding='unicode')
 
     @expose("bq.import_service.templates.upload")
     @require(predicates.not_anonymous())
@@ -1524,7 +1531,7 @@ class import_serviceController(ServiceController):
                 resource.extend(list(tags))
             except Exception as e: # dima: possible exceptions here, ValueError, XMLSyntaxError
                 del kw['tags']
-        kw['insert_resource'] = etree.tostring(resource)
+        kw['insert_resource'] = etree.tostring(resource, encoding='unicode')
         return self.transfer (** kw)
 
     @expose(content_type="text/xml")

@@ -59,7 +59,7 @@ def render_bq(template_name, template_vars, **kwargs):
         node = etree.Element (template_name)
         if template_name in template_vars:
             writeElem(template_vars[template_name], node)
-        return etree.tostring(node)
+        return etree.tostring(node, encoding='unicode')
         _log.debug("render_bq %s", st.getvalue() )
     except Exception as ex:
         _log.exception("")

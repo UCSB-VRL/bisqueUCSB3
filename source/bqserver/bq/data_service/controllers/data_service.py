@@ -122,7 +122,7 @@ class DataServerController(ServiceController):
             etree.SubElement(resource, 'resource', name = str(r), uri = self.makeurl(str(r)))
 
         tg.response.headers['Cache-Control'] = 'prviate, max-age=1'
-        return etree.tostring(resource)
+        return etree.tostring(resource, encoding='unicode')
 
     @expose()
     def _default(self, *path, **kw):
@@ -277,7 +277,7 @@ class DataServerController(ServiceController):
             return resource
         xtree = db2tree(resource, baseuri = self.url, **kw)
         uri = uri or xtree.get('uri')
-        self.cache_save (uri, response=etree.tostring(xtree), **kw)
+        self.cache_save (uri, response=etree.tostring(xtree, encoding='unicode'), **kw)
         return xtree
 
 
@@ -393,7 +393,7 @@ class DataServerController(ServiceController):
                      view=view, baseuri = self.url, **params)
 
         if cache:
-            self.cache_save (uri, response=etree.tostring(response), **kw)
+            self.cache_save (uri, response=etree.tostring(response, encoding='unicode'), **kw)
         #log.debug ("DS: " + etree.tostring(response))
         return response
 

@@ -73,5 +73,5 @@ for m in members:
 
 #print etree.tostring(dataset)
 url = urllib.parse.urljoin(root, url_data)
-r = session.postxml(url, xml=etree.tostring(dataset))
+r = session.postxml(url, xml=etree.tostring(dataset, encoding='unicode'))
 print(r)

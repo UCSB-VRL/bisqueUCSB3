@@ -66,7 +66,7 @@ def local_xml_copy(root):
     #path = '/tmp/%s%s' % (root.tag, id)
     path = os.path.join(tempfile.gettempdir(), "%s%s" % (root.tag, id))
     f = open (path, 'w')
-    f.write (etree.tostring (root))
+    f.write (etree.tostring (root, encoding='unicode'))
     f.close()
     return path
 

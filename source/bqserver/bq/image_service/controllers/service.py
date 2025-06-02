@@ -207,7 +207,7 @@ class ImageServiceController(ServiceController):
         etree.SubElement(response, 'method', name='%s/ID/OPERATION1:PAR1/OPERATION2:PAR2'%service_path, value='Executes operations for give image ID. Call /operations to check available')
         etree.SubElement(response, 'method', name='%s/image/ID'%service_path, value='same as /ID')
         etree.SubElement(response, 'method', name='%s/images/ID'%service_path, value='same as /ID, deprecated and will be removed in the future')
-        return etree.tostring(response)
+        return etree.tostring(response, encoding='unicode')
 
     @expose()
     def operations(self, **kw):

@@ -121,7 +121,7 @@ class DNServer(ServiceController):
 #                          path  = '/home/bisque/incoming'
 #                          )
 
-        return etree.tostring(response)
+        return etree.tostring(response, encoding='unicode')
 
 
     @expose(content_type="text/xml")

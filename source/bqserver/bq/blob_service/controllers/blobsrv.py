@@ -153,7 +153,7 @@ class PathService (TGController):
         etree.SubElement (resource,'method', name='insert?path=store_url', value="Insert resources at the path")
         etree.SubElement (resource,'method', name='move?path=store_url&destination=store_url', value="Move a resources at the path to a new path")
         etree.SubElement (resource,'method', name='delete?path=store_url', value="Delete resources at the path")
-        return etree.tostring (resource)
+        return etree.tostring (resource, encoding='unicode')
 
     @expose(content_type='text/xml')
     @require(predicates.not_anonymous())
@@ -161,7 +161,7 @@ class PathService (TGController):
         'Find a resource identified by a path'
         log.info("list( %s )" ,  path)
         resource = data_service.query('image|file', resource_value = path, wpublic='1', cache=False)
-        return etree.tostring(resource)
+        return etree.tostring(resource, encoding='unicode')
 
     @expose(content_type='text/xml')
     @require(predicates.not_anonymous())
@@ -186,10 +186,10 @@ class PathService (TGController):
 
         if resource.get ('name') is None:
             resource.set ('name',  path.replace(driver.mount_url, ''))
-        log.debug ("insert %s %s %s", path, driver.mount_url, etree.tostring (resource))
+        log.debug ("insert %s %s %s", path, driver.mount_url, etree.tostring (resource, encoding='unicode'))
 
         resource = self.blobsrv.store_blob(resource)
-        return etree.tostring(resource)
+        return etree.tostring(resource, encoding='unicode')
 
     @expose(content_type='text/xml')
     @require(predicates.not_anonymous())
@@ -225,7 +225,7 @@ class PathService (TGController):
             partial_path = destination.replace(driver.mount_url,'')
             self.mounts.insert_mount_path(store, partial_path, resource)
 
-        return etree.tostring(resource)
+        return etree.tostring(resource, encoding='unicode')
 
     @expose(content_type='text/xml')
     @require(predicates.not_anonymous())
@@ -242,7 +242,7 @@ class PathService (TGController):
         resource = data_service.query("file|image", resource_value = path, wpublic='1', cache=False)
         for child in resource:
             data_service.del_resource (child, delete_blob=delete_blob)
-        return etree.tostring(resource)
+        return etree.tostring(resource, encoding='unicode')
 
 
     def _check_post_body (self):
@@ -358,7 +358,7 @@ class BlobServer(RestController, ServiceMixin):
             if 'localpath' in kw:
                 tg.response.headers['Content-Type']  = 'text/xml'
                 resource = etree.Element ('resource', name=filename, value=localpath)
-                return etree.tostring (resource)
+                return etree.tostring (resource, encoding='unicode')
 
             disposition = '' if 'noattach' in kw else 'attachment; '
             try:
@@ -452,7 +452,7 @@ class BlobServer(RestController, ServiceMixin):
 
         if resource.get('resource_uniq') is None:
             resource.set('resource_uniq', data_service.resource_uniq() )
-        log.info ("INSERTING NEW RESOURCE <= %s" , etree.tostring(resource))
+        log.info ("INSERTING NEW RESOURCE <= %s" , etree.tostring(resource, encoding='unicode'))
         new_resource = data_service.new_resource(resource = resource, flush=False)
         return new_resource
         #if asbool(config.get ('bisque.blob_service.store_paths', True)):

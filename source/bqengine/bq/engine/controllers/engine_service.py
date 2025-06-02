@@ -294,7 +294,7 @@ class EngineServer(ServiceController):
         for m in self.modules:
             module_uri = urllib.parse.urljoin (tg.request.host_url, "/".join ([self.service_type, m.get('name')]))
             etree.SubElement(resource, 'service', name=m.get('name'), value=module_uri)
-        return etree.tostring(resource)
+        return etree.tostring(resource, encoding='unicode')
 
     @expose(content_type="text/xml")
     def _default(self, *path, **kw):
@@ -473,7 +473,7 @@ class EngineModuleResource(BaseController):
             return dict (module_uri  = self.module_uri(),
                          module_name = self.name,
                          module_def  = self.definition_as_dict(),
-                         module_xml  = etree.tostring(self.module_xml),
+                         module_xml  = etree.tostring(self.module_xml, encoding='unicode'),
 
                          inputs  = self.inputs,
                          outputs = self.outputs,
@@ -492,7 +492,7 @@ class EngineModuleResource(BaseController):
             return dict (module_uri  = self.module_uri(),
                          module_name = self.name,
                          module_def  = self.definition_as_dict(),
-                         module_xml  = etree.tostring(self.module_xml),
+                         module_xml  = etree.tostring(self.module_xml, encoding='unicode'),
 
                          inputs  = self.inputs,
                          outputs = self.outputs,
@@ -521,7 +521,7 @@ class EngineModuleResource(BaseController):
     def definition(self, **kw):
         # rewrite stuff here for actual entry points
         self.module_xml.set('value', self.module_uri())
-        return etree.tostring(self.module_xml)
+        return etree.tostring(self.module_xml, encoding='unicode')
 
     @expose()
     def status (self):
@@ -569,7 +569,7 @@ class EngineModuleResource(BaseController):
         if mex is not None:
             #log.info ("New execution of %s" , mex.get('name'))
             mex = self.start_execution(mex)
-            response =  etree.tostring(mex)
+            response =  etree.tostring(mex, encoding='unicode')
             return response
         else:
             illegal_operation()
@@ -644,7 +644,7 @@ class EngineModuleResource(BaseController):
             status, output = adapter.build(module)
             build_tree = etree.Element('build', status=status)
             build_tree.text = output
-            response =  etree.tostring(build_tree)
+            response =  etree.tostring(build_tree, encoding='unicode')
             return response
 
         except Exception:

@@ -73,10 +73,10 @@ class Feature(object):
         if path is None:
             f = tempfile.NamedTemporaryFile(suffix='.h5', dir=tempfile.gettempdir(), delete=False)
             f.close()
-            session.c.push(url, content=etree.tostring(resource), headers={'Content-Type':'text/xml', 'Accept':'application/x-bag'}, path=f.name)
+            session.c.push(url, content=etree.tostring(resource, encoding='unicode'), headers={'Content-Type':'text/xml', 'Accept':'application/x-bag'}, path=f.name)
             return tables.open_file(f.name,'r')
         log.debug('Returning feature response to %s' % path)
-        return session.c.push(url, content=etree.tostring(resource), headers={'Content-Type':'text/xml', 'Accept':'application/x-bag'}, path=path)
+        return session.c.push(url, content=etree.tostring(resource, encoding='unicode'), headers={'Content-Type':'text/xml', 'Accept':'application/x-bag'}, path=path)
 
 
 

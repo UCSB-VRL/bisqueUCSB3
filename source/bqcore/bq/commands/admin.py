@@ -342,7 +342,7 @@ class preferences (object):
                     print ("deleting current system object")
                     data_service.del_resource(x[0])
                 else:
-                    print(("NO ACTION: System object initialized at %s " % etree.tostring(x[0])))
+                    print(("NO ACTION: System object initialized at %s " % etree.tostring(x[0], encoding='unicode')))
                     sys.exit (1)
 
             if os.path.exists(prefs):
@@ -380,7 +380,7 @@ class preferences (object):
         transaction.commit()
         if system is not None:
             with open(prefs,'w') as f:
-                f.write(etree.tostring(system, pretty_print=True))
+                f.write(etree.tostring(system, pretty_print=True, encoding='unicode'))
                 print("Wrote %s" % prefs)
 
 

@@ -77,7 +77,7 @@ class PipelineController(ServiceController):
         """Add your service description here """
         response = etree.Element ('resource', uri=self.baseuri)
         etree.SubElement(response, 'method', name='%sID'%self.baseuri, value='Return pipeline with ID.')
-        return etree.tostring(response)
+        return etree.tostring(response, encoding='unicode')
 
     def check_access(self, uniq):
         resource = data_service.resource_load (uniq = uniq)

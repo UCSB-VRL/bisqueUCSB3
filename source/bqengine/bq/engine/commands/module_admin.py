@@ -176,7 +176,7 @@ class module_admin(object):
             if self.options.published:
                 for el in module_xml.getiterator(tag=etree.Element):
                     el.set ('permission', 'published')
-            xml = etree.tostring(module_xml)
+            xml = etree.tostring(module_xml, encoding='unicode')
             params = [ ('engine_uri', module_path) ]
             if self.module_uri:
                 params.append ( ('module_uri', self.module_uri) )

@@ -182,7 +182,7 @@ def iterate(duri=None, operation='idem', dataset=None, members = None, last= Fal
         if result is not None:
             results.append (result)
 
-    return etree.tostring(results)
+    return etree.tostring(results, encoding='unicode')
 
 
 
@@ -243,7 +243,7 @@ class DatasetServer(ServiceController):
 
         log.debug ("members = %s" % etree.tostring (dataset))
         r = data_service.update(dataset)
-        return etree.tostring(r)
+        return etree.tostring(r, encoding='unicode')
 
     @expose(content_type="text/xml")
     @require(predicates.not_anonymous())
