@@ -12,10 +12,11 @@ import posixpath
 import sys
 from bq.util.mkdir import _mkdir
 import glob
-from libtiff import TIFF
+# from libtiff import TIFF
+import tifffile #!!! tifffile is a more modern library for TIFF files
 import numpy as np
 
-from var import *
+from .var import *
 
 class TestNameSpace(object):
     """
@@ -342,8 +343,11 @@ def setup_mask_upload(ns):
 
     #save mask
     maskname = 'mask.tif'
-    tif = TIFF.open(os.path.join(ns.store_local_location, maskname), mode='w')
-    tif.write_image(mask)
+    # tif = TIFF.open(os.path.join(ns.store_local_location, maskname), mode='w')
+    # tif.write_image(mask)
+    
+    # !!! modern way to save TIFF files
+    tifffile.imwrite(os.path.join(ns.store_local_location, maskname), mask)
 
     content = upload_image_resource(ns.session, os.path.join(ns.store_local_location, maskname), '%s/%s'%(TEST_PATH, maskname))
     mask_resource_uri = content.attrib['uri']

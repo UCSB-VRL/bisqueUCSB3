@@ -273,7 +273,7 @@ class ConverterFfmpeg(ConverterBase):
 try:
     ConverterFfmpeg.init()
 except Exception:
-    log.warn("FFMPEG not available")
+    log.warning("FFMPEG not available")
 
 
 

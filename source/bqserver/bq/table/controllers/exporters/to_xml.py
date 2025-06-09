@@ -98,7 +98,8 @@ class ExporterXML (TableExporter):
     mime_type = 'text/xml'
 
     def info(self, table):
-        super(ExporterXML, self).info(table)
+        # super(ExporterXML, self).info(table)
+        super().info(table)
         xml = etree.Element ('resource', uri=table.url)
         if table.headers:
             # has headers => this is a leaf object (table or matrix)

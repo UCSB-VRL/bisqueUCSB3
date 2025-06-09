@@ -65,7 +65,13 @@ def generate_css_files(root=None, public=None):
 
         # -- plugin css
         #plugins = { 'path': root + 'bq/core/public/plugins/', 'file': '/plugins/' },
-        plugins = { 'file': '/core/plugins/', 'path' : public + "/core/plugins/" },
+        #plugins = { 'file': '/plugins/', 'path' : public + "/plugins/" },
+        # !!! Resolved the paths manually
+        '/plugins/table/table.css',
+        '/plugins/text/ResourceText.css',
+        '/plugins/pipeline/ResourcePipeline.css',
+        '/plugins/system/ResourceSystem.css',
+        '/plugins/branding/branding.css',
 
         # combined will not work for now due to relative urls in .css files
         #fs_root=public,
@@ -310,7 +316,12 @@ def generate_js_files(root=None, public=None):
 
         # -- plugin renderers
         #plugins = { 'path': root + 'bqcore/bq/core/public/plugins/', 'file': '/plugins/' },
-        plugins = { 'file': '/core/plugins/',  'path' : public + "/core/plugins/" },
+        # plugins = { 'file': '/core/plugins/',  'path' : public + "/core/plugins/" },
+        # !!! Resolved the paths manually
+        '/plugins/table/table.js',
+        '/plugins/text/ResourceText.js',
+        '/plugins/pipeline/ResourcePipeline.js',
+        '/plugins/system/ResourceSystem.js',
 
         # --
         **link_kw

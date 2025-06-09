@@ -2365,11 +2365,20 @@ def install_imgcnv ():
     filename_zip = os.path.join(DIRS['depot'], 'imgcnv.zip')
     imgcnv = which('imgcnv')
     if imgcnv :
-        r, version = call ([ imgcnv, '-v'], capture = True)
+        # r, version = call ([ imgcnv, '-v'], capture = True)
+        # if r == 0:
+        #     print(( "Found imgcnv version %s" % version))
+        # if  not os.path.exists(filename_zip):
+        #     print( "Imgcnv is installed and no-precompiled version exists. Using installed version")
+        #     return
+        # !!! Modern alternative
+        result = subprocess.run([imgcnv, '-v'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        r = result.returncode
+        version = result.stdout.decode().strip()
         if r == 0:
             print(( "Found imgcnv version %s" % version))
-        if  not os.path.exists(filename_zip):
-            print( "Imgcnv is installed and no-precompiled version exists. Using installed version")
+        if not os.path.exists(filename_zip):
+            print( "Imgcnv is installed and no pre-compiled version exists. Using installed version")
             return
 
     if not os.path.exists(filename_zip):

@@ -388,7 +388,10 @@ class ImageServer(object):
         log.debug('initialWorkPath Series: [%s]', series)
         if series != 0 and series is not None:
             if isinstance(series, int) is not True:
-                hash_object = hashlib.sha1(series)
+                # hash_object = hashlib.sha1(series)
+                # !!! In Python 3, hashlib requires bytes input
+                series_bytes = series.encode('utf-8') if isinstance(series, str) else str(series).encode('utf-8')
+                hash_object = hashlib.sha1(series_bytes)
                 series = hash_object.hexdigest()
                 image_id = '%s-%s'%(image_id, series)
         return os.path.realpath(os.path.join(self.workdir, user_name or '', subdir, image_id))

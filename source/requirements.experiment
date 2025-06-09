@@ -91,3 +91,9 @@ WebTest==3.0.4
 Werkzeug==3.1.3
 zope.interface==7.2
 zope.sqlalchemy==3.1
+# new requirements
+portalocker==3.1.1
+pydicom==3.0.1
+#excel files
+openpyxl==3.1.4
+xlrd==2.0.1 #for old xls files

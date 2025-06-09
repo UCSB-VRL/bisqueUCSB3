@@ -145,8 +145,16 @@ def format_csv (tree, view=None):
                 stack.append ( (sub, element) )
     return buffer.getvalue()
 
-def input_csv (inpf, **kw):
-    pass
+# def input_csv (inpf, **kw):
+#     pass
+# !!! before was unimplemented
+def input_csv (inpf, inplen=None, **kw):
+    """Parse CSV input and return XML tree"""
+    # For now, return a simple empty response tree
+    # TODO: Implement proper CSV to XML conversion if needed
+    root = etree.Element("response")
+    return root
+
 
 
 FORMATTERS = { 'xml' : (format_xml, 'text/xml' ),

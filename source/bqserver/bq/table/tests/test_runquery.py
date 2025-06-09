@@ -17,8 +17,11 @@ def cb_csv(slices):
 
 def get_cb_excel(t):
     def cb_excel(slices):
+        # data = pd.read_excel(t, 'my_sheet_N1', skiprows=range(1,slices[0].start+1), parse_cols=list(range(slices[1].start, slices[1].stop)))
         # read only slices
-        data = pd.read_excel(t, 'my_sheet_N1', skiprows=range(1,slices[0].start+1), parse_cols=list(range(slices[1].start, slices[1].stop)))
+        # Use usecols instead of deprecated parse_cols parameter
+        cols_to_read = list(range(slices[1].start, slices[1].stop))
+        data = pd.read_excel(t, 'my_sheet_N1', skiprows=range(1,slices[0].start+1), usecols=cols_to_read)
         # excel cannot read only a specified number of rows, select now
         return data[0:slices[0].stop-slices[0].start]
     return cb_excel

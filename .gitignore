@@ -226,4 +226,6 @@ Thumbs.db
 *.pid
 *.log.save
 /source/bqserver/bq/data_service/controllers/parsetab.py
+/source/public/*
+/source/external/*
 

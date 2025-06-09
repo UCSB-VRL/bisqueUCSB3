@@ -459,7 +459,8 @@ class TableBase(object):
     # ------------- TODO: move to subclasses -------------
     def as_array(self):
         if isinstance(self.data, pd.core.frame.DataFrame):
-            return self.data.as_matrix()   # convert to numpy array
+            # return self.data.as_matrix()
+            return self.data.values   # convert to numpy array
         else:
             return self.data
 
@@ -598,7 +599,16 @@ class TableBase(object):
         return self.types
 
     def get_type(self, colname):
-        return self.get_types()[ self._convert_to_colnum(colname) ]
+        # return self.get_types()[ self._convert_to_colnum(colname) ]
+        colnum = self._convert_to_colnum(colname)
+        types = self.get_types()
+        log.info("get_type: colname=%s, colnum=%s, types_len=%s, headers_len=%s", 
+                  colname, colnum, len(types) if types else 'None', len(self.headers) if self.headers else 'None')
+        if types is None:
+            raise RuntimeError("No types available")
+        if colnum is None or colnum >= len(types):
+            raise IndexError("Column index %s out of range for types array of length %s" % (colnum, len(types)))
+        return types[colnum]
 
     def get_slices(self, sels, cond):
         slices = None
@@ -669,11 +679,39 @@ class TableBase(object):
         raise NotImplementedError()
 
     def _convert_to_colnum(self, colname):
-        if colname is None or isinstance(colname, int):
+        # if colname is None or isinstance(colname, int):
+        if colname is None:
             return colname
+        
+        # First, always check if the value exists as a header name (even if it's numeric)
         for ix in range(len(self.headers)):
             if self.headers[ix] == colname:
                 return ix
+        
+        # If not found in headers and it's an integer, treat as direct index
+        if isinstance(colname, int):
+            if 0 <= colname < len(self.headers):
+                return colname
+            else:
+                raise RuntimeError("column index %s out of range (0-%s)" % (colname, len(self.headers)-1))
+        
+        # If it's a string that looks like a number, try to find it in headers first
+        # (this is important for Excel sheets with numeric column names)
+        try:
+            numeric_val = int(colname)
+            # Check if this numeric value exists as a header name
+            for ix in range(len(self.headers)):
+                if self.headers[ix] == numeric_val:
+                    return ix
+            # If not found as header name and within range, use as direct index
+            if 0 <= numeric_val < len(self.headers):
+                return numeric_val
+            else:
+                raise RuntimeError("column %s not found and index out of range (0-%s)" % (colname, len(self.headers)-1))
+        except ValueError:
+            # Not a numeric string, original behavior
+            pass
+            
         raise RuntimeError("column %s not found" % colname)
 
     def _or_slices(self, slices1, slices2):

@@ -188,7 +188,7 @@ def uwsgi_command(command, options, cfgopt, processes,  cfg_file = None, *args):
         if options.verbose:
             print(msg)
 
-    if command is 'stop':
+    if command == 'stop':
         pidfile = cfgopt['pidfile']
         uwsgi_cmd = [exe_path('uwsgi'), '--stop', pidfile]
         #processes.append(Popen(uwsgi_cmd,shell=True,stdout=sys.stdout))
@@ -199,7 +199,7 @@ def uwsgi_command(command, options, cfgopt, processes,  cfg_file = None, *args):
                 print("Stop failed .. process already dead?")
             if os.path.exists (pidfile):
                 os.remove (pidfile)
-    elif command is 'start':
+    elif command == 'start':
         #uwsgi_opts = cfgopt['uwsgi']
         uwsgi_cmd = [exe_path('uwsgi'), '--ini-paste', cfg_file,
 #                     '--env', 'LC_ALL=en_US.UTF-8',
@@ -220,7 +220,7 @@ def logger_command(command, cfgopt, processes):
     launcher  = shlex.split (cfgopt['logging_server'])
 
     print("%s logging service" % ING[command])
-    if command is 'start':
+    if command == 'start':
         with open(os.devnull, 'w') as fnull:
             #logger = Popen(cfgopt['logging_server'], stdout=fnull, stderr=fnull, shell=True)
             logger = Popen([exe_path (launcher[0])] + launcher[1:],  shell= (os.name == 'nt') )
@@ -230,7 +230,7 @@ def logger_command(command, cfgopt, processes):
         else:
             print("log_service pid %s with code %s" % (logger.pid, logger.returncode))
         processes.append(logger)
-    elif command is 'stop':
+    elif command == 'stop':
         if  os.path.exists (pidfile):
             with open(pidfile, 'r') as pd:
                 pid = int (pd.read())
