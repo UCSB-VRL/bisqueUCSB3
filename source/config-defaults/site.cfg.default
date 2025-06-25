@@ -84,9 +84,9 @@ bisque.welcome_message = Welcome to the Bisque database
 #bisque.background_resource  =
 #set environment to development for test/debug (option debug below must be false for this to effective)
 # temporarily set to development
-#bisque.js_environment = development
-bisque.js_environment = production
-#bisque.static_files = true
+bisque.js_environment = development
+# bisque.js_environment = production
+bisque.static_files = true
 
 
 

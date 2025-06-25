@@ -1016,19 +1016,36 @@ def bquser_callback (tg_user, operation, **kw):
             #log.info ('---> created BQUSER', tg_user.user_name, tg_user.email_address)
             
             try:
-                log.info('created an iRODS user with password %s' , str(tg_user.password))
-                irods_integ = BisQueIrodsIntegration()
-                irods_integ.load_from_env()
-                irods_integ.create_user(str(tg_user.user_name), str(tg_user.password))
-                log.info ('created an iRODS user %s for BQUSER %s' , (tg_user.user_name, u.name))
+                # Check if iRODS integration is configured before attempting
+                import os
+                irods_host = os.environ.get('BISQUE_IRODS_HOST', '')
+                if not irods_host:
+                    log.info('iRODS integration skipped: BISQUE_IRODS_HOST environment variable not set')
+                else:
+                    log.info('Creating iRODS user account for %s', tg_user.user_name)
+                    irods_integ = BisQueIrodsIntegration()
+                    irods_integ.load_from_env()
+                    irods_integ.create_user(str(tg_user.user_name), str(tg_user.password))
+                    log.info('Successfully created iRODS user %s for BQUSER %s', tg_user.user_name, u.name)
             except Exception as e:
-                log.exception ("An exception occured during iRODS account creation: %s" , str(e))
+                log.warning("iRODS account creation failed for user %s: %s", tg_user.user_name, str(e))
+                log.debug("Full iRODS integration traceback:", exc_info=True)
+            
             try:
-                subprocess.call(["mc", "admin", "user", "add", "ucsb", str(tg_user.user_name), str(tg_user.email_address)])
-                subprocess.call(["mc", "admin", "group", "add", "ucsb", 'bisque', str(tg_user.user_name)])
-                subprocess.call(["mc", "mb", "ucsb/{}".format(str(tg_user.user_name))])
+                # Check if MinIO mc command is available before attempting
+                import shutil
+                mc_path = shutil.which('mc')
+                if not mc_path:
+                    log.info('MinIO S3 integration skipped: mc command not found in PATH')
+                else:
+                    log.info('Creating MinIO S3 user account for %s', tg_user.user_name)
+                    subprocess.call(["mc", "admin", "user", "add", "ucsb", str(tg_user.user_name), str(tg_user.email_address)])
+                    subprocess.call(["mc", "admin", "group", "add", "ucsb", 'bisque', str(tg_user.user_name)])
+                    subprocess.call(["mc", "mb", "ucsb/{}".format(str(tg_user.user_name))])
+                    log.info('Successfully created MinIO S3 user %s for BQUSER %s', tg_user.user_name, u.name)
             except Exception as e:
-                log.exception ("An exception occured during MINIO S3 account creation: %s" , str(e))
+                log.warning("MinIO S3 account creation failed for user %s: %s", tg_user.user_name, str(e))
+                log.debug("Full MinIO integration traceback:", exc_info=True)
         return
 
 
