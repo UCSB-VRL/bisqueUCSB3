@@ -197,8 +197,8 @@ class RootController(BaseController):
         for name, service in mount_services (root, wanted, unwanted):
             # This will circumvent the use of lookup below by
             # directly mount the services on the root class controller
-            #setattr(cls, name, service)
-            pass
+            setattr(cls, name, service)
+            log.debug("Mounted service '%s' at /%s", name, name)
 
 
 

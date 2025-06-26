@@ -20,7 +20,7 @@ PySqlite==2.8.3
 tempita==0.5.2
 ToscaWidgets==0.9.12
 TurboGears2==2.1.5
-TurboMail==3.0.3
+# TurboMail==3.0.3  # Deprecated - replaced by unified email service in bq.core.mail
 WebError==0.10.3
 WebFlash==0.1a9
 WebHelpers==1.3

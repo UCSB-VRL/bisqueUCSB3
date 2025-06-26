@@ -191,7 +191,56 @@ class AuthenticationServer(ServiceController):
         if not request.identity:
             login_counter = int (request.environ.get('repoze.who.logins',0)) + 1
             redirect(url('/auth_service/login',params=dict(came_from=came_from, __logins=login_counter)))
+        
         userid = request.identity['repoze.who.userid']
+        
+        # Check email verification status FIRST before proceeding with login
+        try:
+            from bq.registration.email_verification import get_email_verification_service
+            from bq.data_service.model import BQUser
+            from bq.data_service.model.tag_model import DBSession
+            
+            email_service = get_email_verification_service()
+            if email_service and email_service.is_available():
+                # Find the user by username
+                bq_user = DBSession.query(BQUser).filter(BQUser.resource_name == userid).first()
+                if bq_user:
+                    # Check if user is verified
+                    is_verified = email_service.is_user_verified(bq_user)
+                    if not is_verified:
+                        # User is not verified - deny login completely
+                        log.warning(f"Login denied for unverified user: {userid}")
+                        
+                        # Force logout by redirecting to logout handler first
+                        flash(_('Your email address must be verified before you can sign in. Please check your email for the verification link or request a new one.'), 'error')
+                        redirect('/auth_service/logout_handler?came_from=/registration/resend_verification')
+                        return  # This should never be reached due to redirect
+                    else:
+                        log.info(f"Email verified user logged in: {userid}")
+                else:
+                    log.warning(f"User not found in database during email verification check: {userid}")
+            else:
+                log.debug(f"Email verification not available - allowing login for: {userid}")
+                
+        except (ImportError, AttributeError, NameError) as import_error:
+            # Only catch import/attribute errors, not redirects
+            log.error(f"Error importing email verification modules for {userid}: {import_error}")
+            # Allow login to continue if email verification modules can't be imported
+        except Exception as e:
+            # Check if this is a redirect exception (which is normal)
+            import tg.exceptions
+            if isinstance(e, (tg.exceptions.HTTPFound, tg.exceptions.HTTPRedirection)):
+                # This is a redirect, let it propagate normally
+                raise
+            else:
+                # This is a real error
+                log.error(f"Error checking email verification status for {userid}: {e}")
+                # If there's an error checking verification, allow login to avoid breaking the system
+                # but log it for investigation
+                import traceback
+                log.error(f"Email verification check error traceback: {traceback.format_exc()}")
+        
+        # Original login logic continues only if user is verified or verification is disabled
         flash(_('Welcome back, %s!') % userid)
         self._begin_mex_session()
         timeout = int (config.get ('bisque.login.timeout', '0').split('#')[0].strip())

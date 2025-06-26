@@ -108,14 +108,27 @@ except:
 #from setuptools.command import easy_install
 
 try:
-    from marrow.mailer import  Mailer
-    MAILER='marrow.mailer'
+    from bq.core.mail import get_email_service
+    UNIFIED_EMAIL_AVAILABLE = True
 except ImportError:
+    UNIFIED_EMAIL_AVAILABLE = False
+
+# Use unified email service (bq.core.mail) instead of legacy mail libraries
+try:
+    # Check if our unified email service is available
+    from bq.core.mail import get_email_service
+    MAILER = 'unified'
+except ImportError:
+    # Fallback to legacy systems if needed (for compatibility during transition)
     try:
-        import turbomail as Mailer
-        MAILER='turbomail'
+        from marrow.mailer import Mailer
+        MAILER = 'marrow.mailer'
     except ImportError:
-        MAILER=None
+        try:
+            import turbomail as Mailer
+            MAILER = 'turbomail'  # Legacy - deprecated
+        except ImportError:
+            MAILER = None
 
 
 #logging.basicConfig(level=logging.DEBUG)
@@ -1120,8 +1133,8 @@ def initialize_database(params, DBURL=None):
         """) == "Y":
         # !!! modified apporach for python 3
         result = subprocess.run([bin_path('paster'),'setup-app', config_path('site.cfg')], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        # print("STDOUT:\n", result.stdout)
-        # print("STDERR:\n", result.stderr)
+        print("STDOUT:\n", result.stdout)
+        print("STDERR:\n", result.stderr)
         if result.returncode != 0:
             raise SetupError("There was a problem initializing the Database")
         # !!! old approach
@@ -1913,33 +1926,59 @@ def install_runtime(params, runtime_params, cfg = None):
     return params, runtime_params
 
 
-#######################################################
-#
-if MAILER=='marrow.mailer':
-    MAIL_QUESTIONS = [
+# Unified email configuration questions (for all mail systems)
+# This is the modern approach - all new installations should use this
+MAIL_QUESTIONS = [
+    ('bisque.smtp.host', "SMTP server hostname", "SMTP Host", 'localhost'),
+    ('bisque.smtp.port', "SMTP server port", "SMTP Port", '587'),
+    ('bisque.smtp.username', "SMTP username (if required)", "SMTP Username", ''),
+    ('bisque.smtp.password', "SMTP password (if required)", "SMTP Password", ''),
+    ('bisque.smtp.tls', "Use TLS encryption", "Use TLS", 'true'),
+    ('bisque.mail.from_email', "From email address", "From Email", 'noreply@localhost'),
+    ('bisque.mail.from_name', "From name", "From Name", 'Bisque System'),
+]
+
+SMTP_QS = [
+    ('bisque.smtp.host', "SMTP server hostname", "SMTP Host", 'localhost'),
+    ('bisque.smtp.port', "SMTP server port", "SMTP Port", '587'),
+    ('bisque.smtp.username', "SMTP username (if required)", "SMTP Username", ''),
+    ('bisque.smtp.password', "SMTP password (if required)", "SMTP Password", ''),
+    ('bisque.smtp.tls', "Use TLS encryption", "Use TLS", 'true'),
+]
+
+# Legacy mail configuration (deprecated - for backward compatibility only)
+if MAILER == 'marrow.mailer':
+    # Keep legacy questions for marrow.mailer if still in use
+    LEGACY_MAIL_QUESTIONS = [
         ('mail.transport.use', "Enter mail transport", "Mail transport", "smtp"),
-    ]
-    SMTP_QS = [
         ('mail.transport.host', "Enter your smtp mail server",
          "The mail server that delivers mail.. often localhost"),
-        ('mail.transport.username', "A login for authenticated smtp", "Usernmae"),
+        ('mail.transport.username', "A login for authenticated smtp", "Username"),
         ('mail.transport.password.', "A login password for authenticated smtp", "password"),
         ('mail.transport.tls', "Use TLS", "Use TLS", 'false'),
     ]
-if MAILER=='turbomail':
-    MAIL_QUESTIONS = [
+    
+elif MAILER == 'turbomail':
+    # Legacy TurboMail questions (deprecated)
+    LEGACY_MAIL_QUESTIONS = [
         ('mail.smtp.server', "Enter mail transport", "Mail transport"),
     ]
-    SMTP_QS = []
-
-if MAILER is None:
-    MAIL_QUESTIONS = [
-    ]
-    SMTP_QS = [
-    ]
+    
+else:
+    LEGACY_MAIL_QUESTIONS = []
 
 def install_mail(params, runtime_params):
-    params['mail.smtp.server'] = os.getenv('MAIL_SERVER', params['mail.smtp.server'])
+    # Support environment variables for unified email configuration
+    params['bisque.smtp.host'] = os.getenv('BISQUE_SMTP_HOST', params.get('bisque.smtp.host', 'localhost'))
+    params['bisque.smtp.port'] = os.getenv('BISQUE_SMTP_PORT', params.get('bisque.smtp.port', '587'))
+    params['bisque.smtp.username'] = os.getenv('BISQUE_SMTP_USER', params.get('bisque.smtp.username', ''))
+    params['bisque.smtp.password'] = os.getenv('BISQUE_SMTP_PASSWORD', params.get('bisque.smtp.password', ''))
+    params['bisque.smtp.tls'] = os.getenv('BISQUE_SMTP_TLS', params.get('bisque.smtp.tls', 'true'))
+    params['bisque.mail.from_email'] = os.getenv('BISQUE_MAIL_FROM', params.get('bisque.mail.from_email', 'noreply@localhost'))
+    
+    # Legacy support for old mail.smtp.server setting
+    if 'mail.smtp.server' in params:
+        params['mail.smtp.server'] = os.getenv('MAIL_SERVER', params['mail.smtp.server'])
 
 
     if getanswer ("Enable mail delivery","Y",
