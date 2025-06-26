@@ -1270,3 +1270,280 @@ class RegistrationController(BaseController):
                     'email_verification_enabled': email_verification_enabled,
                     'email_verification_status': email_verification_status
                 }
+
+    # =========================================
+    # USER PROFILE EDITING FUNCTIONALITY
+    # =========================================
+    
+    @expose('bq.registration.templates.edit_user')
+    def edit_user(self, **kw):
+        """User profile editing form"""
+        from tg import request
+        from bq.core.model.auth import User
+        from bq.data_service.model import BQUser
+        from bq.data_service.model.tag_model import Tag
+        
+        # Check if user is logged in
+        if not request.identity or not request.identity.get('repoze.who.userid'):
+            flash('You must be logged in to edit your profile.', 'error')
+            redirect('/auth_service/login')
+        
+        current_user = request.identity.get('user')
+        if not current_user:
+            flash('User session not found. Please log in again.', 'error')
+            redirect('/auth_service/login')
+            
+        username = current_user.user_name
+        
+        try:
+            # Get user details from BQUser
+            bq_user = DBSession.query(BQUser).filter(BQUser.resource_name == username).first()
+            if not bq_user:
+                flash('User profile not found.', 'error')
+                redirect('/client_service/')
+            
+            email = bq_user.resource_value
+            
+            # Get user tags (additional profile information)
+            user_tags = {}
+            tags = DBSession.query(Tag).filter(Tag.parent == bq_user).all()
+            for tag in tags:
+                user_tags[tag.name] = tag.value
+            
+            # Get current user information
+            user_info = {
+                'username': username,
+                'email': email,
+                'fullname': user_tags.get('fullname', ''),
+                'research_area': user_tags.get('research_area', ''),
+                'institution_affiliation': user_tags.get('institution_affiliation', ''),
+                'funding_agency': user_tags.get('funding_agency', ''),
+                'account_created': bq_user.ts if hasattr(bq_user, 'ts') else 'Unknown',
+                'verified': self._safe_email_call("is_user_verified", bq_user) if self.email_service else False
+            }
+            
+            # Get email verification status for display
+            email_verification_status = self._safe_email_call('validate_configuration')
+            email_verification_enabled = email_verification_status.get('available', False) if email_verification_status else False
+            
+            return {
+                'msg': 'Edit User Profile',
+                'user': user_info,
+                'email_verification_enabled': email_verification_enabled,
+                'email_verification_status': email_verification_status
+            }
+            
+        except Exception as e:
+            log.error(f"Error loading user profile for {username}: {e}")
+            flash('Error loading user profile. Please try again.', 'error')
+            redirect('/client_service/')
+
+    @expose('json')
+    @expose('bq.registration.templates.edit_user')
+    def update_user(self, **kw):
+        """Process user profile update"""
+        from tg import request
+        from bq.core.model.auth import User
+        from bq.data_service.model import BQUser
+        from bq.data_service.model.tag_model import Tag
+        
+        # Check if user is logged in
+        if not request.identity or not request.identity.get('repoze.who.userid'):
+            error_msg = 'You must be logged in to update your profile.'
+            return self._handle_edit_user_response('error', error_msg, **kw)
+        
+        current_user = request.identity.get('user')
+        if not current_user:
+            error_msg = 'User session not found. Please log in again.'
+            return self._handle_edit_user_response('error', error_msg, **kw)
+            
+        username = current_user.user_name
+        
+        # Get form data
+        fullname = kw.get('fullname', '').strip()
+        research_area = kw.get('research_area', '').strip()
+        institution_affiliation = kw.get('institution_affiliation', '').strip()
+        funding_agency = kw.get('funding_agency', '').strip()
+        new_password = kw.get('new_password', '').strip()
+        confirm_password = kw.get('confirm_password', '').strip()
+        
+        # Validation
+        if not fullname:
+            error_msg = 'Full name is required.'
+            return self._handle_edit_user_response('error', error_msg, **kw)
+        
+        if not research_area:
+            error_msg = 'Research area is required.'
+            return self._handle_edit_user_response('error', error_msg, **kw)
+        
+        if not institution_affiliation:
+            error_msg = 'Institution affiliation is required.'
+            return self._handle_edit_user_response('error', error_msg, **kw)
+        
+        # Password validation if changing password
+        if new_password:
+            if len(new_password) < 6:
+                error_msg = 'Password must be at least 6 characters long.'
+                return self._handle_edit_user_response('error', error_msg, **kw)
+            
+            if new_password != confirm_password:
+                error_msg = 'Passwords do not match.'
+                return self._handle_edit_user_response('error', error_msg, **kw)
+        
+        try:
+            # Get user records
+            bq_user = DBSession.query(BQUser).filter(BQUser.resource_name == username).first()
+            if not bq_user:
+                error_msg = 'User profile not found.'
+                return self._handle_edit_user_response('error', error_msg, **kw)
+            
+            if not bq_user:
+                error_msg = 'User profile not found.'
+                return self._handle_edit_user_response('error', error_msg, **kw)
+            
+            # Update password if provided (using TurboGears User password property which handles hashing)
+            if new_password:
+                current_user.password = new_password  # This uses the TurboGears User _set_password method
+                log.info(f"Password updated for user {username}")
+            
+            # Update TurboGears User display_name to match the new fullname
+            current_user.display_name = fullname
+            log.info(f"Updated TurboGears User display_name to {fullname} for user {username}")
+            
+            # Update user tags - find existing tags or create new ones
+            tag_updates = {
+                'display_name': fullname,  # This is the standard tag name for full name
+                'fullname': fullname,
+                'research_area': research_area,
+                'institution_affiliation': institution_affiliation,
+                'funding_agency': funding_agency
+            }
+            
+            for tag_name, tag_value in tag_updates.items():
+                # Try to find existing tag using findtag method
+                existing_tag = bq_user.findtag(tag_name)
+                
+                if existing_tag:
+                    # Update existing tag
+                    existing_tag.value = tag_value
+                    log.info(f"Updated existing tag {tag_name} for user {username}")
+                else:
+                    # Create new tag
+                    new_tag = Tag(parent=bq_user)
+                    new_tag.name = tag_name
+                    new_tag.value = tag_value
+                    new_tag.owner = bq_user
+                    DBSession.add(new_tag)
+                    log.info(f"Created new tag {tag_name} for user {username}")
+            
+            # Transaction will be committed automatically by TurboGears transaction manager
+            
+            # Clear server-side cache for this user to ensure fresh data on next request
+            try:
+                from bq.data_service.controllers.data_service import invalidate_cache_user
+                if hasattr(invalidate_cache_user, '__call__'):
+                    invalidate_cache_user(bq_user.id)
+                    log.info(f"Invalidated server cache for user {username}")
+            except (ImportError, AttributeError):
+                # If cache invalidation is not available, log it but don't fail
+                log.info(f"Cache invalidation not available - user data may be cached")
+            
+            success_msg = 'Profile updated successfully!'
+            
+            log.info(f"Profile updated for user {username}")
+            return self._handle_edit_user_response('success', success_msg, **kw)
+            
+        except HTTPFound:
+            # Re-raise redirect exceptions (these are not errors)
+            raise
+        except Exception as e:
+            log.error(f"Error updating profile for {username}: {e}")
+            # Don't manually rollback - let TurboGears transaction manager handle it
+            error_msg = 'Error updating profile. Please try again.'
+            return self._handle_edit_user_response('error', error_msg, **kw)
+
+    def _handle_edit_user_response(self, status, message, **kw):
+        """Handle response for user profile editing"""
+        from tg import request
+        
+        # Check if this is an AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or \
+           'application/json' in request.headers.get('Accept', ''):
+            return {'status': status, 'message': message}
+        else:
+            flash(message, status)
+            if status == 'success':
+                redirect('/registration/edit_user')
+            else:
+                # For errors, return the edit form with the error message instead of redirecting
+                # This avoids HTTPFound exceptions in error handling contexts
+                return self.edit_user(**kw)
+
+    # =========================================
+    # DEBUG ENDPOINT (temporary for troubleshooting)
+    # =========================================
+    
+    @expose('json')
+    def debug_user_tags(self, username=None):
+        """Debug endpoint to check user tags - temporary for troubleshooting"""
+        from tg import request
+        from bq.data_service.model import BQUser
+        from bq.data_service.model.tag_model import Tag
+        
+        if not username:
+            if not request.identity or not request.identity.get('repoze.who.userid'):
+                return {'error': 'Not logged in and no username provided'}
+            current_user = request.identity.get('user')
+            username = current_user.user_name if current_user else None
+            
+        if not username:
+            return {'error': 'No username available'}
+        
+        try:
+            # Find the user
+            bq_user = DBSession.query(BQUser).filter(BQUser.resource_name == username).first()
+            if not bq_user:
+                return {'error': f'User {username} not found'}
+            
+            # Get all tags for this user
+            tags = DBSession.query(Tag).filter(Tag.parent == bq_user).all()
+            
+            result = {
+                'user_id': bq_user.id,
+                'username': bq_user.resource_name,
+                'email': bq_user.resource_value,
+                'total_tags': len(tags),
+                'tags': []
+            }
+            
+            for tag in tags:
+                result['tags'].append({
+                    'id': tag.id,
+                    'name': tag.name,
+                    'value': tag.value,
+                    'owner_id': tag.owner_id
+                })
+            
+            # Test findtag method
+            result['findtag_test'] = {}
+            test_tags = ['display_name', 'fullname', 'research_area', 'institution_affiliation', 'funding_agency']
+            for tag_name in test_tags:
+                found_tag = bq_user.findtag(tag_name)
+                if found_tag:
+                    result['findtag_test'][tag_name] = {
+                        'found': True,
+                        'id': found_tag.id,
+                        'value': found_tag.value
+                    }
+                else:
+                    result['findtag_test'][tag_name] = {'found': False}
+            
+            return result
+            
+        except Exception as e:
+            log.error(f"Error in debug_user_tags: {e}")
+            return {'error': str(e)}
+
+    # =========================================
+    # END DEBUG SECTION
+    # =========================================

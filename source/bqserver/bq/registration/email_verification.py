@@ -477,6 +477,51 @@ The Bisque Team
             log.error(f"Failed to reset password for user {bq_user.resource_name}: {e}")
             return {'success': False, 'error': str(e)}
 
+    def mark_user_as_unverified(self, bq_user):
+        """Mark a user's email as unverified (e.g., when they change email)"""
+        try:
+            log.info(f"Marking user {bq_user.resource_name} as email unverified")
+            
+            # Remove verification tags
+            verified_tag = DBSession.query(Tag).filter(
+                Tag.parent == bq_user,
+                Tag.resource_name == 'email_verified'
+            ).first()
+            
+            if verified_tag:
+                DBSession.delete(verified_tag)
+                log.info(f"Removed email_verified tag for user {bq_user.resource_name}")
+            
+            verified_time_tag = DBSession.query(Tag).filter(
+                Tag.parent == bq_user,
+                Tag.resource_name == 'email_verified_time'
+            ).first()
+            
+            if verified_time_tag:
+                DBSession.delete(verified_time_tag)
+                log.info(f"Removed email_verified_time tag for user {bq_user.resource_name}")
+            
+            # Remove any existing verification token to force new verification
+            token_tag = DBSession.query(Tag).filter(
+                Tag.parent == bq_user,
+                Tag.name == 'email_verification_token'
+            ).first()
+            
+            if token_tag:
+                DBSession.delete(token_tag)
+                log.info(f"Removed old verification token for user {bq_user.resource_name}")
+            
+            DBSession.flush()
+            log.info(f"User {bq_user.resource_name} marked as email unverified")
+            return {'success': True}
+            
+        except Exception as e:
+            log.error(f"Failed to mark user as unverified: {e}")
+            return {
+                'success': False,
+                'error': f"Failed to mark user as unverified: {e}"
+            }
+    
 # Global email verification service instance
 _email_verification_service = None
 
