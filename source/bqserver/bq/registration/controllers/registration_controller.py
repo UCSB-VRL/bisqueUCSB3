@@ -1024,3 +1024,249 @@ class RegistrationController(BaseController):
                 log.error(f"Full traceback: {traceback.format_exc()}")
                 flash('Verification failed due to a server error. Please try again.', 'error')
                 redirect('/registration/')
+
+    # Password Reset Methods
+    @expose('bq.registration.templates.lost_password')
+    def lost_password(self, **kw):
+        """Lost/forgot password form page"""
+        # Get email verification configuration status for display
+        email_verification_status = self._safe_email_call('validate_configuration')
+        email_verification_enabled = email_verification_status.get('available', False) if email_verification_status else False
+        
+        return {
+            'msg': 'Reset your password',
+            'email_verification_enabled': email_verification_enabled,
+            'email_verification_status': email_verification_status
+        }
+
+    @expose('json')
+    @expose('bq.registration.templates.lost_password')
+    def request_password_reset(self, **kw):
+        """Process password reset request"""
+        email = kw.get('email', '').strip()
+        if not email:
+            error_msg = 'Email address is required'
+            return self._handle_reset_response('error', error_msg, **kw)
+        
+        try:
+            # Find user by email
+            from bq.data_service.model import BQUser
+            users = DBSession.query(BQUser).filter(BQUser.resource_value == email).all()
+            if not users:
+                # Don't reveal if email exists for security - always show success
+                success_msg = 'If an account with this email exists, a password reset email has been sent.'
+                return self._handle_reset_response('success', success_msg, **kw)
+            
+            bq_user = users[0]
+            username = bq_user.resource_name
+            
+            # Get user's full name
+            from bq.data_service.model.tag_model import Tag
+            fullname_tag = DBSession.query(Tag).filter(
+                Tag.parent == bq_user,
+                Tag.name == 'fullname'
+            ).first()
+            fullname = fullname_tag.value if fullname_tag else username
+            
+            # Generate password reset token
+            reset_token = self._safe_email_call("generate_password_reset_token", email, username)
+            if not reset_token:
+                log.error(f"Failed to generate password reset token for {email}")
+                # Show success message even if token generation fails (for security)
+                success_msg = 'If an account with this email exists, a password reset email has been sent.'
+                return self._handle_reset_response('success', success_msg, **kw)
+            
+            log.info(f"Generated password reset token for {email}: {reset_token}")
+            
+            # Store reset token as a tag for later verification
+            token_tag = DBSession.query(Tag).filter(
+                Tag.parent == bq_user,
+                Tag.name == 'password_reset_token'
+            ).first()
+            
+            if token_tag:
+                log.info(f"Updating existing password reset token for {email}")
+                token_tag.value = reset_token
+            else:
+                log.info(f"Creating new password reset token tag for {email}")
+                token_tag = Tag(parent=bq_user)
+                token_tag.name = 'password_reset_token'
+                token_tag.value = reset_token
+                token_tag.owner = bq_user
+                DBSession.add(token_tag)
+            
+            # Send password reset email
+            base_url = request.host_url.rstrip('/')
+            send_result = self._safe_email_call("send_password_reset_email",
+                email, username, fullname, reset_token, base_url
+            )
+            
+            if not send_result or not send_result.get('success'):
+                log.error(f"Failed to send password reset email to {email}")
+                # Still show success for security, but log the error
+                success_msg = 'If an account with this email exists, a password reset email has been sent.'
+                return self._handle_reset_response('success', success_msg, **kw)
+            
+            DBSession.flush()
+            log.info(f"Password reset email sent successfully to {email}")
+            success_msg = 'If an account with this email exists, a password reset email has been sent.'
+            return self._handle_reset_response('success', success_msg, **kw)
+            
+        except Exception as e:
+            # Check if this is a redirect exception (which is normal)
+            if isinstance(e, HTTPFound):
+                # This is a redirect, let it propagate normally
+                raise
+            else:
+                # This is a real error
+                log.error(f"Password reset request failed for {email}: {e}")
+                # Show success message even for errors (for security)
+                success_msg = 'If an account with this email exists, a password reset email has been sent.'
+                return self._handle_reset_response('success', success_msg, **kw)
+
+    @expose('bq.registration.templates.reset_password')
+    def reset_password(self, **kw):
+        """Password reset form page"""
+        token = kw.get('token', '').strip()
+        email = kw.get('email', '').strip()
+        
+        # Get email verification configuration status for display
+        email_verification_status = self._safe_email_call('validate_configuration')
+        email_verification_enabled = email_verification_status.get('available', False) if email_verification_status else False
+        
+        if not token or not email:
+            flash('Invalid password reset link. Please request a new password reset.', 'error')
+            redirect('/registration/lost_password')
+        
+        return {
+            'msg': 'Set your new password',
+            'token': token,
+            'email': email,
+            'email_verification_enabled': email_verification_enabled,
+            'email_verification_status': email_verification_status
+        }
+
+    @expose('json')  
+    @expose('bq.registration.templates.reset_password')
+    def process_password_reset(self, **kw):
+        """Process password reset form submission"""
+        token = kw.get('token', '').strip()
+        email = kw.get('email', '').strip()
+        new_password = kw.get('new_password', '').strip()
+        confirm_password = kw.get('confirm_password', '').strip()
+        
+        if not token or not email or not new_password:
+            error_msg = 'Missing required fields'
+            return self._handle_reset_form_response('error', error_msg, token, email, **kw)
+        
+        if new_password != confirm_password:
+            error_msg = 'Passwords do not match'
+            return self._handle_reset_form_response('error', error_msg, token, email, **kw)
+        
+        if len(new_password) < 6:
+            error_msg = 'Password must be at least 6 characters long'
+            return self._handle_reset_form_response('error', error_msg, token, email, **kw)
+        
+        try:
+            # Find user by email
+            from bq.data_service.model import BQUser
+            users = DBSession.query(BQUser).filter(BQUser.resource_value == email).all()
+            if not users:
+                error_msg = 'Invalid reset link'
+                return self._handle_reset_form_response('error', error_msg, token, email, **kw)
+            
+            bq_user = users[0]
+            username = bq_user.resource_name
+            
+            # Verify reset token
+            if not self._safe_email_call("verify_password_reset_token", token, email, username):
+                error_msg = 'Invalid or expired reset link'
+                return self._handle_reset_form_response('error', error_msg, token, email, **kw)
+            
+            # Reset password
+            reset_result = self._safe_email_call("reset_user_password", bq_user, new_password)
+            if not reset_result or not reset_result.get('success'):
+                error_msg = 'Failed to reset password. Please try again.'
+                return self._handle_reset_form_response('error', error_msg, token, email, **kw)
+            
+            # Remove reset token
+            from bq.data_service.model.tag_model import Tag
+            token_tag = DBSession.query(Tag).filter(
+                Tag.parent == bq_user,
+                Tag.name == 'password_reset_token'
+            ).first()
+            if token_tag:
+                DBSession.delete(token_tag)
+            
+            DBSession.flush()
+            
+            log.info(f"Password reset successfully for user {username} ({email})")
+            
+            # Handle redirect based on request type
+            try:
+                flash('Password reset successfully! You can now sign in with your new password.', 'success')
+                redirect('/client_service/')
+            except (HTTPFound, Exception) as redirect_ex:
+                # This is normal - redirect throws an exception
+                if hasattr(redirect_ex, 'location'):
+                    raise redirect_ex
+                else:
+                    # Fallback if redirect fails
+                    return {'status': 'success', 'message': 'Password reset successfully!', 'redirect': '/client_service/'}
+            
+        except (HTTPFound, Exception) as e:
+            # Handle redirect exceptions normally
+            if hasattr(e, 'location'):
+                raise e
+            else:
+                log.error(f"Password reset processing failed: {e}")
+                error_msg = 'Password reset failed due to server error'
+                # Remove email from kw to avoid duplicate argument
+                kw_without_email = {k: v for k, v in kw.items() if k != 'email'}
+                return self._handle_reset_form_response('error', error_msg, token, email, **kw_without_email)
+
+    def _handle_reset_response(self, status, message, **kw):
+        """Handle response for password reset requests - JSON for AJAX, redirect for browser"""
+        from tg import request
+        
+        # Check if this is an AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or \
+           'application/json' in request.headers.get('Accept', ''):
+            # Return JSON for AJAX requests
+            return {'status': status, 'message': message}
+        else:
+            # Handle browser requests with flash messages and redirects
+            if status == 'success':
+                flash(message, 'success')
+                redirect('/registration/lost_password?sent=1')
+            else:
+                flash(message, 'error')
+                return {'msg': 'Reset your password', 'email': kw.get('email', '')}
+
+    def _handle_reset_form_response(self, status, message, token, email, **kw):
+        """Handle response for password reset form - JSON for AJAX, template for browser"""
+        from tg import request
+        
+        # Check if this is an AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or \
+           'application/json' in request.headers.get('Accept', ''):
+            # Return JSON for AJAX requests
+            return {'status': status, 'message': message}
+        else:
+            # Handle browser requests with template display
+            if status == 'success':
+                flash(message, 'success')
+                redirect('/client_service/')
+            else:
+                # Get email verification status for template
+                email_verification_status = self._safe_email_call('validate_configuration')
+                email_verification_enabled = email_verification_status.get('available', False) if email_verification_status else False
+                
+                return {
+                    'msg': 'Set your new password',
+                    'token': token,
+                    'email': email,
+                    'error_message': message,
+                    'email_verification_enabled': email_verification_enabled,
+                    'email_verification_status': email_verification_status
+                }

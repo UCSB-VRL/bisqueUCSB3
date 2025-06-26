@@ -304,6 +304,179 @@ class EmailVerificationService:
             log.error(traceback.format_exc())
             return False
 
+    # Password Reset Methods
+    def generate_password_reset_token(self, email, username):
+        """Generate a password reset token"""
+        try:
+            import secrets
+            import hashlib
+            from datetime import datetime, timezone
+            
+            # Generate a secure token with timestamp
+            timestamp = int(datetime.now(timezone.utc).timestamp())
+            random_part = secrets.token_urlsafe(32)
+            
+            # Create token data
+            token_data = f"{email}:{username}:{timestamp}:{random_part}"
+            
+            # Create a hash for verification
+            token_hash = hashlib.sha256(token_data.encode()).hexdigest()
+            
+            # Return the complete token (data + hash)
+            reset_token = f"{token_data}:{token_hash}"
+            
+            log.info(f"Generated password reset token for {username} ({email})")
+            return reset_token
+            
+        except Exception as e:
+            log.error(f"Failed to generate password reset token for {email}: {e}")
+            return None
+
+    def verify_password_reset_token(self, token, email, username, max_age_hours=24):
+        """Verify a password reset token"""
+        try:
+            if not token or not email or not username:
+                log.error("Missing token, email, or username for password reset verification")
+                return False
+            
+            # Split token into data and hash
+            parts = token.split(':')
+            if len(parts) != 5:
+                log.error(f"Password reset token format invalid - expected 5 parts, got {len(parts)}")
+                return False
+            
+            token_email, token_username, timestamp_str, random_part, token_hash = parts
+            
+            # Verify the token components match
+            if token_email != email or token_username != username:
+                log.error(f"Password reset token email/username mismatch - expected {email}/{username}, got {token_email}/{token_username}")
+                return False
+            
+            # Verify timestamp is not too old
+            try:
+                from datetime import datetime, timezone, timedelta
+                token_timestamp = int(timestamp_str)
+                current_timestamp = int(datetime.now(timezone.utc).timestamp())
+                age_hours = (current_timestamp - token_timestamp) / 3600
+                
+                if age_hours > max_age_hours:
+                    log.error(f"Password reset token expired - age: {age_hours:.1f} hours")
+                    return False
+                
+                if age_hours < 0:
+                    log.error(f"Password reset token from future - age: {age_hours:.1f} hours")
+                    return False
+                    
+            except (ValueError, TypeError) as e:
+                log.error(f"Invalid timestamp in password reset token: {timestamp_str}: {e}")
+                return False
+            
+            # Verify hash
+            import hashlib
+            token_data = f"{token_email}:{token_username}:{timestamp_str}:{random_part}"
+            expected_hash = hashlib.sha256(token_data.encode()).hexdigest()
+            
+            if expected_hash != token_hash:
+                log.error("Password reset token hash verification failed")
+                return False
+            
+            log.info(f"Password reset token verified successfully for {username} ({email})")
+            return True
+            
+        except Exception as e:
+            log.error(f"Failed to verify password reset token: {e}")
+            return False
+
+    def send_password_reset_email(self, email, username, fullname, reset_token, base_url):
+        """Send a password reset email"""
+        try:
+            if not self.is_available():
+                return {'success': False, 'error': 'Email service not available'}
+            
+            # Create reset URL
+            reset_url = f"{base_url}/registration/reset_password?token={reset_token}&email={email}"
+            
+            # Email content
+            subject = "Password Reset Request - Bisque"
+            
+            text_body = f"""
+Hello {fullname},
+
+You have requested a password reset for your Bisque account ({username}).
+
+To reset your password, click the following link:
+{reset_url}
+
+This link will expire in 24 hours.
+
+If you did not request this password reset, please ignore this email.
+
+Best regards,
+The Bisque Team
+"""
+            
+            html_body = f"""
+<html>
+<body>
+<h2>Password Reset Request</h2>
+<p>Hello <strong>{fullname}</strong>,</p>
+<p>You have requested a password reset for your Bisque account (<strong>{username}</strong>).</p>
+<p>To reset your password, click the following link:</p>
+<p><a href="{reset_url}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">Reset Password</a></p>
+<p>Or copy and paste this URL into your browser:</p>
+<p><a href="{reset_url}">{reset_url}</a></p>
+<p><strong>This link will expire in 24 hours.</strong></p>
+<p>If you did not request this password reset, please ignore this email.</p>
+<br>
+<p>Best regards,<br>The Bisque Team</p>
+</body>
+</html>
+"""
+            
+            # Send email
+            result = self.email_service.send_email(
+                to=email,
+                subject=subject,
+                body=text_body,
+                html_body=html_body
+            )
+            if result['success']:
+                log.info(f"Password reset email sent successfully to {email}")
+            else:
+                log.error(f"Failed to send password reset email to {email}: {result['error']}")
+            
+            return result
+            
+        except Exception as e:
+            log.error(f"Failed to send password reset email to {email}: {e}")
+            return {'success': False, 'error': str(e)}
+
+    def reset_user_password(self, bq_user, new_password):
+        """Reset a user's password"""
+        try:
+            # Get the TurboGears user associated with this BQUser
+            from bq.core.model.auth import User
+            from bq.core.model import DBSession
+            
+            # Find the TG user by username
+            username = bq_user.resource_name
+            tg_user = User.by_user_name(username)
+            
+            if not tg_user:
+                log.error(f"TurboGears user not found for username: {username}")
+                return {'success': False, 'error': 'User not found'}
+            
+            # Update the password
+            tg_user.password = new_password
+            DBSession.flush()
+            
+            log.info(f"Password reset successfully for user: {username}")
+            return {'success': True}
+            
+        except Exception as e:
+            log.error(f"Failed to reset password for user {bq_user.resource_name}: {e}")
+            return {'success': False, 'error': str(e)}
+
 # Global email verification service instance
 _email_verification_service = None
 
