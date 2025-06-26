@@ -15,7 +15,7 @@ import os
 import logging
 import secrets
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 try:
     from tg import config
@@ -133,7 +133,7 @@ class EmailVerificationService:
         random_token = secrets.token_urlsafe(32)
         
         # Add timestamp and user info for additional security
-        timestamp = datetime.utcnow().isoformat()
+        timestamp = datetime.now(timezone.utc).isoformat()
         token_data = f"{random_token}:{email}:{username}:{timestamp}"
         
         # Hash the token data
@@ -151,7 +151,7 @@ class EmailVerificationService:
             
             # Reconstruct the token data (we need to check multiple timestamps)
             # Since we don't store the exact timestamp, we'll check a range
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             for hours_ago in range(max_age_hours + 1):
                 check_time = now - timedelta(hours=hours_ago)
                 # Check multiple timestamp formats for robustness
@@ -372,7 +372,7 @@ class EmailVerificationService:
             # Add verification timestamp
             verified_time_tag = Tag(parent=bq_user)
             verified_time_tag.name = 'email_verified_at'
-            verified_time_tag.value = datetime.utcnow().isoformat()
+            verified_time_tag.value = datetime.now(timezone.utc).isoformat()
             verified_time_tag.owner = bq_user
             DBSession.add(verified_time_tag)
             

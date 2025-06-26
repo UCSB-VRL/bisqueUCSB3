@@ -74,6 +74,8 @@ class RegistrationController(BaseController):
                 return True  # Default to verified if no email service
             elif method_name == 'test_smtp_connection':
                 return {'success': False, 'error': 'Email service not available'}
+            elif method_name in ['generate_verification_token', 'send_verification_email', 'mark_user_as_verified']:
+                return None  # These need explicit error handling
             else:
                 return None
         
@@ -87,6 +89,8 @@ class RegistrationController(BaseController):
                 return False
             elif method_name == 'is_user_verified':
                 return True  # Default to verified if check fails
+            elif method_name in ['generate_verification_token', 'send_verification_email', 'mark_user_as_verified']:
+                return None  # These need explicit error handling
             else:
                 return None
 
@@ -246,14 +250,23 @@ class RegistrationController(BaseController):
                     
                     # Generate verification token
                     verification_token = self._safe_email_call("generate_verification_token",  email, username)
+                    if not verification_token:
+                        log.error(f"Failed to generate verification token for {email}")
+                        flash(f'Registration completed but email verification failed. You can request a new verification email.', 'warning')
+                        self._safe_email_call('mark_user_as_verified', bq_user)
+                        redirect('/client_service/')
                     
-                    # Get base URL for verification link
+                    # Get base URL for verification link  
                     base_url = request.host_url.rstrip('/')
                     
                     # Send verification email
-                    self._safe_email_call("send_verification_email",
+                    send_result = self._safe_email_call("send_verification_email",
                         email, username, fullname, verification_token, base_url
                     )
+                    if not send_result or not send_result.get('success'):
+                        log.error(f"Failed to send verification email for {email}")
+                        flash('Registration completed but failed to send verification email. Please use the resend verification feature.', 'warning')
+                        # Still proceed with registration but show warning
                     
                     verification_message = " A verification email has been sent to your email address. Please check your email and click the verification link to activate your account."
                     
@@ -467,6 +480,11 @@ class RegistrationController(BaseController):
                 
                 # Generate verification token
                 verification_token = self._safe_email_call('generate_verification_token', email, username)
+                if not verification_token:
+                    log.error(f"Failed to generate verification token for {email}")
+                    flash(f'Registration completed but email verification failed. You can request a new verification email.', 'warning')
+                    self._safe_email_call('mark_user_as_verified', bq_user)
+                    redirect('/client_service/')
                 
                 # Get base URL for verification link  
                 base_url = request.host_url.rstrip('/')
@@ -499,12 +517,18 @@ class RegistrationController(BaseController):
             redirect('/client_service/')
 
         except Exception as e:
-            # Let TurboGears transaction manager handle rollback
-            log.error(f"Registration failed for {kw.get('email', 'unknown')}: {str(e)}")
-            import traceback
-            log.error(f"Full traceback: {traceback.format_exc()}")
-            flash('Registration failed due to server error. Please try again.', 'error')
-            redirect('/registration/')
+            # Check if this is a redirect exception (which is normal)
+            import tg.exceptions
+            if isinstance(e, (tg.exceptions.HTTPFound, tg.exceptions.HTTPRedirection)):
+                # This is a redirect, let it propagate normally
+                raise
+            else:
+                # This is a real error - let TurboGears transaction manager handle rollback
+                log.error(f"Registration failed for {kw.get('email', 'unknown')}: {str(e)}")
+                import traceback
+                log.error(f"Full traceback: {traceback.format_exc()}")
+                flash('Registration failed due to server error. Please try again.', 'error')
+                redirect('/registration/')
 
     @expose()
     def register_with_redirect(self, **kw):
@@ -622,6 +646,11 @@ class RegistrationController(BaseController):
                 
                 # Generate verification token
                 verification_token = self._safe_email_call('generate_verification_token', email, username)
+                if not verification_token:
+                    log.error(f"Failed to generate verification token for {email}")
+                    flash(f'Registration completed but email verification failed. You can request a new verification email.', 'warning')
+                    self._safe_email_call('mark_user_as_verified', bq_user)
+                    redirect('/client_service/')
                 
                 # Get base URL for verification link  
                 base_url = request.host_url.rstrip('/')
@@ -644,12 +673,12 @@ class RegistrationController(BaseController):
                     log.error(f"Failed to send verification email to {email}: {send_result}")
                     # Mark user as verified if email sending fails
                     self._safe_email_call('mark_user_as_verified', bq_user)
-                    flash('Account created successfully! Email verification failed, but you can sign in immediately.', 'warning')
+                    flash(f'Account created successfully! Email verification failed, but you can sign in immediately.', 'warning')
             else:
                 log.info(f"Email verification not available - marking user as verified automatically")
                 # Mark user as verified when email verification is not available
                 self._safe_email_call('mark_user_as_verified', bq_user)
-                flash('Account created successfully! Please sign in with your new account.', 'success')
+                flash(f'Account created successfully! Please sign in with your new account.', 'success')
             
             redirect('/client_service/')
                 
@@ -678,14 +707,22 @@ class RegistrationController(BaseController):
             from bq.data_service.model import BQUser
             bq_user = None
             
+            log.info(f"Looking up user by email: {email}")
+            
             # Search for user by email (stored in the value field)
             users = DBSession.query(BQUser).filter(BQUser.resource_value == email).all()
             if not users:
+                log.error(f"No user found with email: {email}")
                 flash('User not found. Please register again.', 'error')
                 redirect('/registration/')
             
+            if len(users) > 1:
+                log.warning(f"Multiple users found with email {email}: {[u.resource_name for u in users]}")
+            
             bq_user = users[0]
             username = bq_user.resource_name
+            
+            log.info(f"Found user: {username} (ID: {bq_user.resource_uniq}) for email: {email}")
             
             # Check if user is already verified
             if self._safe_email_call("is_user_verified", bq_user):
@@ -694,14 +731,60 @@ class RegistrationController(BaseController):
             
             # Get stored verification token
             from bq.data_service.model.tag_model import Tag
-            token_tag = DBSession.query(Tag).filter(
-                Tag.parent == bq_user,
-                Tag.name == 'email_verification_token'
-            ).first()
             
-            if not token_tag:
+            log.info(f"Looking for stored verification token for user {username} (ID: {bq_user.id}, resource_uniq: {bq_user.resource_uniq}) ({email})")
+            
+            # First try simple lookup without filtering
+            all_tokens = DBSession.query(Tag).filter(
+                Tag.parent == bq_user,
+                Tag.resource_name == 'email_verification_token'
+            ).all()
+            
+            log.info(f"All tokens found for user (using resource_name): {[(t.id, t.name, t.value, t.resource_name, t.resource_value) for t in all_tokens]}")
+            
+            # Look for the most recent valid token
+            token_tag = None
+            if all_tokens:
+                # Find the most recent valid token
+                valid_tokens = [t for t in all_tokens if t.value and t.value.strip() != '']
+                if valid_tokens:
+                    token_tag = valid_tokens[-1]  # Get the most recent valid one
+                    log.info(f"Using valid token: ID={token_tag.id}, value='{token_tag.value}'")
+                else:
+                    log.error(f"No valid tokens found among {len(all_tokens)} total tokens")
+            else:
+                log.error(f"No email_verification_token tags found for user")
+            
+            # Debug: Also try finding by resource_parent_id directly
+            token_tag_by_id = DBSession.query(Tag).filter(
+                Tag.resource_parent_id == bq_user.id,
+                Tag.resource_name == 'email_verification_token'
+            ).order_by(Tag.id.desc()).first()
+            
+            log.info(f"Token found by parent object: {token_tag is not None}")
+            log.info(f"Token found by parent_id (using bq_user.id={bq_user.id}): {token_tag_by_id is not None}")
+            
+            if token_tag:
+                log.info(f"Token by parent - value: {token_tag.value}, parent_id: {token_tag.resource_parent_id}")
+            if token_tag_by_id:
+                log.info(f"Token by parent_id - value: {token_tag_by_id.value}, parent_id: {token_tag_by_id.resource_parent_id}")
+            
+            if not token_tag and not token_tag_by_id:
+                log.error(f"No verification token found for user {username} (ID: {bq_user.id}, resource_uniq: {bq_user.resource_uniq}) ({email})")
+                # Debug: Check all tags for this user
+                all_user_tags = DBSession.query(Tag).filter(Tag.parent == bq_user).all()
+                all_user_tags_by_id = DBSession.query(Tag).filter(Tag.resource_parent_id == bq_user.id).all()
+                log.info(f"All tags for user {username} (by parent): {[(t.name, t.value) for t in all_user_tags]}")
+                log.info(f"All tags for user {username} (by resource_parent_id={bq_user.id}): {[(t.name, t.value) for t in all_user_tags_by_id]}")
                 flash('Verification token not found. Please request a new verification email.', 'error')
                 redirect('/registration/resend_verification')
+            
+            # Use whichever method found the token
+            actual_token_tag = token_tag or token_tag_by_id
+            
+            log.info(f"Found stored token for user {username}: {actual_token_tag.value}")
+            log.info(f"URL token: {token}")
+            log.info(f"Tokens match: {actual_token_tag.value == token}")
             
             # Verify the token
             if not self._safe_email_call("verify_token", token, email, username):
@@ -711,19 +794,30 @@ class RegistrationController(BaseController):
             # Mark user as verified
             if self._safe_email_call("mark_user_as_verified", bq_user):
                 # Remove the verification token
-                DBSession.delete(token_tag)
+                DBSession.delete(actual_token_tag)
                 DBSession.flush()
                 
-                flash(f'Email verified successfully! Welcome to Bisque, {bq_user.get("display_name", username)}. You can now sign in.', 'success')
+                # Get user display name from tags or use username as fallback
+                display_name_tag = bq_user.findtag('display_name')
+                display_name = display_name_tag.value if display_name_tag else username
+                
+                flash(f'Email verified successfully! Welcome to Bisque, {display_name}. You can now sign in.', 'success')
                 redirect('/client_service/')
             else:
                 flash('Verification failed due to a server error. Please try again.', 'error')
                 redirect('/registration/')
             
         except Exception as e:
-            log.error(f"Email verification failed: {e}")
-            flash('Verification failed due to a server error. Please try again.', 'error')
-            redirect('/registration/')
+            # Check if this is a redirect exception (which is normal)
+            import tg.exceptions
+            if isinstance(e, (tg.exceptions.HTTPFound, tg.exceptions.HTTPRedirection)):
+                # This is a redirect, let it propagate normally
+                raise
+            else:
+                # This is a real error
+                log.error(f"Email verification failed: {e}")
+                flash('Verification failed due to a server error. Please try again.', 'error')
+                redirect('/registration/')
     
     @expose('bq.registration.templates.resend_verification')
     def resend_verification(self, **kw):
@@ -735,28 +829,33 @@ class RegistrationController(BaseController):
         return {'msg': 'Resend verification email'}
     
     @expose('json')
+    @expose('bq.registration.templates.resend_verification')
     def send_verification(self, **kw):
         """Send verification email endpoint"""
         if not self._safe_email_call("is_available", ):
-            return {'status': 'error', 'message': 'Email verification is not available'}
+            error_msg = 'Email verification is not available'
+            return self._handle_verification_response('error', error_msg, **kw)
         
         email = kw.get('email', '').strip()
         if not email:
-            return {'status': 'error', 'message': 'Email address is required'}
+            error_msg = 'Email address is required'
+            return self._handle_verification_response('error', error_msg, **kw)
         
         try:
             # Find user by email
             from bq.data_service.model import BQUser
             users = DBSession.query(BQUser).filter(BQUser.resource_value == email).all()
             if not users:
-                return {'status': 'error', 'message': 'User not found with this email address'}
+                error_msg = 'User not found with this email address'
+                return self._handle_verification_response('error', error_msg, **kw)
             
             bq_user = users[0]
             username = bq_user.resource_name
             
             # Check if already verified
             if self._safe_email_call("is_user_verified", bq_user):
-                return {'status': 'success', 'message': 'Your email is already verified! You can sign in normally.'}
+                success_msg = 'Your email is already verified! You can sign in normally.'
+                return self._handle_verification_response('success', success_msg, **kw)
             
             # Get user's full name
             from bq.data_service.model.tag_model import Tag
@@ -768,6 +867,12 @@ class RegistrationController(BaseController):
             
             # Generate new verification token
             verification_token = self._safe_email_call("generate_verification_token", email, username)
+            if not verification_token:
+                log.error(f"Failed to generate verification token for {email}")
+                error_msg = 'Failed to generate verification token. Please try again.'
+                return self._handle_verification_response('error', error_msg, **kw)
+            
+            log.info(f"Generated verification token for {email}: {verification_token}")
             
             # Update verification token
             token_tag = DBSession.query(Tag).filter(
@@ -776,8 +881,10 @@ class RegistrationController(BaseController):
             ).first()
             
             if token_tag:
+                log.info(f"Updating existing token for {email}")
                 token_tag.value = verification_token
             else:
+                log.info(f"Creating new token tag for {email}")
                 token_tag = Tag(parent=bq_user)
                 token_tag.name = 'email_verification_token'
                 token_tag.value = verification_token
@@ -786,32 +893,71 @@ class RegistrationController(BaseController):
             
             # Send verification email
             base_url = request.host_url.rstrip('/')
-            self._safe_email_call("send_verification_email",
+            send_result = self._safe_email_call("send_verification_email",
                 email, username, fullname, verification_token, base_url
             )
             
-            return {'status': 'success', 'message': 'Verification email sent successfully! Please check your email.'}
+            if not send_result or not send_result.get('success'):
+                error_msg = send_result.get('error', 'Unknown error') if send_result else 'Email service unavailable'
+                log.error(f"Failed to send verification email to {email}: {error_msg}")
+                error_msg = f'Failed to send verification email: {error_msg}'
+                return self._handle_verification_response('error', error_msg, **kw)
+            
+            DBSession.flush()
+            log.info(f"Token stored and flushed to database for {email}: {verification_token}")
+            success_msg = 'Verification email sent successfully! Please check your email.'
+            return self._handle_verification_response('success', success_msg, **kw)
             
         except EmailVerificationError as e:
             log.error(f"Failed to resend verification email: {e}")
-            return {'status': 'error', 'message': f'Failed to send verification email: {e}'}
+            error_msg = f'Failed to send verification email: {e}'
+            return self._handle_verification_response('error', error_msg, **kw)
         except Exception as e:
-            log.error(f"Resend verification failed: {e}")
-            return {'status': 'error', 'message': 'Failed to send verification email due to server error'}
+            # Check if this is a redirect exception (which is normal)
+            import tg.exceptions
+            if isinstance(e, (tg.exceptions.HTTPFound, tg.exceptions.HTTPRedirection)):
+                # This is a redirect, let it propagate normally
+                raise
+            else:
+                # This is a real error
+                log.error(f"Resend verification failed: {e}")
+                error_msg = 'Failed to send verification email due to server error'
+                return self._handle_verification_response('error', error_msg, **kw)
+    
+    def _handle_verification_response(self, status, message, **kw):
+        """Handle response for verification requests - JSON for AJAX, redirect for browser"""
+        from tg import request
+        
+        # Check if this is an AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or \
+           'application/json' in request.headers.get('Accept', ''):
+            # Return JSON for AJAX requests
+            return {'status': status, 'message': message}
+        else:
+            # Handle browser requests with flash messages and redirects
+            if status == 'success':
+                flash(message, 'success')
+                redirect('/registration/resend_verification?sent=1')
+            else:
+                flash(message, 'error')
+                return {'msg': 'Resend verification email', 'email': kw.get('email', '')}
+    
     
     @expose('bq.registration.templates.verify_email')
     def verify(self, token=None, **kw):
         """Email verification endpoint with token in URL path: /registration/verify/{token}"""
-        if not token:
-            flash('Invalid verification link. Missing verification token.', 'error')
-            redirect('/registration/')
-        
-        token = token.strip()
-        
         try:
+            if not token:
+                flash('Invalid verification link. Missing verification token.', 'error')
+                redirect('/registration/')
+            
+            token = token.strip()
+            
             # Find the user by searching for the verification token
             from bq.data_service.model import BQUser
             from bq.data_service.model.tag_model import Tag
+            
+            log.info(f"Looking up verification token: {token}")
             
             # Find user by verification token
             token_tag = DBSession.query(Tag).filter(
@@ -820,11 +966,20 @@ class RegistrationController(BaseController):
             ).first()
             
             if not token_tag:
+                log.error(f"Verification token not found in database: {token}")
+                # Debug: Check if there are any verification tokens at all
+                all_verification_tokens = DBSession.query(Tag).filter(
+                    Tag.name == 'email_verification_token'
+                ).all()
+                log.info(f"All verification tokens in database: {[t.value for t in all_verification_tokens]}")
                 flash('Invalid or expired verification link. Please request a new verification email.', 'error')
                 redirect('/registration/resend_verification')
             
+            log.info(f"Found verification token for user: {token_tag.parent.resource_name if token_tag.parent else 'NO_PARENT'}")
+            
             bq_user = token_tag.parent
             if not bq_user:
+                log.error(f"Token found but no parent user: {token}")
                 flash('User not found. Please register again.', 'error')
                 redirect('/registration/')
             
@@ -857,8 +1012,15 @@ class RegistrationController(BaseController):
                 redirect('/registration/')
             
         except Exception as e:
-            log.error(f"Email verification failed: {e}")
-            import traceback
-            log.error(f"Full traceback: {traceback.format_exc()}")
-            flash('Verification failed due to a server error. Please try again.', 'error')
-            redirect('/registration/')
+            # Check if this is a redirect exception (which is normal)
+            import tg.exceptions
+            if isinstance(e, (tg.exceptions.HTTPFound, tg.exceptions.HTTPRedirection)):
+                # This is a redirect, let it propagate normally
+                raise
+            else:
+                # This is a real error
+                log.error(f"Email verification failed: {e}")
+                import traceback
+                log.error(f"Full traceback: {traceback.format_exc()}")
+                flash('Verification failed due to a server error. Please try again.', 'error')
+                redirect('/registration/')

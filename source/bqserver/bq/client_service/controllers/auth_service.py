@@ -56,7 +56,7 @@ import logging
 #import base64
 import json
 import posixpath
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from lxml import etree
 import transaction
@@ -196,31 +196,39 @@ class AuthenticationServer(ServiceController):
         
         # Check email verification status FIRST before proceeding with login
         try:
-            from bq.registration.email_verification import get_email_verification_service
-            from bq.data_service.model import BQUser
-            from bq.data_service.model.tag_model import DBSession
+            # Skip email verification for admin users
+            is_admin_user = (userid == 'admin' or 
+                           userid == 'administrator' or 
+                           'admin' in userid.lower())
             
-            email_service = get_email_verification_service()
-            if email_service and email_service.is_available():
-                # Find the user by username
-                bq_user = DBSession.query(BQUser).filter(BQUser.resource_name == userid).first()
-                if bq_user:
-                    # Check if user is verified
-                    is_verified = email_service.is_user_verified(bq_user)
-                    if not is_verified:
-                        # User is not verified - deny login completely
-                        log.warning(f"Login denied for unverified user: {userid}")
-                        
-                        # Force logout by redirecting to logout handler first
-                        flash(_('Your email address must be verified before you can sign in. Please check your email for the verification link or request a new one.'), 'error')
-                        redirect('/auth_service/logout_handler?came_from=/registration/resend_verification')
-                        return  # This should never be reached due to redirect
-                    else:
-                        log.info(f"Email verified user logged in: {userid}")
-                else:
-                    log.warning(f"User not found in database during email verification check: {userid}")
+            if is_admin_user:
+                log.debug(f"Skipping email verification for admin user: {userid}")
             else:
-                log.debug(f"Email verification not available - allowing login for: {userid}")
+                from bq.registration.email_verification import get_email_verification_service
+                from bq.data_service.model import BQUser
+                from bq.data_service.model.tag_model import DBSession
+                
+                email_service = get_email_verification_service()
+                if email_service and email_service.is_available():
+                    # Find the user by username
+                    bq_user = DBSession.query(BQUser).filter(BQUser.resource_name == userid).first()
+                    if bq_user:
+                        # Check if user is verified
+                        is_verified = email_service.is_user_verified(bq_user)
+                        if not is_verified:
+                            # User is not verified - deny login completely
+                            log.warning(f"Login denied for unverified user: {userid}")
+                            
+                            # Force logout by redirecting to logout handler first
+                            flash(_('Your email address must be verified before you can sign in. Please check your email for the verification link or request a new one.'), 'error')
+                            redirect('/auth_service/logout_handler?came_from=/registration/resend_verification')
+                            return  # This should never be reached due to redirect
+                        else:
+                            log.info(f"Email verified user logged in: {userid}")
+                    else:
+                        log.warning(f"User not found in database during email verification check: {userid}")
+                else:
+                    log.debug(f"Email verification not available - allowing login for: {userid}")
                 
         except (ImportError, AttributeError, NameError) as import_error:
             # Only catch import/attribute errors, not redirects
@@ -248,7 +256,7 @@ class AuthenticationServer(ServiceController):
         if timeout:
             session['timeout']  = timeout
         if length:
-            session['expires']  = (datetime.utcnow() + timedelta(seconds=length))
+            session['expires']  = (datetime.now(timezone.utc) + timedelta(seconds=length))
             session['length'] = length
 
         session.save()

@@ -1,5 +1,5 @@
 import calendar
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 
 import hashlib
@@ -32,7 +32,7 @@ def gen_csrf_secret():
 
 def generate_csrf_token(secret):
     # Make tokens valid for 3 days
-    expiry_dt = datetime.utcnow() + timedelta(days=3)
+    expiry_dt = datetime.now(timezone.utc) + timedelta(days=3)
     expiry_ts = str(calendar.timegm(expiry_dt.utctimetuple()))
 
     hashed = hmac.new(secret, expiry_ts, hashlib.sha256).hexdigest()
@@ -42,11 +42,11 @@ def generate_csrf_token(secret):
 def valid_csrf_token(secret, token):
     try:
         expiry_ts, hashed = token.split(',')
-        expiry_dt = datetime.utcfromtimestamp(int(expiry_ts))
+        expiry_dt = datetime.fromtimestamp(int(expiry_ts), tz=timezone.utc)
     except ValueError as e:
         return False
 
-    if expiry_dt < datetime.utcnow():
+    if expiry_dt < datetime.now(timezone.utc):
         return False
 
     expected = hmac.new(secret, expiry_ts, hashlib.sha256).hexdigest()

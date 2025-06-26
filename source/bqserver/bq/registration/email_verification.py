@@ -15,7 +15,7 @@ import os
 import logging
 import secrets
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 try:
     from tg import config
@@ -67,9 +67,9 @@ class EmailVerificationService:
     def _is_verification_enabled(self):
         """Check if email verification is enabled in configuration"""
         # Check environment variable first (for Docker/container deployments)
-        env_enabled = os.environ.get('BISQUE_EMAIL_VERIFICATION_ENABLED', 'false').lower()
-        if env_enabled in ['true', '1', 'yes', 'on']:
-            return True
+        # env_enabled = os.environ.get('BISQUE_EMAIL_VERIFICATION_ENABLED', 'false').lower()
+        # if env_enabled in ['true', '1', 'yes', 'on']:
+        #     return True
         
         # Check main Bisque configuration
         config_enabled = config.get('bisque.registration.email_verification.enabled', False)
@@ -134,42 +134,86 @@ class EmailVerificationService:
         # Create a secure random token
         random_token = secrets.token_urlsafe(32)
         
-        # Add timestamp and user info for additional security
-        timestamp = datetime.utcnow().isoformat()
+        # Add timestamp (use Unix timestamp for easier verification)
+        timestamp = int(datetime.now(timezone.utc).timestamp())
         token_data = f"{random_token}:{email}:{username}:{timestamp}"
         
         # Hash the token data
         token_hash = hashlib.sha256(token_data.encode()).hexdigest()
         
-        return f"{random_token}.{token_hash[:16]}"
+        return f"{random_token}.{timestamp}.{token_hash[:16]}"
     
     def verify_token(self, token, email, username, max_age_hours=24):
         """Verify a verification token"""
         try:
-            if '.' not in token:
+            log.info(f"Verifying token: {token} for email: {email}, username: {username}")
+            
+            # Parse token - handle both old and new formats
+            parts = token.split('.')
+            
+            if len(parts) == 3:
+                # New format: random_token.timestamp.hash
+                random_token, timestamp_str, token_hash = parts
+                
+                try:
+                    timestamp = int(timestamp_str)
+                except ValueError:
+                    log.error(f"Invalid timestamp in token: {timestamp_str}")
+                    return False
+                
+                # Check if token is not too old
+                now = int(datetime.now(timezone.utc).timestamp())
+                age_seconds = now - timestamp
+                max_age_seconds = max_age_hours * 3600
+                
+                if age_seconds > max_age_seconds:
+                    log.error(f"Token expired - age: {age_seconds}s, max_age: {max_age_seconds}s")
+                    return False
+                
+                if age_seconds < 0:
+                    log.error(f"Token from future - age: {age_seconds}s")
+                    return False
+                
+                # Verify the token hash
+                token_data = f"{random_token}:{email}:{username}:{timestamp}"
+                expected_hash = hashlib.sha256(token_data.encode()).hexdigest()[:16]
+                
+                log.info(f"New format - Token data: {token_data}")
+                log.info(f"Expected hash: {expected_hash}, actual hash: {token_hash}")
+                
+                return expected_hash == token_hash
+                
+            elif len(parts) == 2:
+                # Old format: random_token.hash - use fallback verification
+                log.info(f"Using legacy token verification for old format token")
+                random_token, token_hash = parts
+                
+                # For old tokens, check a reasonable time range (last 7 days)
+                now = datetime.now(timezone.utc)
+                
+                # Check tokens generated within the last max_age_hours, but limit to reasonable range
+                for hours_ago in range(min(max_age_hours, 168)):  # Max 7 days for old tokens
+                    check_time = now - timedelta(hours=hours_ago)
+                    # Check a few minute intervals to account for timestamp precision
+                    for minute_offset in [0, 1, 2, 3, 4, 5]:
+                        check_timestamp = (check_time - timedelta(minutes=minute_offset)).isoformat()
+                        token_data = f"{random_token}:{email}:{username}:{check_timestamp}"
+                        expected_hash = hashlib.sha256(token_data.encode()).hexdigest()[:16]
+                        
+                        if expected_hash == token_hash:
+                            log.info(f"Legacy token verified with timestamp: {check_timestamp}")
+                            return True
+                
+                log.error(f"Legacy token verification failed")
                 return False
-            
-            random_token, token_hash = token.split('.', 1)
-            
-            # Reconstruct the token data (we need to check multiple timestamps)
-            # Since we don't store the exact timestamp, we'll check a range
-            now = datetime.utcnow()
-            
-            # Check tokens generated within the last max_age_hours
-            for hours_ago in range(max_age_hours + 1):
-                check_time = now - timedelta(hours=hours_ago)
-                for minute_offset in range(60):  # Check each minute in the hour
-                    check_timestamp = (check_time - timedelta(minutes=minute_offset)).isoformat()
-                    token_data = f"{random_token}:{email}:{username}:{check_timestamp}"
-                    expected_hash = hashlib.sha256(token_data.encode()).hexdigest()[:16]
-                    
-                    if expected_hash == token_hash:
-                        return True
-            
-            return False
+            else:
+                log.error(f"Token format invalid - expected 2 or 3 parts, got {len(parts)}")
+                return False
             
         except Exception as e:
             log.error(f"Error verifying token: {e}")
+            import traceback
+            log.error(traceback.format_exc())
             return False
     
     def send_verification_email(self, email, username, fullname, verification_token, base_url):
@@ -182,6 +226,8 @@ class EmailVerificationService:
         
         # Build verification URL - use verify_email endpoint with query parameters
         verification_url = f"{base_url}/registration/verify_email?token={verification_token}&email={email}"
+        
+        log.info(f"Generated verification URL for {email}: {verification_url}")
         
         # Use the unified email service template
         context = {
@@ -220,7 +266,7 @@ class EmailVerificationService:
             # Add verification timestamp
             verified_time_tag = Tag(parent=bq_user)
             verified_time_tag.name = 'email_verified_at'
-            verified_time_tag.value = datetime.utcnow().isoformat()
+            verified_time_tag.value = datetime.now(timezone.utc).isoformat()
             verified_time_tag.owner = bq_user
             DBSession.add(verified_time_tag)
             
@@ -238,16 +284,24 @@ class EmailVerificationService:
     def is_user_verified(self, bq_user):
         """Check if a user's email is verified"""
         try:
+            log.info(f"Checking verification status for user: {bq_user.resource_name} (ID: {bq_user.id})")
+            
             verified_tag = DBSession.query(Tag).filter(
                 Tag.parent == bq_user,
-                Tag.name == 'email_verified',
-                Tag.value == 'true'
+                Tag.resource_name == 'email_verified',
+                Tag.resource_value == 'true'
             ).first()
+            
+            log.info(f"Email verified tag found: {verified_tag is not None}")
+            if verified_tag:
+                log.info(f"Verification tag details: name={verified_tag.resource_name}, value={verified_tag.resource_value}")
             
             return verified_tag is not None
             
         except Exception as e:
             log.error(f"Failed to check user verification status: {e}")
+            import traceback
+            log.error(traceback.format_exc())
             return False
 
 # Global email verification service instance
