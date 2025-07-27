@@ -214,7 +214,7 @@ class BQServer(Session):
                     ordered_query.append('%s=%s'%odict.popitem(False))
 
         if params:
-            unordered_query = ['%s=%s'%(k,v) for k,v in params.items()]
+            unordered_query = ['%s=%s'%(k,v) for k,v in list(params.items())]
 
         query = query + unordered_query + ordered_query
         query = '&'.join(query)
@@ -597,7 +597,7 @@ class BQSession(object):
             @return: xml etree or path to the file were the response was stored
         """
 
-        if not isinstance(xml, basestring):
+        if not isinstance(xml, str):
             xml = self.factory.to_string (xml)
 
         log.debug('postxml %s  content %s ' % (url, xml))
@@ -648,7 +648,7 @@ class BQSession(object):
 
         import_service = self.service ("import")
         if xml!=None:
-            if not isinstance(xml, basestring):
+            if not isinstance(xml, str):
                 xml = self.factory.to_string(xml)
         response = import_service.transfer (filename=filename, xml=xml)
         return response.content

@@ -31,21 +31,21 @@ def compare_dict(answer, result):
     def compare(answer, result):
         assert (type(result) == TagNameNode), 'result not TagNameNode'
         assert (type(result) == TagNameNode), 'answer not TagNameNode'
-        assert (answer.sub_node_dict.keys() == result.sub_node_dict.keys()), 'answer does not have the same keys or order as results'
+        assert (list(answer.sub_node_dict.keys()) == list(result.sub_node_dict.keys())), 'answer does not have the same keys or order as results'
         assert len(answer.sub_none_tag_node) == len(result.sub_none_tag_node), 'Sub tag nodes not the same length'
         
         #check untagged sub node
         for i,t in enumerate(answer.sub_none_tag_node):
             compare_etree(answer.sub_none_tag_node[i], result.sub_none_tag_node[i])
         
-        for k in answer.sub_node_dict.keys():
+        for k in list(answer.sub_node_dict.keys()):
             assert type(result.sub_node_dict[k]) == type(answer.sub_node_dict[k]), ('%s types are not equal'%k)
             if type(result.sub_node_dict[k]) == TagNameNode:
                 #check attribute node
                 result_attrib = result.sub_node_dict[k].node_attrib
                 answer_attrib = answer.sub_node_dict[k].node_attrib
                 assert sorted(result_attrib.keys()) == sorted(answer_attrib.keys()), 'answer attrib does not have the same keys as results attrib'
-                for sk in answer_attrib.keys():
+                for sk in list(answer_attrib.keys()):
                     assert answer_attrib[sk] == result_attrib[sk], 'sub attribute node doesnt match'
                     
                 #check sub dict
@@ -58,7 +58,7 @@ def compare_dict(answer, result):
                 result_attrib = result.sub_node_dict[k].node_attrib
                 answer_attrib = answer.sub_node_dict[k].node_attrib
                 assert sorted(result_attrib.keys()) == sorted(answer_attrib.keys()), 'answer attrib does not have the same keys as results attrib'
-                for sk in answer_attrib.keys():
+                for sk in list(answer_attrib.keys()):
                     assert answer_attrib[sk] == result_attrib[sk], 'sub attribute node doesnt match'
                     
                 for i,n in enumerate(answer.sub_node_dict[k].sub_node):
@@ -85,7 +85,7 @@ def compare_etree(answer, result):
         result_attrib = result.attrib
         answer_attrib = answer.attrib
         assert sorted(result_attrib.keys()) == sorted(answer_attrib.keys()), 'answer attrib does not have the same keys as results attrib'
-        for sk in answer_attrib.keys():
+        for sk in list(answer_attrib.keys()):
             assert answer_attrib[sk] == result_attrib[sk], 'attribute node doesnt match'
             
         for i,t in enumerate(answer):

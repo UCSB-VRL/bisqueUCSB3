@@ -57,7 +57,7 @@ import logging
 import os
 import string
 #from datetime import datetime
-from urllib import  unquote
+from urllib.parse import  unquote
 #import io
 #import itertools
 #import mmap
@@ -66,7 +66,8 @@ from urllib import  unquote
 import transaction
 from lxml import etree
 from pylons.controllers.util import abort, redirect
-from repoze.what.predicates import Any, in_group
+# from repoze.what.predicates import Any, in_group #!!! deprecated following are the replacements
+from tg.predicates import Any, in_group
 #from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from tg import (config,  expose,   request, response)
@@ -163,7 +164,7 @@ class AdminController(ServiceController):
 
         etree.SubElement(index_xml,'command', name='notify_users', value='sends message to all users')
         etree.SubElement(index_xml,'command', name='message_variables', value='returns available message variables')
-        return etree.tostring(index_xml)
+        return etree.tostring(index_xml, encoding='unicode')
 
     @expose(content_type='text/xml')
     def notify_users(self, *arg, **kw):
@@ -192,9 +193,9 @@ class AdminController(ServiceController):
         log.info("message_variables")
         variables = self.get_variables()
         resp = etree.Element('resource', name='message_variables')
-        for n,v in variables.iteritems():
+        for n,v in variables.items():
             etree.SubElement(resp, 'tag', name=n, value=v)
-        return etree.tostring(resp)
+        return etree.tostring(resp, encoding='unicode')
 
     def add_admin_info2node(self, user_node, view=None):
         """
@@ -238,7 +239,7 @@ class AdminController(ServiceController):
 
         if request.method == 'GET':
             loggers = [ {'name': ln, 'level': logging.getLevelName (lv.level)}
-                        for ln, lv in logging.Logger.manager.loggerDict.items()
+                        for ln, lv in list(logging.Logger.manager.loggerDict.items())
                         if hasattr (lv, 'level') #and lv.level != logging.NOTSET
             ]
 
@@ -251,7 +252,7 @@ class AdminController(ServiceController):
                 xml = etree.Element('resource', name='loggers', uri='/admin/loggers')
                 for l in loggers:
                     etree.SubElement(xml, 'logger', name=l.get('name'), value=l.get('level'))
-                return etree.tostring(xml)
+                return etree.tostring(xml, encoding='unicode')
 
         elif request.method in ('POST', 'PUT'):
 
@@ -294,7 +295,7 @@ class AdminController(ServiceController):
             else:
                 xml = etree.Element('log', name='log', uri='/admin/logs/read', type='local')
             response.headers['Content-Type']  = 'text/xml'
-            return etree.tostring(xml)
+            return etree.tostring(xml, encoding='unicode')
         elif operation == 'read':
             # dima, this will only work for local logger
             if log_url is not None:
@@ -404,7 +405,7 @@ class AdminController(ServiceController):
         for u in users:
             user = self.add_admin_info2node(u, view)
             resource.append(user)
-        return etree.tostring(resource)
+        return etree.tostring(resource, encoding='unicode')
 
 
     def get_user(self, uniq, **kw):
@@ -426,7 +427,7 @@ class AdminController(ServiceController):
         user = data_service.resource_load(uniq, view=view)
         if user is not None and user.tag =='user':
             user = self.add_admin_info2node(user, view)
-            return etree.tostring(user)
+            return etree.tostring(user, encoding='unicode')
         else:
             abort(403)
 

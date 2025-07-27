@@ -1,12 +1,12 @@
 
 import sys
 import os
-import StringIO
+import io
 import re
 import transaction
 
 from lxml import etree as ET
-from StringIO import StringIO
+from io import StringIO
 from nose import with_setup
 from nose.tools import assert_true, assert_equal, assert_false
 

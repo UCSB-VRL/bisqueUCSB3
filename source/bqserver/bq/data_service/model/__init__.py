@@ -4,7 +4,7 @@ import bq
 from bq.core.model import DeclarativeBase, metadata, DBSession
 
 
-from tag_model import *
+from .tag_model import *
 log = None
 #from store import *
 #from xmlstore import *

@@ -56,7 +56,7 @@ class TestDocController():
         tag = response.lxml.xpath('./tag')[0]
         tag.set('value', 'barnone')
         response = self.app.put (tag.get('uri'), ET.tostring(tag), content_type="text/xml", extra_environ=environ)
-        print response.body
+        print(response.body)
         assert 'barnone' == response.lxml.get('value')
 
 

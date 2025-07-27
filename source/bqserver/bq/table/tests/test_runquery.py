@@ -13,12 +13,15 @@ from ..controllers.table_base import TableLike, ArrayLike, OrConditionTuple, And
 
 def cb_csv(slices):
     # read only slices
-    return pd.read_csv('small.csv', skiprows=xrange(1,slices[0].start+1), nrows=slices[0].stop-slices[0].start, usecols=range(slices[1].start, slices[1].stop))   # skip header line
+    return pd.read_csv('small.csv', skiprows=range(1,slices[0].start+1), nrows=slices[0].stop-slices[0].start, usecols=list(range(slices[1].start, slices[1].stop)))   # skip header line
 
 def get_cb_excel(t):
     def cb_excel(slices):
+        # data = pd.read_excel(t, 'my_sheet_N1', skiprows=range(1,slices[0].start+1), parse_cols=list(range(slices[1].start, slices[1].stop)))
         # read only slices
-        data = pd.read_excel(t, 'my_sheet_N1', skiprows=xrange(1,slices[0].start+1), parse_cols=range(slices[1].start, slices[1].stop))
+        # Use usecols instead of deprecated parse_cols parameter
+        cols_to_read = list(range(slices[1].start, slices[1].stop))
+        data = pd.read_excel(t, 'my_sheet_N1', skiprows=range(1,slices[0].start+1), usecols=cols_to_read)
         # excel cannot read only a specified number of rows, select now
         return data[0:slices[0].stop-slices[0].start]
     return cb_excel
@@ -43,7 +46,7 @@ def _wrap_hdf_array(node):
     return ArrayLike(None, None, None, data=node, offset=0, headers=headers, types=types, sizes=node.shape)
     
 def _wrap_pd_table(t, cb=None):
-    return TableLike(None, None, None, data=t if cb is None else None, offset=0, headers=t.columns.tolist(), types=[ty.name for ty in t.dtypes.tolist()], sizes=(sys.maxint, t.shape[1]), cb=cb)
+    return TableLike(None, None, None, data=t if cb is None else None, offset=0, headers=t.columns.tolist(), types=[ty.name for ty in t.dtypes.tolist()], sizes=(sys.maxsize, t.shape[1]), cb=cb)
 
 @pytest.mark.unit
 class TestTableQuery(object):

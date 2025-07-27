@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup as soupy
 
 def login_elements(tag):
     """A filter to find cas login form elements"""
-    return tag.has_key('name') and tag.has_key('value')
+    return 'name' in tag and 'value' in tag
 
 def caslogin(session, caslogin, username, password, service=None):
     if service:

@@ -52,7 +52,7 @@ class MetaOperation(BaseOperation):
 
             if meta is None:
                 # exhaustively iterate over converters to find supporting one
-                for c in self.server.converters.itervalues():
+                for c in self.server.converters.values():
                     if c.name == dims.get('converter'): continue
                     meta = c.meta(token)
                     converter = c.name
@@ -74,7 +74,7 @@ class MetaOperation(BaseOperation):
             # construct an XML tree
             image = etree.Element ('resource', uri='/%s/%s?meta'%(self.server.base_url, token.resource_id))
             tags_map = {}
-            for k, v in meta.iteritems():
+            for k, v in meta.items():
                 if k.startswith('DICOM/'): continue
                 k = safeunicode(k)
                 v = safeunicode(v)
@@ -98,7 +98,7 @@ class MetaOperation(BaseOperation):
                 ConverterImgcnv.meta_dicom(ifile, series=token.series, token=token, xml=node)
 
             log.debug('Meta %s: storing metadata into %s', token.resource_id, metacache)
-            xmlstr = etree.tostring(image)
+            xmlstr = etree.tostring(image, encoding='unicode', pretty_print=True)
             with open(metacache, 'w') as f:
                 f.write(xmlstr)
             return token.setXml(xmlstr)

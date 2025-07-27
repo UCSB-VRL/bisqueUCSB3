@@ -1,7 +1,7 @@
 
 import os
 import pytest
-from StringIO import StringIO
+from io import StringIO
 import shutil
 import shortuuid
 
@@ -46,6 +46,6 @@ def test_local_write (test_dir):
     sf = StringIO(MSG)
     sf.name = 'none'
     storeurl, localpath = drv.push (sf, 'file://%s/msg.txt' % test_dir)
-    print "GOT", storeurl, localpath
+    print("GOT", storeurl, localpath)
 
     assert os.path.exists (localpath), "Created file exists"

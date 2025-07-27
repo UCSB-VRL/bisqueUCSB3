@@ -56,7 +56,7 @@ import logging
 #import base64
 import json
 import posixpath
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from lxml import etree
 import transaction
@@ -65,8 +65,10 @@ import tg
 from tg import request, session, flash, require, response
 from tg import  expose, redirect, url
 from tg import config
-from pylons.i18n import ugettext as  _
-from repoze.what import predicates
+# from pylons.i18n import ugettext as  _
+from tg.i18n import ugettext as _ # !!! modern replacement for pylons.i18n
+# from repoze.what import predicates # !!! deprecated following is the replacement
+from tg.predicates import not_anonymous, has_permission
 
 from bq.core.service import ServiceController
 from bq.core import identity
@@ -91,10 +93,6 @@ except ImportError:
         from collections import OrderedDict
     except ImportError:
         log.error("can't import OrderedDict")
-
-
-
-
 
 
 
@@ -123,13 +121,13 @@ class AuthenticationServer(ServiceController):
     @expose(content_type="text/xml")
     def login_providers (self):
         log.debug ("providers")
-        return etree.tostring (d2xml ({ 'providers' : self.login_map()} ))
+        return etree.tostring (d2xml ({ 'providers' : self.login_map()} ), encoding='unicode')
 
     @expose()
     def login_check(self, came_from='/', login='', **kw):
         log.debug ("login_check %s from=%s " , login, came_from)
         login_urls = self.login_map()
-        default_login = login_urls.values()[-1]
+        default_login = list(login_urls.values())[-1]
         if login:
             # Look up user
             user = DBSession.query (User).filter_by(user_name=login).first()
@@ -138,7 +136,7 @@ class AuthenticationServer(ServiceController):
                 redirect(update_url(default_login['url'], dict(username=login, came_from=came_from)))
             # Find a matching identifier
             login_identifiers = [ g.group_name for g in user.groups ]
-            for identifier in login_urls.keys():
+            for identifier in list(login_urls.keys()):
                 if  identifier in login_identifiers:
                     login_url  = login_urls[identifier]['url']
                     log.debug ("redirecting to %s handler" , identifier)
@@ -151,6 +149,9 @@ class AuthenticationServer(ServiceController):
     @expose('bq.client_service.templates.login')
     def login(self, came_from='/', username = '', **kw):
         """Start the user login."""
+        if 'failure' in kw:
+            log.info("------ login failure %s" % kw['failure'])
+            flash(_(kw['failure']), 'warning')
         login_counter = int (request.environ.get ('repoze.who.logins', 0))
         if login_counter > 0:
             flash(_('Wrong credentials'), 'warning')
@@ -158,14 +159,15 @@ class AuthenticationServer(ServiceController):
         # Check if we have only 1 provider that is not local and just redirect there.
         login_urls = self.login_map()
         if len(login_urls) == 1:
-            provider, entries =  login_urls.items()[0]
+            provider, entries =  list(login_urls.items())[0]
             if provider != 'local':
                 redirect (update_url(entries['url'], dict(username=username, came_from=came_from)))
 
         return dict(page='login', login_counter=str(login_counter), came_from=came_from, username=username,
                     providers_json = json.dumps (login_urls), providers = login_urls )
-
-    #@expose ()
+    
+    
+    # #@expose ()
     #def login_handler(self, **kw):
     #    log.debug ("login_handler %s" % kw)
     #    return self.login(**kw)
@@ -186,11 +188,67 @@ class AuthenticationServer(ServiceController):
         authentication or redirect her back to the login page if login failed.
 
         """
-        log.debug ('POST_LOGIN')
         if not request.identity:
             login_counter = int (request.environ.get('repoze.who.logins',0)) + 1
             redirect(url('/auth_service/login',params=dict(came_from=came_from, __logins=login_counter)))
+        
         userid = request.identity['repoze.who.userid']
+        
+        # Check email verification status FIRST before proceeding with login
+        try:
+            # Skip email verification for admin users
+            is_admin_user = (userid == 'admin' or 
+                           userid == 'administrator' or 
+                           'admin' in userid.lower())
+            
+            if is_admin_user:
+                log.debug(f"Skipping email verification for admin user: {userid}")
+            else:
+                from bq.registration.email_verification import get_email_verification_service
+                from bq.data_service.model import BQUser
+                from bq.data_service.model.tag_model import DBSession
+                
+                email_service = get_email_verification_service()
+                if email_service and email_service.is_available():
+                    # Find the user by username
+                    bq_user = DBSession.query(BQUser).filter(BQUser.resource_name == userid).first()
+                    if bq_user:
+                        # Check if user is verified
+                        is_verified = email_service.is_user_verified(bq_user)
+                        if not is_verified:
+                            # User is not verified - deny login completely
+                            log.warning(f"Login denied for unverified user: {userid}")
+                            
+                            # Force logout by redirecting to logout handler first
+                            flash(_('Your email address must be verified before you can sign in. Please check your email for the verification link or request a new one.'), 'error')
+                            redirect('/auth_service/logout_handler?came_from=/registration/resend_verification')
+                            return  # This should never be reached due to redirect
+                        else:
+                            log.info(f"Email verified user logged in: {userid}")
+                    else:
+                        log.warning(f"User not found in database during email verification check: {userid}")
+                else:
+                    log.debug(f"Email verification not available - allowing login for: {userid}")
+                
+        except (ImportError, AttributeError, NameError) as import_error:
+            # Only catch import/attribute errors, not redirects
+            log.error(f"Error importing email verification modules for {userid}: {import_error}")
+            # Allow login to continue if email verification modules can't be imported
+        except Exception as e:
+            # Check if this is a redirect exception (which is normal)
+            import tg.exceptions
+            if isinstance(e, (tg.exceptions.HTTPFound, tg.exceptions.HTTPRedirection)):
+                # This is a redirect, let it propagate normally
+                raise
+            else:
+                # This is a real error
+                log.error(f"Error checking email verification status for {userid}: {e}")
+                # If there's an error checking verification, allow login to avoid breaking the system
+                # but log it for investigation
+                import traceback
+                log.error(f"Email verification check error traceback: {traceback.format_exc()}")
+        
+        # Original login logic continues only if user is verified or verification is disabled
         flash(_('Welcome back, %s!') % userid)
         self._begin_mex_session()
         timeout = int (config.get ('bisque.login.timeout', '0').split('#')[0].strip())
@@ -198,11 +256,10 @@ class AuthenticationServer(ServiceController):
         if timeout:
             session['timeout']  = timeout
         if length:
-            session['expires']  = (datetime.utcnow() + timedelta(seconds=length))
+            session['expires']  = (datetime.now(timezone.utc) + timedelta(seconds=length))
             session['length'] = length
 
         session.save()
-        log.debug ("Current session %s" , str( session))
         transaction.commit()
         redirect(came_from)
 
@@ -260,7 +317,7 @@ class AuthenticationServer(ServiceController):
             #                     name="basic-authorization",
             #                     value=base64.encodestring("%s:%s" % cred))
         #tg.response.content_type = "text/xml"
-        return etree.tostring(response)
+        return etree.tostring(response, encoding='unicode')
 
 
 
@@ -292,11 +349,12 @@ class AuthenticationServer(ServiceController):
             etree.SubElement (sess, 'tag', name='expires', value= expires.isoformat()+'Z' )
             etree.SubElement (sess, 'tag', name='timeout', value= str(timeout) )
             etree.SubElement (sess, 'tag', name='length', value= str(length) )
-        return etree.tostring(sess)
+        return etree.tostring(sess, encoding='unicode')
 
 
     @expose(content_type="text/xml")
-    @require(predicates.not_anonymous())
+    # @require(predicates.not_anonymous()) # !!! deprecated following is the replacement
+    @require(not_anonymous())
     def newmex (self, module_url=None):
         mexurl  = self._begin_mex_session()
         return mexurl
@@ -331,7 +389,8 @@ class AuthenticationServer(ServiceController):
 
 
     @expose(content_type="text/xml")
-    @require(predicates.not_anonymous())
+    # @require(predicates.not_anonymous()) # !!! deprecated following is the replacement
+    @require(not_anonymous())
     def setbasicauth(self,  username, passwd, **kw):
         log.debug ("Set basic auth %s", kw)
         if not identity.is_admin() and username != identity.get_username() :

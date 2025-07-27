@@ -11,8 +11,8 @@ import os.path
 from lxml import etree
 import re
 import tempfile
-import cStringIO as StringIO
-import ConfigParser
+import io as StringIO
+import configparser
 #from collections import OrderedDict
 from bq.util.compat import OrderedDict
 import bq.util.io_misc as misc
@@ -48,14 +48,14 @@ def parse_format(l):
 def safeRead(config, section, option, defval=None):
     try:
         return config.get(section, option)
-    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+    except (configparser.NoSectionError, configparser.NoOptionError):
         return defval
 
 def safeReadAndSet(config, section, option, d, key, defval=None):
     v = defval
     try:
         v = config.get(section, option)
-    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+    except (configparser.NoSectionError, configparser.NoOptionError):
         pass
     if v is not None:
         d[key] = v
@@ -294,7 +294,7 @@ class ConverterImaris(ConverterBase):
         #params = misc.xpathtextnode(mee, '%s/ImplParameters'%imagenodepath)
         # use index 0 since we fetch meta data with imageindex argument
         sp = StringIO.StringIO(params)
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         try:
             config.readfp(sp)
         except Exception:
@@ -414,7 +414,7 @@ class ConverterImaris(ConverterBase):
                  'pixel_resolution_unit_x', 'pixel_resolution_unit_y', 'pixel_resolution_unit_z' ]
 
         #return {k:v for k,v in rd.iteritems() if k in core}
-        return dict( (k,v)  for k,v in rd.iteritems() if k in core )
+        return dict( (k,v)  for k,v in rd.items() if k in core )
 
     #######################################
     # Conversion

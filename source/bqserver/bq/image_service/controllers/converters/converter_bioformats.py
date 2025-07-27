@@ -278,12 +278,12 @@ class ConverterBioformats(ConverterBase):
 
         # channel info
         channels = mee.xpath('%s/ome:Pixels/ome:Channel'%imagenodepath, namespaces=namespaces)
-        for c,i in zip(channels, range(len(channels))):
+        for c,i in zip(channels, list(range(len(channels)))):
             bfReadAndSet(c, 'Name',   rd, 'channel_%s_name'%i, defval='ch_%s'%i)
             bfReadAndSet(c, 'Color',  rd, 'channel_color_%s'%i, f=bfColorToString)
 
         # new format
-        for c,i in zip(channels, range(len(channels))):
+        for c,i in zip(channels, list(range(len(channels)))):
             path    = 'channels/channel_%.5d'%i
 
             bfReadAndSet(c, 'Name',   rd, '%s/name'%path, defval='ch_%s'%i)
@@ -367,7 +367,7 @@ class ConverterBioformats(ConverterBase):
                  'pixel_resolution_unit_x', 'pixel_resolution_unit_y', 'pixel_resolution_unit_z' ]
 
         #return {k:v for k,v in rd.iteritems() if k in core}
-        return dict( (k,v)  for k,v in rd.iteritems() if k in core )
+        return dict( (k,v)  for k,v in rd.items() if k in core )
 
 
     #######################################
