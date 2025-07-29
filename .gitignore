@@ -229,3 +229,4 @@ Thumbs.db
 /source/public/*
 /source/external/*
 
+builder/start-scripts.d/
