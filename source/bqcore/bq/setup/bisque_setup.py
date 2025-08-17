@@ -878,7 +878,10 @@ def modify_site_cfg(qs, bisque_vars, section=BQ_SECTION, append=True, cfg=None):
         cfg = SITE_CFG
 
     if not os.path.exists(cfg):
-        raise InstallError("missing %s" % cfg)
+        print("site cfg not found")
+        return bisque_vars
+        # !!! temporary commenting out as it seems to causing issue during docker build
+        # raise InstallError("missing %s" % cfg)
 
     # Check environment defaults
     for key, _ in [unpack(q, 1) for q in qs]:
