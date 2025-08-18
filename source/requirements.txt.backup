@@ -1,5 +1,15 @@
-# External package dependencies for BisQue
-# Local packages (bqcore, bqserver, bqapi, bqengine, bqfeature) will be installed via setup.py install
+clear# all editable package are relative to source
+-e ./bqcore
+-e ./bqserver
+-e ./bqapi
+-e ./bqengine
+-e ./bqfeature
+ 
+-e ./legacy_upgraded/Pylons-2.0
+-e ./legacy_upgraded/Minimatic-2.0
+-e ./legacy_upgraded/WebError-2.0
+-e ./legacy_upgraded/WebHelpers-2.0
+-e ./legacy_upgraded/paste-103.10.1 # modified paste to address some issues
 
 alembic==1.15.2
 Beaker==1.13.0
@@ -47,6 +57,7 @@ psutil==7.0.0
 py-cpuinfo==9.0.0
 Pygments==2.19.1
 pygraphviz==1.14
+Pylons==2.0.0
 pyparsing==3.2.3
 python-dateutil==2.9.0.post0
 python-irodsclient==3.1.0
@@ -86,4 +97,3 @@ pydicom==3.0.1
 #excel files
 openpyxl==3.1.4
 xlrd==2.0.1 #for old xls files
-Paver==1.2.4
