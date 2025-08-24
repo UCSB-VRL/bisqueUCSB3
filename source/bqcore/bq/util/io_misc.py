@@ -150,10 +150,13 @@ def run_command(command, cwd=None, shell=False):
         if p.returncode != 0:
             log.info("BAD non-0 return code for %s", command)
             return None
-        # Qt reports an error: 'Qt: Untested Windows version 6.2 detected!\r\n'
-        # if e is not None and len(e)>0:
-        #    return None
-        return o or e
+        
+        # Handle Python 3 bytes to string conversion
+        result = o or e
+        if isinstance(result, bytes):
+            result = result.decode('utf-8', errors='ignore')
+            
+        return result
     except OSError:
         log.warning("Command not found [%s]", command[0])
     except Exception:
