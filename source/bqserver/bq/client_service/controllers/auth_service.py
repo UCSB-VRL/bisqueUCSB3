@@ -167,10 +167,12 @@ class AuthenticationServer(ServiceController):
                     providers_json = json.dumps (login_urls), providers = login_urls )
     
     
-    # #@expose ()
-    #def login_handler(self, **kw):
-    #    log.debug ("login_handler %s" % kw)
-    #    return self.login(**kw)
+    @expose ()
+    def login_handler(self, came_from='/', **kw):
+        """Handle login form submission and redirect appropriately."""
+        log.debug ("login_handler %s" % kw)
+        # Redirect to post_login to handle the actual authentication logic
+        return self.post_login(came_from=came_from, **kw)
 
     @expose()
     def openid_login_handler(self, **kw):
@@ -264,23 +266,16 @@ class AuthenticationServer(ServiceController):
         redirect(came_from)
 
 
-    # This function is never called but used as token to recognize the logout
-    # @expose ()
-    # def logout_handler(self, **kw):
-    #     log.debug ("logout %s" % kw)
-    #     #session = request.environ['beaker.session']
-    #     #session.delete()
-    #     try:
-    #         self._end_mex_session()
-    #         session.delete()
-    #     except Exception:
-    #         log.exception("logout")
-
-    #     redirect ('/')
-
-    #@expose ()
-    #def logout_handler(self, **kw):
-    #    log.debug ("logout_handler %s" % kw)
+    # This function is used to handle logout requests
+    @expose ()
+    def logout_handler(self, **kw):
+        log.debug ("logout_handler %s" % kw)
+        try:
+            self._end_mex_session()
+            session.delete()
+        except Exception:
+            log.exception("logout")
+        redirect ('/')
 
 
     @expose()

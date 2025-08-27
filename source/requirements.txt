@@ -87,3 +87,5 @@ pydicom==3.0.1
 openpyxl==3.1.4
 xlrd==2.0.1 #for old xls files
 Paver==1.2.4
+# Openslide for converter
+openslide-python==1.4.1

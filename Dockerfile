@@ -129,6 +129,7 @@ RUN apt-get update -qq && \
     libxrender1 \
     libxslt1.1 \
     libxvidcore4 \
+    libfreeimage3 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -139,9 +140,18 @@ RUN apt-get update -qq && \
     openjdk-8-jdk \
     vim \
     sudo \
+    libjpeg-dev \
+    libjpeg8-dev \
     && update-ca-certificates \
     && apt-get clean \
     && find /var/lib/apt/lists/ -type f -delete
+
+# Fix ImarisConvert library dependencies - create symlink for older JPEG library version
+RUN ln -sf /usr/lib/x86_64-linux-gnu/libjpeg.so.8 /usr/lib/x86_64-linux-gnu/libjpeg.so.62
+
+# Set Java environment for bioformats
+ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+ENV PATH=$JAVA_HOME/bin:$PATH
 
 ########################################################################################
 # Install Docker
@@ -236,6 +246,45 @@ ADD source /source
 RUN /builder/run-bisque.sh build
 
 RUN /builder/bq-admin-setup.sh
+
+########################################################################################
+# Fix: bioformats and third-party tools integration
+########################################################################################
+
+# Ensure bioformats tools are properly configured
+RUN if [ -f /usr/lib/bisque/bin/bioformats_package.jar ]; then \
+    echo "Bioformats JAR found, testing functionality..." && \
+    java -cp /usr/lib/bisque/bin/bioformats_package.jar loci.formats.tools.ImageInfo 2>/dev/null || echo "Bioformats JAR needs runtime configuration"; \
+    fi
+
+# Create environment script for bioformats tools
+RUN echo '#!/bin/bash\n\
+    export BF_JAR_DIR=/usr/lib/bisque/bin\n\
+    export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64\n\
+    export PATH=$JAVA_HOME/bin:$PATH\n' > /etc/bioformats-env.sh && \
+    chmod +x /etc/bioformats-env.sh
+
+# Test ImarisConvert functionality
+RUN if [ -f /usr/lib/bisque/bin/ImarisConvert ]; then \
+    echo "Testing ImarisConvert..." && \
+    /usr/lib/bisque/bin/ImarisConvert --help >/dev/null 2>&1 && echo "ImarisConvert working" || echo "ImarisConvert needs additional libraries"; \
+    fi
+
+# Verify OpenSlide installation
+RUN python3 -c "import openslide; print('OpenSlide version:', openslide.__version__)" && \
+    echo "OpenSlide verification complete"
+
+# Create proper wrapper scripts for third-party tools in system PATH
+RUN echo '#!/bin/sh\nSUB=ImarisConvert_glibc2.11\nexport LD_LIBRARY_PATH="/usr/lib/bisque/bin/$SUB"\nexec /usr/lib/bisque/bin/$SUB/ImarisConvert "$@"' > /usr/local/bin/ImarisConvert && \
+    echo '#!/usr/bin/env bash\nBF_PROG=loci.formats.tools.ImageInfo /usr/lib/bisque/bin/bf.sh "$@"' > /usr/local/bin/showinf && \
+    echo '#!/usr/bin/env bash\nBF_PROG=loci.formats.tools.ImageConverter /usr/lib/bisque/bin/bf.sh "$@"' > /usr/local/bin/bfconvert && \
+    chmod +x /usr/local/bin/ImarisConvert /usr/local/bin/showinf /usr/local/bin/bfconvert && \
+    echo "Third-party tools wrapper scripts created"
+
+# Set container environment markers for BisQue setup scripts
+ENV DOCKER_CONTAINER=1
+ENV BQ_CONTAINER_BUILD=1
+
 ########################################################################################
 # Install Minio and Argo CLI
 ########################################################################################

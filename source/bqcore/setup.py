@@ -44,7 +44,7 @@ setup(
         # "repoze.what.plugins.sql",
         # "repoze.who <= 1.99",
 #        "tgext.admin >= 0.3.9",
-        "tw2.forms", # !!! tw.forms
+        # "tw2.forms", # !!! tw.forms
         #"repoze.who.plugins.ldap",  #Optional for LDAP login
         #"repoze.who.plugins.openid",  #Optional for OpenID login
 

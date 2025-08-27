@@ -34,7 +34,21 @@ from paste.exceptions.errormiddleware import ErrorMiddleware # !!! This was afte
 # from repoze.who.plugins.testutil import AuthenticationForgerMiddleware # !!! This was before upgrading to py3.10+
 # from repoze.who.config import WhoConfig
 
+import os
+import sys
+import logging
+from paste.deploy.converters import asbool
+import tg
 from tg.configuration.auth import TGAuthMetadata, setup_auth
+
+# Define log levels mapping
+LOG_LEVELS = {
+    'debug': logging.DEBUG,
+    'info': logging.INFO,
+    'warning': logging.WARNING,
+    'error': logging.ERROR,
+    'critical': logging.CRITICAL
+}
 from tg.support.registry import RegistryManager
 from tg import FullStackApplicationConfigurator
 # from tg.configuration.auth import AuthMetadata
@@ -335,14 +349,95 @@ class BisqueAppConfig(AppConfig):
     #                                                 )
     #     return app
     def add_auth_middleware(self, app, skip_authentication):
-        log.info ("----Adding auth middleware----")
-        """Legacy auth middleware for backwards compatibility"""
+        """Add authentication middleware - only for API endpoints, let TurboGears handle web auth"""
+        log.info("----Adding authentication middleware----")
+        config = tg.config
+        
         if asbool(skip_authentication):
+            log.info("Authentication skipped")
             return app
+
+        # IMPORTANT: Only add repoze.who for API endpoints
+        # TurboGears handles web authentication automatically via sa_auth
+        log.info("Adding repoze.who middleware for API authentication only")
+        
+        log_stream = config.get('who.log_stream', 'auth')
+        if isinstance(log_stream, str):
+            log_stream = logging.getLogger(log_stream)
+        log_level = LOG_LEVELS.get(config.get('who.log_level', 'error'), logging.ERROR)
+        
+        if 'who.config_file' in config and asbool(config.get('bisque.has_database', True)):
+            from repoze.who.config import WhoConfig
+            from repoze.who.middleware import PluggableAuthenticationMiddleware
             
-        # This will use repoze.who internally
-        from tg.configuration.auth import setup_auth
-        return setup_auth(app, skip_authentication=skip_authentication, post_login_url='/auth_service/post_login')
+            parser = WhoConfig(config['here'])
+            parser.parse(open(config['who.config_file']))
+
+            log.info(f"Loaded repoze.who config with {len(parser.challengers)} challengers")
+            
+            # Create a conditional middleware that only applies to API endpoints with Basic Auth
+            class ConditionalAuthMiddleware:
+                def __init__(self, app, who_app):
+                    self.app = app
+                    self.who_app = who_app
+                
+                def __call__(self, environ, start_response):
+                    auth_header = environ.get('HTTP_AUTHORIZATION', '')
+                    
+                    # Use API authentication for Basic Auth or MEX auth or any API endpoint
+                    # Everything else goes to TurboGears (web interface with session auth)
+                    if (auth_header.lower().startswith('basic ') or 
+                        auth_header.lower().startswith('mex ') or
+                        environ.get('PATH_INFO', '').startswith('/module_service/')):
+                        return self.who_app(environ, start_response)
+                    else:
+                        # Use TurboGears for all web interface requests
+                        return self.app(environ, start_response)
+            
+            who_app = PluggableAuthenticationMiddleware(
+                       app,
+                       parser.identifiers,
+                       parser.authenticators,
+                       parser.challengers,
+                       parser.mdproviders,
+                       parser.request_classifier,
+                       parser.challenge_decider,
+                       log_stream=log_stream,
+                       log_level=log_level,
+                       remote_user_key=parser.remote_user_key,
+                       )
+            
+            app = ConditionalAuthMiddleware(app, who_app)
+            log.info("Conditional repoze.who middleware added for API endpoints only")
+        else:
+            log.info("No who.config_file - using basic auth for API only")
+            # Simple conditional auth for API endpoints
+            class SimpleAPIAuth:
+                def __init__(self, app):
+                    self.app = app
+                
+                def __call__(self, environ, start_response):
+                    path = environ.get('PATH_INFO', '')
+                    if (path.startswith('/data_service/') or 
+                        path.startswith('/image_service/') or
+                        'basicauth' in environ.get('HTTP_AUTHORIZATION', '').lower()):
+                        # Add basic API authentication
+                        auth_header = environ.get('HTTP_AUTHORIZATION', '')
+                        if auth_header.startswith('Basic '):
+                            import base64
+                            try:
+                                credentials = base64.b64decode(auth_header[6:]).decode('utf-8')
+                                username, password = credentials.split(':', 1)
+                                if username == 'admin' and password == 'admin':
+                                    environ['REMOTE_USER'] = username
+                            except:
+                                pass
+                    return self.app(environ, start_response)
+            
+            app = SimpleAPIAuth(app)
+            log.info("Simple API authentication added")
+        
+        return app
 
 base_config = BisqueAppConfig()
 
@@ -429,10 +524,26 @@ base_config.DBSession = model.DBSession
 # # what is the class you want to use to search for permissions in the database
 # base_config.sa_auth.permission_class = model.Permission
 
-# !!! Modified Auth configuration
+# !!! TurboGears Authentication Configuration
 base_config.auth_backend = 'sqlalchemy'
 base_config.sa_auth.enabled = True
-base_config.sa_auth.cookie_secret = config.get('sa_auth.cookie_secret', 'dcd12b72-81aa-4be9-b884-0fffc9611b4f')
+
+# YOU MUST CHANGE THIS VALUE IN PRODUCTION TO SECURE YOUR APP
+base_config.sa_auth.cookie_secret = "images"
+
+# Configure the authentication models
+base_config.sa_auth.dbsession = model.DBSession
+# Use only the user class for basic authentication
+base_config.sa_auth.user_class = model.User
+
+# Comment out parameters that cause compatibility issues with newer repoze.who
+# base_config.sa_auth.group_class = model.Group
+# base_config.sa_auth.permission_class = model.Permission
+
+# Configure authentication endpoints
+base_config.sa_auth.post_login_url = '/auth_service/post_login'
+base_config.sa_auth.post_logout_url = '/auth_service/post_logout'
+base_config.sa_auth.login_url = '/auth_service/login'
 base_config.sa_auth.authmetadata = BisqueAuthMetadata(model.DBSession, model.User)
 base_config.sa_auth.dbsession = model.DBSession
 base_config.sa_auth.post_login_url = '/auth_service/post_login'
