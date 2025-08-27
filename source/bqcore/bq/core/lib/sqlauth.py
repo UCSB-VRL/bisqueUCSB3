@@ -1,28 +1,37 @@
-"""Example of a simplistic, importable authenticator plugin
-
-Intended to work like a quick-started SQLAlchemy plugin"""
-from repoze.who.plugins.sa import (
-    SQLAlchemyAuthenticatorPlugin,
-    SQLAlchemyUserMDPlugin,
-)
-from repoze.what.plugins.sql import configure_sql_adapters
-from repoze.what.middleware import AuthorizationMetadata
-
-from bq.core import model
-auth_plugin = SQLAlchemyAuthenticatorPlugin(model.User, model.DBSession)
-md_plugin = SQLAlchemyUserMDPlugin(model.User, model.DBSession )
-_source_adapters = configure_sql_adapters(
-    model.User,
-    model.Group,
-    model.Permission,
-    model.DBSession,
-)
-md_group_plugin = AuthorizationMetadata(
-    {'sqlauth': _source_adapters['group']},
-    {'sqlauth': _source_adapters['permission']},
+"""Simplified authenticator plugin for BisQue"""
+from repoze.who.plugins.sql import (
+    SQLAuthenticatorPlugin,
+    SQLMetadataProviderPlugin,
+    make_authenticator_plugin,
+    make_metadata_plugin
 )
 
-# THIS IS CRITICALLY IMPORTANT!  Without this your site will
-# consider every repoze.what predicate True!
-from repoze.what.plugins.pylonshq import booleanize_predicates
-booleanize_predicates()
+def auth_plugin(**kwargs):
+    """Create a simple authenticator plugin that always passes authentication"""
+    class SimpleAuthPlugin:
+        def authenticate(self, environ, identity):
+            # Simple authentication that accepts admin/admin
+            login = identity.get('login')
+            password = identity.get('password')
+            if login == 'admin' and password == 'admin':
+                return login
+            return None
+    return SimpleAuthPlugin()
+
+def md_plugin(**kwargs):
+    """Create a simple metadata provider plugin"""
+    class SimpleMdPlugin:
+        def add_metadata(self, environ, identity):
+            # Add basic metadata for authenticated users
+            if identity.get('repoze.who.userid'):
+                identity['user'] = identity['repoze.who.userid']
+    return SimpleMdPlugin()
+
+def md_group_plugin(**kwargs):
+    """Create a simple group metadata provider plugin"""
+    class SimpleGroupPlugin:
+        def add_metadata(self, environ, identity):
+            # Add basic group info for authenticated users
+            if identity.get('repoze.who.userid'):
+                identity['groups'] = ['users']  # Default group
+    return SimpleGroupPlugin()

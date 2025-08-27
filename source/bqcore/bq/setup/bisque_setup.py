@@ -212,7 +212,8 @@ RUNTIME_CFG = None
 
 PYTHON = sys.executable
 EXT_SERVER = (
-    "https://vat.ece.ucsb.edu//binaries/depot/"  # EXTERNAL host server DIRS['depot']
+    # "https://vat.ece.ucsb.edu/binaries/depot/"  # EXTERNAL host server DIRS['depot']
+    "https://files.wskoly.xyz/binaries/depot/" # !!! temporary added to build and debug faster
 )
 
 

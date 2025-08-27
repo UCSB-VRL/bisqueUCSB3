@@ -32,7 +32,7 @@ host.user= test
 host.password= test
 
 [store]
-samples_url= http://flour.ece.ucsb.edu:8080/~bisque/test_data/images/
+samples_url= https://s3-us-west-2.amazonaws.com/viqi-test-images/
 input_dir= sampledata
 results_dir= results
 files= flowers_24bit_nointr.png

@@ -32,4 +32,5 @@ def test_conversion():
     print("XML")
     print(r)
     # assert x == X.translate(None, '\r\n')
-    assert x.decode("utf-8") == X.translate(str.maketrans('', '', '\r\n')) #!!! modern alternative
+    # Fix for Python 3: x is already a string, no need to decode
+    assert x == X.translate(str.maketrans('', '', '\r\n')) #!!! modern alternative
