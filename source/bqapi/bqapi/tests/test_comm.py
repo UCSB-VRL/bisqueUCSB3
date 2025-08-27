@@ -297,8 +297,13 @@ def test_run_mex(mexsession):
         assert mex_uri == response_xml.get ('uri')
         
     except Exception as e:
-        # Handle server errors gracefully for refactoring phase
-        if "500 Server Error" in str(e) or "BQCommError" in str(type(e)):
-            pytest.skip("MEX POST operations returning 500 error - server configuration issue")
+        error_str = str(e).lower()
+        # Handle authentication errors as test failures, not skips
+        if "authentication failed" in error_str or "invalid credentials" in error_str:
+            pytest.fail(f"Authentication error: {e}")
+        # Handle server configuration issues (challenger problems)
+        elif "500 server error" in error_str or "bqcommerror" in str(type(e)) or "500" in error_str:
+            pytest.fail(f"Server configuration error (challenger issue): {e}")
         else:
+            # Other unexpected errors
             raise e

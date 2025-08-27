@@ -333,12 +333,26 @@ class BQSession(object):
         try:
             r = self.fetchxml (self.service_url("auth_service", 'session'))
             users = r.findall('./tag[@name="user"]')
-            return  len(users) > 0
+            
+            # If no user tags found, authentication failed
+            if len(users) == 0:
+                log.error("Authentication failed - no user information in session response")
+                # Raise an exception instead of silently failing
+                raise Exception("Authentication failed - invalid credentials")
+                
+            return True
+            
         except Exception as e:
-            # In test mode or offline mode, allow session creation for unit tests
-            # This enables testing without a running BisQue server
-            log.warning(f"Session check failed (likely offline mode): {e}")
-            return True  # Allow session creation for testing
+            # Don't silently allow session creation for failed authentication
+            # Only allow in truly offline mode (connection refused, etc.)
+            error_str = str(e).lower()
+            if "connection refused" in error_str or "connection error" in error_str or "network" in error_str:
+                log.warning(f"Offline mode detected (connection issue): {e}")
+                return True  # Allow session creation for testing when server is down
+            else:
+                # Authentication or server error - should not silently pass
+                log.error(f"Session validation failed due to authentication: {e}")
+                raise e  # Re-raise authentication errors
 
     def init(self, bisque_url, credentials=None, moduleuri = None, create_mex=False):
         """Create  session by connect to with bisque_url
@@ -384,12 +398,21 @@ class BQSession(object):
         self.c.authenticate_basic(user, pwd)
         self._load_services()
         
-        # Always return session object for testing, but log authentication status
-        session_valid = self._check_session()
-        if not session_valid:
-            log.warning("Session validation failed - continuing in test/offline mode")
-            # Create a minimal session for testing purposes
-            self.c.authenticated = True  # Assume basic auth worked for other endpoints
+        # Check if authentication was successful
+        try:
+            session_valid = self._check_session()
+            if not session_valid:
+                raise Exception(f"Authentication failed for user '{user}' - invalid credentials")
+        except Exception as e:
+            # Re-raise authentication errors to be handled by tests
+            error_str = str(e).lower()
+            if "authentication failed" in error_str or "invalid credentials" in error_str:
+                # This is an authentication error, not a connection error
+                raise Exception(f"BisQue authentication failed for user '{user}': {e}")
+            else:
+                # Connection or other error - allow for offline testing
+                log.warning(f"Session validation failed - continuing in test/offline mode: {e}")
+                self.c.authenticated = True  # Assume basic auth worked for other endpoints
 
         self.mex = None
 
