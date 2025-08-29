@@ -344,9 +344,10 @@ class BlobServer(RestController, ServiceMixin):
 
 
 
-    @expose()
+    @expose(content_type='text/xml')
     def get_all(self):
-        return "Method Not supported"
+        """Return service information as XML"""
+        return '<resource><service name="blob_service" version="1.0"><description>Blob storage service for managing binary data</description></service></resource>'
 
     @expose()
     def get_one(self, ident, **kw):

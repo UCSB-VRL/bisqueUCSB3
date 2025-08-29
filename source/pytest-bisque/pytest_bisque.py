@@ -43,7 +43,8 @@ def load_test_application(filename):
 
     print("pytest_bisque:load_test_application:", filename)
     wsgiapp = loadapp('config:' + os.path.abspath(filename))
-    logging.config.fileConfig (filename)
+    # Note: logging.config.fileConfig is already called by site.cfg during loadapp
+    # logging.config.fileConfig (filename)  # This line causes KeyError: 'formatters'
     app = TestApp(wsgiapp)
     app.authorization = ('Basic', ('admin', 'admin'))
     #KGK Following lines are required to create database tables.. but somehow turn off logging??

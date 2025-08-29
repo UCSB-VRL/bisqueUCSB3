@@ -314,6 +314,30 @@ class AuthenticationServer(ServiceController):
         #tg.response.content_type = "text/xml"
         return etree.tostring(response, encoding='unicode')
 
+    @expose(content_type="text/xml")
+    def whoami(self, **kw):
+        """Return information about the current authenticated user"""
+        response = etree.Element('user')
+        
+        username = identity.get_username()
+        if username:
+            etree.SubElement(response, 'tag', name='name', value=username)
+            
+            # Add user ID if available
+            current_user = identity.get_user()
+            if current_user:
+                etree.SubElement(response, 'tag', name='uri', value=data_service.uri() + current_user.uri)
+                etree.SubElement(response, 'tag', name='resource_uniq', value=current_user.resource_uniq)
+                
+                # Add groups
+                groups = [g.group_name for g in current_user.get_groups()]
+                if groups:
+                    etree.SubElement(response, 'tag', name='groups', value=",".join(groups))
+        else:
+            # Not authenticated
+            etree.SubElement(response, 'tag', name='name', value='anonymous')
+            
+        return etree.tostring(response, encoding='unicode')
 
 
     @expose(content_type="text/xml")

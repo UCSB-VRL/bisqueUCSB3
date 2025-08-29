@@ -1132,7 +1132,7 @@ class ArrayLike(TableBase):
     def _gen_mask(self, outer_slices, sel_slices):
         mask = np.ones([s.stop-s.start for s in outer_slices], dtype=bool)
         mask_slices = self._and_slices(outer_slices, sel_slices)
-        mask[[slice(mask_slices[dim].start-outer_slices[dim].start, mask_slices[dim].stop-outer_slices[dim].start) for dim in range(len(outer_slices))]] = False
+        mask[tuple(slice(mask_slices[dim].start-outer_slices[dim].start, mask_slices[dim].stop-outer_slices[dim].start) for dim in range(len(outer_slices)))] = False
         return mask
 
     def _gen_nan_array(self, slices):

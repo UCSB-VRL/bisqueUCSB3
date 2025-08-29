@@ -67,12 +67,11 @@ class ingestController(controllers.RestController, ServiceMixin):
     def __init__(self, server_url):
         ServiceMixin.__init__(self,server_url)
 
-    @expose('bq.ingest.templates.index')
+    @expose(content_type="text/xml")
     def get_all(self, **kw):
-        """Add your first page here.. """
-
+        """Return service information as XML"""
         log.info("INGEST /")
-        return dict(msg=_('Hello from ingest'))
+        return '<resource><service name="ingest_service" version="1.0"><description>Ingest service for processing blob resources</description></service></resource>'
 
     @expose(content_type="text/xml")
     def post(self, *path, **kw):
