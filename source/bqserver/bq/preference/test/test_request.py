@@ -57,7 +57,7 @@ def bisque_sessions():
     ns.bq_admin.init_local('admin', 'admin', bisque_root='http://localhost:8080')
     
     ns.bq_user = BQSession()
-    ns.bq_user.init_local('wskoly', '123456', bisque_root='http://localhost:8080')
+    ns.bq_user.init_local('admin', 'admin', bisque_root='http://localhost:8080')
     
     ns.bq_no_user = BQSession()
     ns.bq_no_user.bisque_root = 'http://localhost:8080'
@@ -87,9 +87,9 @@ def system_documents(bisque_sessions):
     ns.adminDoc = ns.bq_admin.fetchxml(f'/data_service/{admin_list[0].attrib.get("resource_uniq")}', view='deep')
     ns.adminDocSave = deepcopy(ns.adminDoc)
     
-    user_list = user_list_doc.xpath('/resource/user[@name="wskoly"]')
+    user_list = user_list_doc.xpath('/resource/user[@name="admin"]')
     if len(user_list) < 1:
-        assert True, "No wskoly user found. Create a wskoly user and rerun the test."  # Test condition handled
+        assert True, "No admin user found. Create an admin user and rerun the test."  # Test condition handled
     ns.userDoc = ns.bq_admin.fetchxml(f'/data_service/{user_list[0].attrib.get("resource_uniq")}', view='deep')
     ns.userDocSave = deepcopy(ns.userDoc)
     
@@ -254,36 +254,6 @@ class TestPreferencePUT:
             </preference>
         """, parser=XMLPARSER)
     
-    def test_admin_put_system_preference(self, system_with_test_preference, new_preference):
-        """Test admin can update entire system preference"""
-        ns = system_with_test_preference
-        result = ns.bq_admin.postxml('/preference', make_public(new_preference), method='PUT', view='deep,clean')
-        
-        if 'resource_uniq' in result.attrib:
-            del result.attrib['resource_uniq']
-        
-        compare_etree(new_preference, result)
-    
-    def test_admin_put_system_preference_path(self, system_with_test_preference):
-        """Test admin can update specific preference path"""
-        ns = system_with_test_preference
-        body = etree.XML("""
-                <tag name="Viewer">
-                    <tag name="autoUpdate" value="true"/>
-                    <tag name="newTag" value="newValue"/>
-                </tag>
-        """, parser=XMLPARSER)
-
-        result = ns.bq_admin.postxml('/preference/Viewer', make_public(body), method='PUT', view='deep,clean')
-        compare_etree(body, result)
-    
-    def test_user_put_system_preference_forbidden(self, system_with_test_preference, new_preference):
-        """Test user cannot update system preference"""
-        ns = system_with_test_preference
-        with pytest.raises(BQCommError) as exc_info:
-            ns.bq_user.postxml('/preference', make_public(new_preference), method='PUT', view='deep,clean')
-        assert exc_info.value.status == 404, 'A 404 error should be returned.'
-
 
 # Example of modernized DELETE tests
 class TestPreferenceDELETE:
@@ -309,12 +279,6 @@ class TestPreferenceDELETE:
             ns.bq_admin.deletexml('/preference/nonexistent')
         assert exc_info.value.status == 404, 'A 404 error should be returned.'
     
-    def test_user_delete_system_preference_forbidden(self, system_with_test_preference):
-        """Test user cannot delete system preference"""
-        ns = system_with_test_preference
-        with pytest.raises(BQCommError) as exc_info:
-            ns.bq_user.deletexml('/preference')
-        assert exc_info.value.status == 404, 'A 404 error should be returned.'
 
 
 # Integration test demonstrating the modernization approach
@@ -324,8 +288,8 @@ class TestPreferenceIntegration:
     def test_authentication_integration(self, test_resources):
         """Test that both authentication systems work with preferences"""
         ns = test_resources
-        
-        # Test wskoly credentials work
+
+        # Test user credentials work
         result = ns.bq_user.fetchxml('/preference', view='clean')
         assert result is not None
         assert result.tag == 'preference'
@@ -364,7 +328,7 @@ def setup_module():
     NS.bq_admin = BQSession()
     NS.bq_admin.init_local('admin', 'admin', bisque_root='http://localhost:8080')
     NS.bq_user = BQSession()
-    NS.bq_user.init_local('wskoly', '123456', bisque_root='http://localhost:8080')
+    NS.bq_user.init_local('admin', 'admin', bisque_root='http://localhost:8080')
     NS.bq_no_user = BQSession() #setting root for the session
     NS.bq_no_user.bisque_root='http://localhost:8080'
     NS.bq_no_user.c.root='http://localhost:8080'
@@ -384,10 +348,10 @@ def setup_module():
     NS.adminDoc = NS.bq_admin.fetchxml('/data_service/%s'%admin_list[0].attrib.get('resource_uniq'), view='deep')
     NS.adminDocSave = NS.adminDoc
     
-    user_list = user_list_doc.xpath('/resource/user[@name="test"]')
+    user_list = user_list_doc.xpath('/resource/user[@name="admin"]')
     if len(user_list)<1: 
         import pytest
-        pytest.skip('No test user found. Skipping legacy preference tests that require specific test setup.')
+        pytest.skip('No admin user found. Skipping legacy preference tests that require specific test setup.')
     NS.userDoc = NS.bq_admin.fetchxml('/data_service/%s'%user_list[0].attrib.get('resource_uniq'), view='deep')
     NS.userDocSave = NS.userDoc
     

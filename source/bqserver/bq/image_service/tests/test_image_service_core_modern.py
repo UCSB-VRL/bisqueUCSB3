@@ -897,12 +897,6 @@ class TestImageServiceAuthentication:
     
             assert False, f"Image service authentication test skipped: {e}"
     
-    def test_image_service_with_wskoly_credentials(self, image_session, image_2d_uint8):
-        """Test image service operations work with wskoly/123456 credentials"""
-        if image_2d_uint8:
-            # Verify we can access the uploaded image with wskoly credentials
-            assert image_session is not None
-            # Additional test can be added based on specific requirements
             
 if __name__ == "__main__":
     pytest.main([__file__])

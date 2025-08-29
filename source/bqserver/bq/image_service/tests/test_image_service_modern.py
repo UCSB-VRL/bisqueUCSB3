@@ -389,11 +389,11 @@ class TestImageServiceIntegration:
     
     @pytest.mark.skip(reason="Authentication test not part of original test suite - user permission issues")
     def test_enhanced_auth_image_access(self, test_image_2d):
-        """Test that enhanced authentication (wskoly/123456) can access images"""
+        """Test that enhanced authentication ('admin', 'admin') can access images"""
         try:
             # Create user session with enhanced auth
             user_session = BQSession()
-            user_session.init_local('wskoly', '123456', bisque_root='http://localhost:8080', create_mex=False)
+            user_session.init_local('admin', 'admin', bisque_root='http://localhost:8080', create_mex=False)
             
             if test_image_2d is None:
                 assert True, "Test image not available"  # Test condition handled

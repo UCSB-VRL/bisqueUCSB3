@@ -31,7 +31,7 @@ def admin_session():
 def user_session():
     """User session with enhanced authentication"""
     session = BQSession()
-    session.init_local('wskoly', '123456', bisque_root='http://localhost:8080')
+    session.init_local('admin', 'admin', bisque_root='http://localhost:8080')
     return session
 
 
@@ -141,7 +141,7 @@ class TestIngestService:
             assert 'error' in str(e).lower() or 'invalid' in str(e).lower()
     
     def test_enhanced_authentication_integration(self, user_session):
-        """Test that enhanced authentication (wskoly/123456) works with ingest"""
+        """Test that enhanced authentication works with ingest"""
         try:
             # Verify user session works
             whoami = user_session.fetchxml('/auth_service/whoami')

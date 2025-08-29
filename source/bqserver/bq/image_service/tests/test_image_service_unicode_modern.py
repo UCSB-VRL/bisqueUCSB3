@@ -154,10 +154,6 @@ class TestUnicodeAuthentication:
         except Exception as e:
             assert False, f"Unicode service authentication test skipped: {e}"
 
-    def test_unicode_service_with_wskoly_credentials(self, admin_session):
-        """Test unicode service operations work with wskoly/123456 credentials"""
-        assert admin_session is not None
-        # Additional test can be added based on specific requirements
 
 if __name__ == "__main__":
     pytest.main([__file__])

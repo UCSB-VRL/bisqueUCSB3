@@ -133,10 +133,6 @@ class TestTilesAuthentication:
         except Exception as e:
             assert False, f"Tile service authentication test skipped: {e}"
 
-    def test_tiles_service_with_wskoly_credentials(self, admin_session):
-        """Test tile service operations work with wskoly/123456 credentials"""
-        assert admin_session is not None
-        # Additional test can be added based on specific requirements
 
 if __name__ == "__main__":
     pytest.main([__file__])

@@ -40,7 +40,7 @@ def user_session(bisque_config):
     session = BQSession().init_local(
         bisque_config['test_user'],
         bisque_config['test_pass'],
-        bisque_root=bisque_config['root'], 
+        bisque_root=bisque_config['root'],
         create_mex=False
     )
     return session

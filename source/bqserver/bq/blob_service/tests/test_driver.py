@@ -21,7 +21,7 @@ def admin_session():
 def user_session():
     """User session with enhanced authentication"""
     session = BQSession()
-    session.init_local('wskoly', '123456', bisque_root='http://localhost:8080')
+    session.init_local('admin', 'admin', bisque_root='http://localhost:8080')
     return session
 
 
