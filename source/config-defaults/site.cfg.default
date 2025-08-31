@@ -120,6 +120,7 @@ bisque.blob_service.subtransaction = true
 # Ordered list of stores .. path is created based on template
 # bisque.blob_service.stores = irods1,s3,local
 bisque.blob_service.stores=local
+bisque.blob_service.cache_max_age = 3628800
 bisque.stores.local.mounturl = file://$datadir/imagedir/$user/
 bisque.stores.local.top = file://$datadir/imagedir/
 
@@ -155,6 +156,7 @@ bisque.stores.local.top = file://$datadir/imagedir/
 # Image Service
 #bisque.image_service.work_dir  = ./data/workdir
 bisque.image_service.imgcnv.omp_num_threads = 4
+bisque.image_service.cache_max_age = 3628800
 
 # Import service
 bisque.import_service.upload_dir = ./data/uploads

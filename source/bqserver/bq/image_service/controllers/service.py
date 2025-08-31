@@ -57,7 +57,11 @@ def get_image_id(url):
 
 def cache_control (value):
     tg.response.headers.pop('Pragma', None)
-    tg.response.headers['Cache-Control'] = value
+    max_age = config.get('bisque.image_service.cache_max_age', 3600)
+    if 'max-age' in value:
+        tg.response.headers['Cache-Control'] = value
+    else:
+        tg.response.headers['Cache-Control'] = f'{value}, max-age={max_age}'
 
 class ImageServiceController(ServiceController):
     #Uncomment this line if your controller requires an authenticated user
@@ -394,7 +398,8 @@ class ImageServiceController(ServiceController):
                             content_disposition=disposition)
 
             # Inject Cache-Control manually via response headers
-            tg.response.headers['Cache-Control'] = 'public, max-age=%d' % (60*60*24*7*6)  # 6 weeks
+            max_age = config.get('bisque.image_service.cache_max_age', 3600)
+            tg.response.headers['Cache-Control'] = f'public, max-age={max_age}'
             return use_wsgi_app(fileapp)
 
         # log.info(f"------- request image id:{ident} token = {token}-----")

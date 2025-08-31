@@ -378,9 +378,11 @@ class BlobServer(RestController, ServiceMixin):
                 disposition = '%sfilename="%s"; filename*="%s"'%(disposition, filename.encode('utf8'), filename.encode('utf8'))
 
             content_type = self.guess_mime(filename)
+            from tg import config
+            max_age = config.get('bisque.blob_service.cache_max_age', 60*60*24*7*6)  # default 6 weeks
             return forward(BQFileApp(localpath,
                                      content_type=content_type,
-                                     content_disposition=disposition,).cache_control(max_age=60*60*24*7*6)) # 6 weeks
+                                     content_disposition=disposition,).cache_control(max_age=max_age))
         except IllegalOperation:
             abort(404, "Error occurent fetching blob")
 
