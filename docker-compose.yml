@@ -39,8 +39,32 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+    # depends_on:
+    #   postgres:
+    #     condition: service_healthy
     networks:
       - bisque-net
+
+  # if we want a proper postgres container
+  # postgres:
+  #   image: postgres:15
+  #   container_name: bisque-postgres
+  #   environment:
+  #     POSTGRES_DB: bisque
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U postgres"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   networks:
+  #     - bisque-net
 
 volumes:
   # Named volumes for persistent data
@@ -56,6 +80,8 @@ volumes:
     driver: local
   bisque_staging:
     driver: local
+  # postgres_data:
+  #   driver: local
 
 networks:
   bisque-net:
