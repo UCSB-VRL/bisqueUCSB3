@@ -89,3 +89,10 @@ xlrd==2.0.1 #for old xls files
 Paver==1.2.4
 # Openslide for converter
 openslide-python==1.4.1
+
+# Firebase authentication dependencies
+firebase-admin==6.5.0
+google-auth==2.25.2
+google-auth-oauthlib==1.2.0
+google-auth-httplib2==0.2.0
+PyJWT==2.8.0

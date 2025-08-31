@@ -31,6 +31,12 @@ use = bq.core.lib.mex_auth:make_plugin
 [plugin:autoregister]
 use = bq.core.lib.autoreg:AutoRegister
 
+# Firebase Authentication Plugin (optional)
+# Uncomment to enable Firebase social authentication
+[plugin:firebase_auth]
+use = bq.core.lib.firebase_auth:make_plugin
+auto_register = autoregister
+
 
 ################# OPTIONAL PLUGINS #######################
 
@@ -121,6 +127,7 @@ plugins =
     auth_tkt
     basicauth
     mexauth
+    firebase_auth
 
 [challengers]
 plugins =
@@ -137,6 +144,7 @@ plugins =
     mexauth
 #    cas_auth
 #    openid_auth
+    firebase_auth
 
 
 [mdproviders]

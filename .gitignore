@@ -234,3 +234,5 @@ builder/start-scripts.d/
 source/Results/
 source/SampleData/
 source/images/
+
+source/*-firebase-adminsdk*.json
