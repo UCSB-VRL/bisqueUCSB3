@@ -136,7 +136,12 @@ def parse_imgcnv_info(s):
 def metadata_read( filename ):
     command = [IMGCNV, '-i', filename, '-meta']
     r = Popen (command, stdout=PIPE).communicate()[0]
-    if r is None or r.startswith('Input format is not supported'):
+    if r is None:
+        return None
+    # Decode bytes to string for Python 3 compatibility
+    if isinstance(r, bytes):
+        r = r.decode('utf-8', errors='ignore')
+    if r.startswith('Input format is not supported'):
         return None
     return parse_imgcnv_info(r)
 
@@ -150,38 +155,36 @@ class ImageServiceTestBase(unittest.TestCase):
     """
 
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         config = configparser.ConfigParser()
         config.read('config.cfg')
 
-        self.root = config.get('Host', 'root') or 'localhost:8080'
-        self.user = config.get('Host', 'user') or 'test'
-        self.pswd = config.get('Host', 'password') or 'test'
+        cls.root = config.get('Host', 'root') or 'localhost:8080'
+        cls.user = config.get('Host', 'user') or 'test'
+        cls.pswd = config.get('Host', 'password') or 'test'
 
-        self.session = BQSession().init_local(self.user, self.pswd,  bisque_root=self.root, create_mex=False)
+        cls.session = BQSession().init_local(cls.user, cls.pswd,  bisque_root=cls.root, create_mex=False)
 
         # download and upload test images ang get their IDs
         #self.uniq_2d_uint8  = self.ensure_bisque_file(image_rgb_uint8)
         #self.uniq_3d_uint16 = self.ensure_bisque_file(image_zstack_uint16)
 
     @classmethod
-    def tearDownClass(self):
-        #self.delete_resource(self.uniq_2d_uint8)
-        #self.delete_resource(self.uniq_3d_uint16)
-        self.cleanup_tests_dir()
+    def tearDownClass(cls):
+        #cls.delete_resource(cls.uniq_2d_uint8)
+        #cls.delete_resource(cls.uniq_3d_uint16)
+        cls.cleanup_tests_dir()
         pass
 
-    @classmethod
     def fetch_file(self, filename):
         _mkdir(local_store_images)
         _mkdir(local_store_tests)
-        url = posixpath.join(url_image_store, filename).encode('utf-8')
+        url = posixpath.join(url_image_store, filename)  # Keep as string, don't encode
         path = os.path.join(local_store_images, filename)
         if not os.path.exists(path):
             urllib.request.urlretrieve(url, path)
         return path
 
-    @classmethod
     def upload_file(self, path, resource=None):
         #if resource is not None:
         #    print etree.tostring(resource)
@@ -192,7 +195,6 @@ class ImageServiceTestBase(unittest.TestCase):
         print('Uploaded id: %s url: %s'%(r.get('resource_uniq'), r.get('uri')))
         return r
 
-    @classmethod
     def delete_resource(self, r):
         if r is None:
             return
@@ -200,7 +202,6 @@ class ImageServiceTestBase(unittest.TestCase):
         print('Deleting id: %s url: %s'%(r.get('resource_uniq'), url))
         self.session.deletexml(url)
 
-    @classmethod
     def delete_package(self, package):
         if 'dataset' in package:
             # delete dataset
@@ -237,7 +238,6 @@ class ImageServiceTestBase(unittest.TestCase):
         #         except BQCommError:
         #             print 'Error deleting the item'
 
-    @classmethod
     def ensure_bisque_file(self, filename, metafile=None):
         path = self.fetch_file(filename)
         if metafile is None:
@@ -249,7 +249,6 @@ class ImageServiceTestBase(unittest.TestCase):
             return self.upload_file(path, resource=etree.parse(metafile).getroot())
 
 
-    @classmethod
     def ensure_bisque_package(self, package):
         path = self.fetch_file(package['file'])
         r = self.upload_file(path, resource=etree.XML(package['resource']))
@@ -275,7 +274,7 @@ class ImageServiceTestBase(unittest.TestCase):
 
 
     @classmethod
-    def cleanup_tests_dir(self):
+    def cleanup_tests_dir(cls):
         print('Cleaning-up %s'%local_store_tests)
         for root, dirs, files in os.walk(local_store_tests, topdown=False):
             for name in files:

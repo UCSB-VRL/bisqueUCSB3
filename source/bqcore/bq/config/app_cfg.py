@@ -195,13 +195,14 @@ class BisqueAppConfig(AppConfig):
             config['use_transaction_manager'] = False
             config['has_database'] = False
             log.info ("NO DATABASE is configured")
-            return
+            return app
         log.info ("DATABASE %s", sqlalchemy_url)
         config['bisque.has_database'] = True
         self.has_database = True
         if not sqlalchemy_url.startswith('sqlite://'):
-            return super(BisqueAppConfig, self).setup_sqlalchemy()
-        log.info ("SQLLite special handling NullPool timoout")
+            # For non-SQLite databases, let TG handle SQLAlchemy setup automatically
+            return app
+        log.info ("SQLLite special handling NullPool timeout")
         from sqlalchemy.pool import NullPool
         from sqlalchemy import engine_from_config
         engine = engine_from_config(config, 'sqlalchemy.',

@@ -21,8 +21,13 @@ port = 8080
 
 [app:main]
 use = config:site.cfg
-sqlalchemy.url = sqlite:///./test1.db
+sqlalchemy.url = sqlite:///./data/bisque.db
 skip_authentication = true
+
+[app:main_with_auth]
+use = config:site.cfg
+sqlalchemy.url = sqlite:///./data/bisque.db
+skip_authentication = false
 
 
 

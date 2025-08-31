@@ -15,6 +15,7 @@ downloads/
 eggs/
 .eggs/
 lib/
+!source/**/lib/
 lib64/
 parts/
 sdist/
@@ -230,3 +231,9 @@ Thumbs.db
 /source/external/*
 
 builder/start-scripts.d/
+
+source/Results/
+source/SampleData/
+source/images/
+
+source/*-firebase-adminsdk*.json

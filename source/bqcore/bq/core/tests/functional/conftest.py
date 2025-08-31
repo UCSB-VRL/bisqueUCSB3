@@ -15,11 +15,12 @@ from bq.core.tests import setup_db, teardown_db
 def app():
     """Returns a functional test app with authentication enabled."""
     conf_dir = "config"
-    section = "main"
+    section = "main_with_auth"  # Use config section with authentication enabled
     wsgiapp = loadapp(f"config:test.ini#{section}", relative_to=conf_dir)
     test_file = path.join(conf_dir, "test.ini")
     SetupCommand("setup-app").run([test_file])
-    return TestApp(wsgiapp)
+    app = TestApp(wsgiapp)
+    return app
 
 
 

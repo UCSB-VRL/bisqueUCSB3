@@ -1915,76 +1915,76 @@ class RegistrationController(BaseController):
     # DEBUG ENDPOINT (temporary for troubleshooting)
     # =========================================
 
-    @expose("json")
-    def debug_user_tags(self, username=None):
-        """Debug endpoint to check user tags - temporary for troubleshooting"""
-        from tg import request
-        from bq.data_service.model import BQUser
-        from bq.data_service.model.tag_model import Tag
+    # @expose("json")
+    # def debug_user_tags(self, username=None):
+    #     """Debug endpoint to check user tags - temporary for troubleshooting"""
+    #     from tg import request
+    #     from bq.data_service.model import BQUser
+    #     from bq.data_service.model.tag_model import Tag
 
-        if not username:
-            if not request.identity or not request.identity.get("repoze.who.userid"):
-                return {"error": "Not logged in and no username provided"}
-            current_user = request.identity.get("user")
-            username = current_user.user_name if current_user else None
+    #     if not username:
+    #         if not request.identity or not request.identity.get("repoze.who.userid"):
+    #             return {"error": "Not logged in and no username provided"}
+    #         current_user = request.identity.get("user")
+    #         username = current_user.user_name if current_user else None
 
-        if not username:
-            return {"error": "No username available"}
+    #     if not username:
+    #         return {"error": "No username available"}
 
-        try:
-            # Find the user
-            bq_user = (
-                DBSession.query(BQUser).filter(BQUser.resource_name == username).first()
-            )
-            if not bq_user:
-                return {"error": f"User {username} not found"}
+    #     try:
+    #         # Find the user
+    #         bq_user = (
+    #             DBSession.query(BQUser).filter(BQUser.resource_name == username).first()
+    #         )
+    #         if not bq_user:
+    #             return {"error": f"User {username} not found"}
 
-            # Get all tags for this user
-            tags = DBSession.query(Tag).filter(Tag.parent == bq_user).all()
+    #         # Get all tags for this user
+    #         tags = DBSession.query(Tag).filter(Tag.parent == bq_user).all()
 
-            result = {
-                "user_id": bq_user.id,
-                "username": bq_user.resource_name,
-                "email": bq_user.resource_value,
-                "total_tags": len(tags),
-                "tags": [],
-            }
+    #         result = {
+    #             "user_id": bq_user.id,
+    #             "username": bq_user.resource_name,
+    #             "email": bq_user.resource_value,
+    #             "total_tags": len(tags),
+    #             "tags": [],
+    #         }
 
-            for tag in tags:
-                result["tags"].append(
-                    {
-                        "id": tag.id,
-                        "name": tag.name,
-                        "value": tag.value,
-                        "owner_id": tag.owner_id,
-                    }
-                )
+    #         for tag in tags:
+    #             result["tags"].append(
+    #                 {
+    #                     "id": tag.id,
+    #                     "name": tag.name,
+    #                     "value": tag.value,
+    #                     "owner_id": tag.owner_id,
+    #                 }
+    #             )
 
-            # Test findtag method
-            result["findtag_test"] = {}
-            test_tags = [
-                "display_name",
-                "fullname",
-                "research_area",
-                "institution_affiliation",
-                "funding_agency",
-            ]
-            for tag_name in test_tags:
-                found_tag = bq_user.findtag(tag_name)
-                if found_tag:
-                    result["findtag_test"][tag_name] = {
-                        "found": True,
-                        "id": found_tag.id,
-                        "value": found_tag.value,
-                    }
-                else:
-                    result["findtag_test"][tag_name] = {"found": False}
+    #         # Test findtag method
+    #         result["findtag_test"] = {}
+    #         test_tags = [
+    #             "display_name",
+    #             "fullname",
+    #             "research_area",
+    #             "institution_affiliation",
+    #             "funding_agency",
+    #         ]
+    #         for tag_name in test_tags:
+    #             found_tag = bq_user.findtag(tag_name)
+    #             if found_tag:
+    #                 result["findtag_test"][tag_name] = {
+    #                     "found": True,
+    #                     "id": found_tag.id,
+    #                     "value": found_tag.value,
+    #                 }
+    #             else:
+    #                 result["findtag_test"][tag_name] = {"found": False}
 
-            return result
+    #         return result
 
-        except Exception as e:
-            log.error(f"Error in debug_user_tags: {e}")
-            return {"error": str(e)}
+    #     except Exception as e:
+    #         log.error(f"Error in debug_user_tags: {e}")
+    #         return {"error": str(e)}
 
     # =========================================
     # END DEBUG SECTION

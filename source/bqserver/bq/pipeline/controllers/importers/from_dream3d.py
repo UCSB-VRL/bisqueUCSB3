@@ -86,9 +86,26 @@ def _set_parameter(step, param_name, param_value):
 def upload_dream3d_pipeline(uf, intags):
     # analyze DREAM.3D pipeline and replace illegal operations with BisQue operations
     pipeline = {}
-    with open(uf.localpath(), 'r') as fo:
+    filepath = uf.localpath()
+    if filepath is None:
+        log.debug('upload_dream3d_pipeline file object has no local path: [%s], move local', uf.fileobj)
+        # Create a temporary directory for the file
+        import tempfile
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            if uf.fileobj is not None:
+                tmp.write(uf.fileobj.read())
+                uf.fileobj.seek(0)  # rewind
+                filepath = tmp.name
+            else:
+                log.error("No fileobj available for Dream3D pipeline")
+                return []
+    
+    with open(filepath, 'r') as fo:
         pipeline = dream3d_to_json(fo)
     uf.close()
+    # Clean up temporary file if created
+    if filepath != uf.localpath() and os.path.exists(filepath):
+        os.unlink(filepath)
     # walk the pipeline and replace any incompatible steps with BisQue steps as well as possible
     new_pipeline = { '__Header__': pipeline['__Header__'] }
     new_step_id = 0
@@ -153,7 +170,7 @@ def upload_dream3d_pipeline(uf, intags):
     new_pipeline['__Header__']['ModuleCount'] = str(len(new_pipeline)-1)
     # write modified pipeline back for ingest
     ftmp = tempfile.NamedTemporaryFile(delete=False)
-    ftmp.write(json_to_dream3d(new_pipeline))
+    ftmp.write(json_to_dream3d(new_pipeline).encode('utf-8'))
     ftmp.close()
     # ingest modified pipeline
     res = []

@@ -11,6 +11,9 @@
 -e ./legacy_upgraded/WebHelpers-2.0
 -e ./legacy_upgraded/paste-103.10.1 # modified paste to address some issues
 
+#install pytest-bisque plugin for test
+-e ./pytest-bisque
+
 alembic==1.15.2
 Beaker==1.13.0
 beautifulsoup4==4.13.4
@@ -97,3 +100,9 @@ pydicom==3.0.1
 #excel files
 openpyxl==3.1.4
 xlrd==2.0.1 #for old xls files
+
+# Openslide for converter
+openslide-python==1.4.1
+
+# for testing
+pytest==8.4.1

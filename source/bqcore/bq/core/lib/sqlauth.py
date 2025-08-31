@@ -113,15 +113,25 @@ def md_plugin(**kwargs):
                 
             try:
                 from bq.core.model import DBSession, User
+                from bq.data_service.model.tag_model import BQUser
                 
                 user = DBSession.query(User).filter(User.user_name == user_id).first()
                 if user:
-                    identity['user'] = user_id
-                    identity['user_id'] = user.resource_uniq
-                    identity['display_name'] = getattr(user, 'display_name', user_id)
-                    identity['email'] = getattr(user, 'email_address', '')
+                    # Get the BQUser associated with this User to access resource_uniq
+                    bq_user = DBSession.query(BQUser).filter(BQUser.resource_name == user.user_name).first()
+                    if bq_user:
+                        identity['user'] = user_id
+                        identity['user_id'] = bq_user.resource_uniq
+                        identity['display_name'] = getattr(user, 'display_name', user_id)
+                        identity['email'] = getattr(user, 'email_address', '')
+                    else:
+                        # Fallback when BQUser not found
+                        identity['user'] = user_id
+                        identity['user_id'] = user_id
+                        identity['display_name'] = getattr(user, 'display_name', user_id)
+                        identity['email'] = getattr(user, 'email_address', '')
                 else:
-                    # Fallback for admin
+                    # Fallback for admin or when user not found
                     identity['user'] = user_id
                     identity['user_id'] = user_id
                     identity['display_name'] = user_id
